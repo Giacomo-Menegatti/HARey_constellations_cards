@@ -1,18 +1,9 @@
-<<<<<<< HEAD
 # HARey constellations cards
 [Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time did not make it any easier for people to find the constellation in the night sky. So he redrew the constellations to be simple and easy to find, like the balls-and-sticks drawings used by astronomers today, but with a sheape that was much closer to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
 
 This project is my personal homage to his book _Find the Constellations_, which is intended for teaching kids stargazing. In this book I found expecially useful the Memory-like quiz system that presented the constellations with and without the diagram lines, which challenged people's minds to look at the stars and imagine the lines between them. This proved very, very effective when stargazing. 
 
 Thus was born this project: an attempt to create a real game of [Memory](https://en.wikipedia.org/wiki/Concentration_(card_game)) with cards that borrowed from H.A.Rey's beautifil drawings. _Imitation is the sincerest form of flattering_. And what skills I lack in drawing, I hopefully make up in python programming.
-=======
-# H.A.Rey constellations cards
-[Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time did not make it any easier for people to find the constellation in the night sky. So he redrew the constellations to be simple and easy to find, like the balls-and-sticks drawings used by astronomers today, but with a shape that was much closer to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
-
-This project is my personal homage to his book _Find the Constellations_, which is intended for teaching kids the fundamentals of stargazing. In this book I found especially useful the Memory-like quiz system that presented the constellations with and without the diagram lines, which challenged people's minds to look at the stars and imagine the lines between them. This proved very, very effective when stargazing. 
-
-Thus was born this project: an attempt to create a real game of [Memory](https://en.wikipedia.org/wiki/Concentration_(card_game)) with cards that took from H.Rey's beautiful drawings. _Imitation is the sincerest form of flattering_. And what skills I lack in drawing, I hopefully make up in python programming.
->>>>>>> 563360c (Added bleed, changed the pdf aspect)
 
 <p align="center">
   <img src="https://github.com/Giacomo-Menegatti/H.A.Rey_constellations_cards/blob/main/images/Ori_back_1.png" width="256">
@@ -22,21 +13,15 @@ Thus was born this project: an attempt to create a real game of [Memory](https:/
 
 
 ## Disclaimer
-<<<<<<< HEAD
-In no part of this work I made use of copyright protected material. The constellations diagrams data are found on the Sstellarium github repository, while the star markers and the cardback images are made by me using the InkScape software. 
+In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the stellarium github repository, while the star markers and the cardback images are my personal work in InkScape. The fonts used are free for personal use.
 
 
 ## Usage
 This project is based on the Stellarium [modern_rey](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern_rey) sky culture. [Stellarium](https://stellarium.org/it) is an open source planetarium software that shows the stars as they appear to the naked eye or a telescope. The sky cultures enable users to see different constellations diagrams than the ones used by the IAU. My project starts from the _index.json_ containing the constellations shapes and the Hipparcos star catalogue. 
-=======
-In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the stellarium github repository, while the star markers and the cardback images are my personal work in InkScape. The fonts used are free for personal use.
 
-## Usage
-For a complete example, see the __Constellations_memory_demo.ipynb__ notebook.
+For a complete example and explanation, see the __Constellations_memory_demo.ipynb__ notebook.
 
 ## Functions and Methods
->>>>>>> 563360c (Added bleed, changed the pdf aspect)
-
 
 Most of the methods rely on the same plotting functions, with the following flags common to most of them:
 - __LINES__ : Plot the constellation lines
