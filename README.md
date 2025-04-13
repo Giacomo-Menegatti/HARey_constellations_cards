@@ -1,6 +1,11 @@
 # HARey constellations cards
 [Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time did not make it any easier for people to find the constellation in the night sky. So he redrew the constellations to be simple and easy to find, like the balls-and-sticks drawings used by astronomers today, but with a sheape that was much closer to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
 
+
+<p align="center">
+<img src="https://images-na.ssl-images-amazon.com/images/I/716tfSmegfL._AC_UL210_SR210,210_.jpg" >
+</p>
+
 This project is my personal homage to his book _Find the Constellations_, which is intended for teaching kids stargazing. In this book I found expecially useful the Memory-like quiz system that presented the constellations with and without the diagram lines, which challenged people's minds to look at the stars and imagine the lines between them. This proved very, very effective when stargazing. 
 
 Thus was born this project: an attempt to create a real game of [Memory](https://en.wikipedia.org/wiki/Concentration_(card_game)) with cards that borrowed from H.A.Rey's beautifil drawings. _Imitation is the sincerest form of flattering_. And what skills I lack in drawing, I hopefully make up in python programming.
