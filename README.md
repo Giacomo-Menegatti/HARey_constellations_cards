@@ -8,12 +8,13 @@
 
 This project is my personal homage to his book _Find the Constellations_, which is intended for teaching kids stargazing. In this book I found expecially useful the Memory-like quiz system that presented the constellations with and without the diagram lines, which challenged people's minds to look at the stars and imagine the lines between them. This proved very, very effective when stargazing. 
 
-Thus was born this project: an attempt to create a real game of [Memory](https://en.wikipedia.org/wiki/Concentration_(card_game)) with cards that borrowed from H.A.Rey's beautifil drawings. _Imitation is the sincerest form of flattering_. And what skills I lack in drawing, I hopefully make up in python programming.
+Thus was born this project: an attempt to create a real game of [Memory](https://en.wikipedia.org/wiki/Concentration_(card_game)) with cards that borrowed from H.A.Rey's beautifil drawings: _Imitation is the sincerest form of flattering_. 
+And what skills I lack in drawing, I hopefully make up in python programming.
 
 <p align="center">
-  <img src="https://github.com/Giacomo-Menegatti/H.A.Rey_constellations_cards/blob/main/images/Ori_back_1.png" width="256">
-  <img src="https://github.com/Giacomo-Menegatti/H.A.Rey_constellations_cards/blob/main/images/Ori_bare_3.png" width="256">
-  <img src="https://github.com/Giacomo-Menegatti/H.A.Rey_constellations_cards/blob/main/images/Ori_lines_4.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_back_1.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_bare_3.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_lines_4.png" width="256">
 </p>
 
 
@@ -52,5 +53,8 @@ Importing the labels is done in the following way:
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
 
+<p align="center">
+<img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Sky_map_with_labels.png" width=600>
+</p>
 
 
