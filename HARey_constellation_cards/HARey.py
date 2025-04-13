@@ -1,0 +1,111 @@
+from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers
+from HARey_constellation_cards.sky_view import sky_view
+from HARey_constellation_cards.card_plot import card_plot
+from HARey_constellation_cards.card_template import card_template
+from HARey_constellation_cards.universal_sky_map import universal_sky_map
+from HARey_constellation_cards.print_and_play import print_and_play
+
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
+
+class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play):
+
+    # HARey main class, inherits from all the others. 
+    # This module contains the common methods and variables used by the other modules
+
+    def __init__(self,
+                 hip_file = 'utilities/hip_main.dat', 
+                 constellations_file = 'utilities/index.json',
+                 object_names = 'utilities/languages.csv',
+                 language = 'COMMON'):
+                
+        print('Loading constellations diagrams....    ', end=' ')
+        # Load constellation stars, lines, asterisms, helpers and names
+        self.constellations, self.constellation_ids, self.asterisms, self.helpers, self.named_stars, \
+            self.names = load_constellations(constellations_file, object_names, language)
+
+        print('Done!\nLoading star coordinates....    ', end=' ')
+        # Load the stars positions and magnitude
+        self.stars = load_stars(hip_file, self.constellations)
+
+        print('Done!\nLoading custom markers....      ', end=' ')
+        # Load the custom markers
+        self.markers, self.star_markers = load_markers(markers_folder='utilities/markers')
+        print('Done!')
+       
+        #Initialize graphical parameters to default values
+        self.limiting_magnitude = 8 # Maximum magnitude of plotted stars
+        self.bkg_star_size = 250  # Scaling value to display the smaller stars
+
+        #Relative star markers sizes in plots
+        self.star_sizes = (1, 0.65, 0.45, 0.35, 0.25, 0.15)
+
+        # Colors used in the plots
+        self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'navy', 
+                    'ecliptic':  'crimson', 'horizon': 'white', 'cardinal_markers': 'darkred', 
+                    'grid' : 'yellow', 'asterisms': 'limegreen', 'helpers': 'coral', 
+                    'starmap_border': 'gold', 'star_labels': 'gold', 'constellation_labels' : 'cyan',
+                    'ecliptic_label' : 'crimson', 'asterism_labels': 'lime', 'constellation_parts' : 'violet',
+                    'horizon_label' : 'white',
+                    
+                    'cardback_1':  'midnightblue', 'cardback_2': 'maroon',
+                    'accent_1': 'darkgoldenrod', 'accent_2': 'darkgoldenrod'}
+        
+
+        # Fonts used in the plots and the SIS script. To be able to use the SIS script,
+        # the font must be permanently installed on the system to be able to see it in Inkscape
+        self.fonts = {'labels': 'DejaVu Sans', 'cardback': 'DejaVu Sans'}
+        self.inkscape_font = 'DejaVu Sans'
+
+        # Read the card template module and overwrite its values
+        card_template.__init__(self, format='tarot-round', dpi=300, cardback_file='utilities/cardbacks/tarot_round.png')
+        
+
+    # Function to set the limiting magnitude
+    def set_limiting_magnitude(self, limiting_magnitude=8):
+        ''' Set the max magnitude of stars that will be plotted. The HIP catalogue goes up to 10, but 8
+            is a good limit to avoid plotting too many points.
+        '''
+        self.limiting_magnitude = limiting_magnitude
+
+
+    # Function to set the fonts that will be used
+    def set_fonts(self, labels_font_file = None, cards_font_file= None):
+        ''' Set the fonts used in the plot labels and the cardback names. Takes as input the .ttf files '''
+
+        if not labels_font_file == None:
+
+            labels_font = FontProperties(fname=labels_font_file)
+            print(f'Using {labels_font.get_name()} for plot labels')
+            self.fonts['labels'] = labels_font
+            self.inkscape_font = labels_font.get_name()
+
+        if not cards_font_file == None:
+
+            cards_font = FontProperties(fname=cards_font_file)
+            print(f'Using {cards_font.get_name()} for card names')
+            self.fonts['cardback'] = cards_font
+
+
+    # Function to set the colors palette used in the plots
+    def set_colors(self, dict):
+        ''' Set the colors use by the HARey module. Take a dictionary as input {color_key: color}'''
+        self.colors.update(dict)
+
+
+    # Function to plot the legend
+    def plot_legend(self, SAVE = False):
+        ''' Plot the HARey star magnitude legend'''
+
+        fig, ax = plt.subplots(figsize=(5,1), facecolor = self.colors['sky'])
+        ax.set_title('Star magnitude', color='w', fontsize=20)
+        ax.set_facecolor(self.colors['sky'])
+        for i in range(6):
+            ax.scatter(i, 0, marker = self.star_markers[i], s=800*self.star_sizes[i], linewidths=0, color=self.colors['star'])
+            ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
+        ax.set_axis_off()
+        ax.set_ylim(-0.4,0.2)
+        ax.set_xlim(-0.5,5.5)
+        if SAVE:
+            plt.savefig('magnitude_legend.png', bbox_inches = 'tight')
+        plt.show()
