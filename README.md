@@ -32,7 +32,7 @@ Most of the methods rely on the same plotting functions, with the following flag
 - __STAR_NAMES__ : Plot the brightest stars names
 - __SHOW__ : Show the image (default True)
 - __SAVE__ : Save the figure
-- __SIS_SCRIPT__ : Creates a Simple InkScape Script for the labels.
+- __SIS_SCRIPT__ : Creates a Simple InkScape Script to create the labels as interactive text windows.
 
 ## Inkscape
 When the labels are added to the image, they often end up overlapping and being difficult to see. I tried to use the adjustText library to get a Better result, but never got a satisfactory plot. For this reason I decided to focus on manually adjusting the labels in InkScape, where I did all the rest of the graphical work. This uses the Simple Inkscape Scripting extension, which enables python programs to create text windows in the svg image. 
