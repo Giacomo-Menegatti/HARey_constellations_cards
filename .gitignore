@@ -1,6 +1,6 @@
 # Ignore Card output and the other directories
-Card_output
-inkscape_scripts
+Card_output/
+inkscape_scripts/
 
 # Ignore the generated PDF files
 Cards.pdf
