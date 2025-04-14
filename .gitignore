@@ -3,7 +3,10 @@ Card_output/
 inkscape_scripts/
 
 # Ignore the generated PDF files
-Cards.pdf
+*.pdf
+
+# Ignore the local PNG files
+*.png
 
 # Ignore the prototype SVG files
 cardback.svg
