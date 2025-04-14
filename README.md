@@ -30,7 +30,7 @@ This project is based on the Stellarium [modern_rey](https://github.com/Stellari
 For a complete example and explanation, see the __Constellations_memory_demo.ipynb__ notebook.
 
 ## Translations
-In this project all the card names can be displayed in the native language. All the translations are contained in the __languages.csv__ file. Right now only IAU names, English (used by HARey) and Italian are present. New contributions are welcome, please open a pull request to edit the file.
+The translations for all the names are contained in the __languages.csv__ file. Right now only IAU names, English (used by HARey) and Italian are present. New contributions are welcome, please open a pull request to edit the file.
 
 ## Functions and Methods
 
