@@ -1,5 +1,5 @@
 # HARey constellations cards
-[Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time did not make it any easier for people to find the constellation in the night sky. So he redrew the constellations to be simple and easy to find, like the balls-and-sticks drawings used by astronomers today, but with a sheape that was much closer to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
+[Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time did not make it any easier for people to find the constellation in the night sky. So he redrew the constellations to be simple and easy to find, like the balls-and-sticks drawings used by astronomers today, but with a shape that was much closer to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
 
 
 <p align="center">
@@ -19,7 +19,7 @@ And what skills I lack in drawing, I hopefully make up in python programming.
 
 
 ## Disclaimer
-In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the stellarium github repository, while the star markers and the cardback images are my personal work in InkScape. The fonts used are free for personal use.
+In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the stellarium github repository, while the star markers and the cardback images are my personal work in [InkScape](https://inkscape.org). The fonts used are free for personal use.
 
 
 ## Usage
