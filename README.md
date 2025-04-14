@@ -23,9 +23,14 @@ In no part of this work I made use of copyright protected material. The constell
 
 
 ## Usage
+The aim of the project is to create a deck of memory cards to learn the constellations and find them in the night sky.
+
 This project is based on the Stellarium [modern_rey](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern_rey) sky culture. [Stellarium](https://stellarium.org/it) is an open source planetarium software that shows the stars as they appear to the naked eye or a telescope. The sky cultures enable users to see different constellations diagrams than the ones used by the IAU. My project starts from the _index.json_ containing the constellations shapes and the Hipparcos star catalogue. 
 
 For a complete example and explanation, see the __Constellations_memory_demo.ipynb__ notebook.
+
+## Translations
+In this project all the card names can be displayed in the native language. All the translations are contained in the __languages.csv__ file. Right now only IAU names, English (used by HARey) and Italian are present. New contributions are welcome, please open a pull request to edit the file.
 
 ## Functions and Methods
 
