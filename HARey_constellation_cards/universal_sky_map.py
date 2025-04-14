@@ -8,31 +8,39 @@ from matplotlib.colors import to_hex
 
 from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereographic_polar, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal
 
+'''This module contains the code to plot a universal map of the sky.
+	It contains the following functions:
+	- equatorial_map: plot a map of the whole sky around the equator with a Gall stereographic projection
+	- polar_map: plot a map of the sky around the poles with a stereographic projection
+'''
 
 class universal_sky_map:
-	''' Plot a universal map of the sky. The plotsis done with a stereographic projection at the 
+	''' Plot a universal map of the sky. The plot is done with a stereographic projection at the 
 		north and south poles, and with a Gall stereographic projection at the equator, to minimize the 
-		deformations that are inevitably created whena spherical surface is projected on a plane.
+		deformations that are inevitably created when spherical surface is projected on a plane.
 	'''
 
 	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150,  LINES=True, GRID = True, SHOW=True, SAVE=False, save_name = 'Equatorial_map.png',
                      CONSTELLATION_NAMES = False, CONSTELLATION_PARTS = False, STAR_NAMES = True, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7)):
-		'''Plot an equatorial Gall stereographic projection of the whole sky with 30° overlap
-          FOV is the filed of view of the sky (190 includes more stars than the ones visible). 
+		'''Plot an equatorial Gall stereographic projection of the whole sky
+		    The parameters are:
+			max_dims : the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
+			overlap : the overlap at the edges of the map (in degrees)
+			dec_FOV : the vertical field of view (in degrees)
+			save_name : the name of the file to save the plot
+			font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
 
-          The other flags are: 
-		  GRID : Plot the grid in the map view
-          LINES : Plot the constellation lines 
-          HELPERS : Plot the H.A.Rey helper lines 
-          SHOW : Show the plot or not 
-          SAVE : Save the plot with the given save_name 
-          SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-          CONSTELLATION_LABELS : Plot the constellation names 
-          CONSTELLATION_PARTS : Plot the constellation diagram parts 
-          STAR_NAMES : Plot the star names 
-          ASTERISMS : Plot the asterisms and their labels     
-
-		  font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism) 
+			The other flags are: 
+			GRID : Plot the grid in the map view
+			LINES : Plot the constellation lines 
+			HELPERS : Plot the H.A.Rey helper lines 
+			SHOW : Show the plot or not 
+			SAVE : Save the plot with the given save_name 
+			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+			CONSTELLATION_LABELS : Plot the constellation names 
+			CONSTELLATION_PARTS : Plot the constellation diagram parts 
+			STAR_NAMES : Plot the star names 
+			ASTERISMS : Plot the asterisms and their labels
           '''
 		
 		stars = self.stars
@@ -328,12 +336,9 @@ class universal_sky_map:
 
 
 
-
-
-
-
-
-
+#########################################################################################################################à
+##########################################################################################################################
+###########################################################################################################################
 
 
 
@@ -341,22 +346,24 @@ class universal_sky_map:
 	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, LINES=True, GRID=True, SHOW=True, SAVE=False, save_name = 'Northern_sky.png',
                      CONSTELLATION_NAMES = True, CONSTELLATION_PARTS = False, STAR_NAMES = True, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7)):
 		'''Plot a stereographic map of the stars near the poles.
-		FOV is the field of view of the sky 
+			The parameters are:
+			pole : the pole around which the plot is done, 'N' for north and 'S' for south
+			FOV : the total field of view (in degrees)
+			figsize : the diameter of the figure (in inches)
+			font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
 
-		The other flags are: 
-		pole = 'N' or 'S   
-		GRID : Plot the grid in the map view
-		LINES : Plot the constellation lines 
-		HELPERS : Plot the H.A.Rey helper lines 
-		SHOW : Show the plot or not 
-		SAVE : Save the plot with the given save_name 
-		SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-		CONSTELLATION_LABELS : Plot the constellation names 
-		CONSTELLATION_PARTS : Plot the constellation diagram parts 
-		STAR_NAMES : Plot the star names 
-		ASTERISMS : Plot the asterisms and their labels  
-		
-		font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)          
+			The other flags are: 
+			pole = 'N' or 'S   
+			GRID : Plot the grid in the map view
+			LINES : Plot the constellation lines 
+			HELPERS : Plot the H.A.Rey helper lines 
+			SHOW : Show the plot or not 
+			SAVE : Save the plot with the given save_name 
+			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+			CONSTELLATION_LABELS : Plot the constellation names 
+			CONSTELLATION_PARTS : Plot the constellation diagram parts 
+			STAR_NAMES : Plot the star names 
+			ASTERISMS : Plot the asterisms and their labels           
 		'''
 
 		stars = self.stars

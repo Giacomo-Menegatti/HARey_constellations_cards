@@ -5,6 +5,15 @@ import json
 from svgpathtools import svg2paths
 from svgpath2mpl import parse_path
 
+'''This module deals with loading the stars positions and the constellations information.
+    It contains the following functions:
+    - load_stars: read the Hipparcos catalogue and return the stars positions and magnitudes
+    - load_constellations: read the constellations from the Stellarium file and returns constellation names, ids of the constellations,
+        asterisms, helper lines and the stars names
+
+    - load_markers: read the svg files containing the markers and convert them to be used by matplotlib     
+    '''
+
 ########################################### Loading Stars and constellations ####################################
 
 # Function to read the HIPPARCOS catalogue

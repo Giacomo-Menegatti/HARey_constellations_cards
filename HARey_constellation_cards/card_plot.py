@@ -1,5 +1,3 @@
-#This module plots the costellation inside the card
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
@@ -10,11 +8,17 @@ import os
 
 from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec
 
+'''This module contains the code used to create the constellations cards. 
+    It has the following functions:
+    - project_constellation: to project the constellation on the card plane, find the north direction and the constellation boundaries
+    - plot_card: to plot the constellation on the card, inside the card template chosen by the user.
+    '''
+
 
 class card_plot:
     def project_constellation(self, constellation_id, BEST_AR=False):
 
-        '''Create a stereographic projection centerd on the constellation.
+        '''Create a stereographic projection centered on the constellation.
             Returns the projected star coordinates, the boundaries of the constellation, the projected ecliptic and the North direction. 
             If BEST_AR=True, rotates the constellation to maximize the aspect ratio (vertical spread versus horizontal spread), 
             otherwise all constellations are drawn North up. 
@@ -135,15 +139,19 @@ class card_plot:
     def plot_card(self, id, BEST_AR=False, LINES=True, SAVE=False, save_name=None, SHOW=True, 
                            CONSTELLATION_PARTS = False, STAR_NAMES = False, SIS_SCRIPT = False):
 
-        ''' Plot the constellation using the card template. The flags are:
-        
-          LINES : Plot the constellation lines 
-          BEST_AR : Rotate the constellation to completely fill the plot. Otherwise, plot with north side UP.
-          SHOW : Show the plot or not 
-          SAVE : Save the plot with the given save_name 
-          SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-          CONSTELLATION_PARTS : Plot the constellation diagram parts 
-          STAR_NAMES : Plot the star names           
+        ''' Plot the constellation using the current card template. 
+        The parameters are:
+            id : Constellation ID (e.g. 'And' for Andromeda)
+            save_name : Name of the file to save the plot. If None, it will be saved as id_lines.png or id_bare.png
+            
+        The flags are:
+            LINES : Plot the constellation lines 
+            BEST_AR : Rotate the constellation to completely fill the plot. Otherwise, plot with north side UP.
+            SHOW : Show the plot
+            SAVE : Save the plot with the given save_name 
+            SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+            CONSTELLATION_PARTS : Plot the constellation diagram parts 
+            STAR_NAMES : Plot the star names           
         '''
         # Default file name
         if save_name==None:

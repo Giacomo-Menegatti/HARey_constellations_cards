@@ -1,13 +1,19 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from matplotlib.colors import to_rgb, to_rgba
+from matplotlib.colors import to_rgba
 import numpy as np 
 import io
+
+'''This module contains the card templates parameters, such as width, height, dpi, roundness, etc.
+    It contains the following functions:
+    - set_card_template: set the card template and choose the correct parameters. 
+    - write_cardback: create the cardback and write the constellation name on it
+'''
 
 
 class card_template:
     ''' This modules defines the card format and properties.
-        The card templates must be a greyscale image with a DPI=300
+        The card templates used are greyscale images with DPI=300.
     '''
 
     def __init__(self, format='tarot', dpi=300, cardback_file='cardbacks/tarot_round.png'):
@@ -83,7 +89,8 @@ class card_template:
     # Function to color the cardback and write the name
     def write_cardback(self, id, main_color=None, accent_color=None, SHOW=True, SAVE=False, save_name=None):
         ''' Plot the cardback and write the constellation name on it, then save it 
-            The text is not wrapped automatically, new lines must be manually inserted where needed with \n        
+            The constellation name is not wrapped automatically, so new lines must be manually inserted in the languages.csv file
+            where needed.        
         '''     
         dpi = self.dpi 
                 

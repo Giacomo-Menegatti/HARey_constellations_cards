@@ -1,11 +1,29 @@
-
-from datetime import datetime
 import pytz
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 
+''' This module contains functions and utilities for astronomical computations:
+    # Coordinate conversions
+    - radec2altaz: to convert equatorial coordinates (RA, Dec) to alt-az coordinates
+    - ecliptic2radec: to convert ecliptic coordinates to equatorial coordinates
+    - date2julian: to convert a date to Julian date
 
+    # Observer object to create the view of the sky at the given time and place
+    - Observer class: to define the position of the observer and the time of observation
+    - Observer.at_time_utc: to set the time of observation in UTC
+    - Observer.at_time: to set the time of observation in local time'
+    
+    # Stereographic projection around a point
+    - stereographic_projection: to project the coordinates on a plane around a generic center
+    - stereographic_polar: to project the coordinates around a pole
+    - stereo_radius: to calculate the radius of the stereographic projection
+
+    # Equatorial Gall projection
+    - Gall_projection: to project the sphere onto the equatorial cylinder
+    - Gall_dims: to calculate the dimensions of the Gall projection
+    - Gall_vertical: to calculate the vertical dimension of the Gall projection
+    - Gall_horizontal: to calculate the horizontal dimension of the Gall projection
+'''
+### COORDINATE CONVERSIONS
 
 def date2julian(date):
     '''Convert the date and time given in Julian Date and time'''
@@ -17,31 +35,6 @@ def date2julian(date):
         (date.hour - 12)/24 + date.minute/1440 + date.second/86400
     
     return JD0
-
-class Observer():
-    def __init__(self, lat, long):
-        '''Define the coordinates of the observer as lat(degrees)N/S, long(degrees)E/O)'''    
-        lat_str, long_str = lat.strip(), long.strip()
-        self.lat = np.deg2rad(float(lat_str[:-1]))*(-1 if lat_str[-1]=='S' else 1)
-        self.long = np.deg2rad(float(long_str[:-1]))*(-1 if long_str[-1]=='O' else 1)
-        self.datetime_utc = None
-    
-    def at_time_utc(self, datetime_utc):
-        '''UTC time of the observer (a datetime object)'''
-        self.datetime_utc = datetime_utc
-
-    def at_time(self, datetime_local, timezone, is_dst=False):
-        '''Local time of the observer (datetime object) and timezone (pytz.timezone object)'''
-       
-        local_datetime = timezone.localize(datetime_local, is_dst=is_dst)
-        self.datetime_utc = local_datetime.astimezone(pytz.utc)
-
-    def __str__(self):
-        lat_str = f'{np.abs(np.rad2deg(self.lat)):.4f} {'N' if self.lat>0 else 'S'}'
-        long_str = f'{np.abs(np.rad2deg(self.long)):.4f} {'E' if self.long>0 else 'O'}'
-        date_str = self.datetime_utc.strftime('%d-%m-%Y  %H:%M')
-        return f'Observer position \n {lat_str}, {long_str}, \n time of observation \n {date_str} UTC '
-    
 
 def radec2altaz(ra_degrees, dec_degrees, observer):
     '''Return the Alt and Az coordinates of the stars for a given observer'''
@@ -70,6 +63,33 @@ def ecliptic2radec(ecliptic_long, ecliptic_lat):
     dec = np.arcsin(c_eps*np.sin(e_lat) + s_eps*np.cos(e_lat)*np.sin(e_long))
 
     return np.rad2deg(ra), np.rad2deg(dec)
+
+### OBSERVER CLASS
+
+class Observer():
+    def __init__(self, lat, long):
+        '''Define the coordinates of the observer as lat(degrees)N/S, long(degrees)E/O)'''    
+        lat_str, long_str = lat.strip(), long.strip()
+        self.lat = np.deg2rad(float(lat_str[:-1]))*(-1 if lat_str[-1]=='S' else 1)
+        self.long = np.deg2rad(float(long_str[:-1]))*(-1 if long_str[-1]=='O' else 1)
+        self.datetime_utc = None
+    
+    def at_time_utc(self, datetime_utc):
+        '''UTC time of the observer (a datetime object)'''
+        self.datetime_utc = datetime_utc
+
+    def at_time(self, datetime_local, timezone, is_dst=False):
+        '''Local time of the observer (datetime object) and timezone (pytz.timezone object)'''
+       
+        local_datetime = timezone.localize(datetime_local, is_dst=is_dst)
+        self.datetime_utc = local_datetime.astimezone(pytz.utc)
+
+    def __str__(self):
+        lat_str = f'{np.abs(np.rad2deg(self.lat)):.4f} {'N' if self.lat>0 else 'S'}'
+        long_str = f'{np.abs(np.rad2deg(self.long)):.4f} {'E' if self.long>0 else 'O'}'
+        date_str = self.datetime_utc.strftime('%d-%m-%Y  %H:%M')
+        return f'Observer position \n {lat_str}, {long_str}, \n time of observation \n {date_str} UTC '
+    
 
 
 
@@ -115,19 +135,21 @@ def stereographic_polar(ra, dec):
     stereo_radius = np.tan(np.pi/4 - dec/2)
     return stereo_radius * np.cos(ra), stereo_radius * np.sin(ra)
 
+def stereo_radius(fov):
+    '''Return the radius of the stereographic projection for a given Field of View
+        This is calculated as tan(FOV/2).
+    '''
+    return np.tan(np.deg2rad(fov)/4)
+
+
+### EQUATORIAL GALL PROJECTION
+
 def Gall_projection(ra, dec):
     ''' Computhe the Gall stereographic projection, (ra, dec) (degrees) to (x,y)
         the projection is x = ra/(sqrt(2)), y = (1 + sqrt(2)/2)tan(dec/2)
     '''
     ra, dec = np.deg2rad(ra), np.deg2rad(dec)
     return ra/np.sqrt(2), (1 + np.sqrt(2)/2) * np.tan(dec/2)
-
-
-def stereo_radius(fov):
-    '''Return the radius of the stereographic projection for a given Field of View
-        This is calculated as tan(FOV/2).
-    '''
-    return np.tan(np.deg2rad(fov)/4)
 
 def Gall_dims(ra_FOV, dec_FOV):
     '''Returns the width and height of a Gall projection, with ra_FOV and dec_FOV in degrees'''

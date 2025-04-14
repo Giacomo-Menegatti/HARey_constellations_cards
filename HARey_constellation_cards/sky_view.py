@@ -6,25 +6,31 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereographic_polar, stereographic_projection
+from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereographic_projection
+
+'''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
 class sky_view:
     def plot_sky_view(self, observer, FOV = 190, figsize = 8, LINES=True, SHOW=True, SAVE=False, save_name = 'Sky_map.png', font_sizes=(5,6,7), 
                      CONSTELLATION_NAMES = True, CONSTELLATION_PARTS = False, STAR_NAMES = True, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False):
         '''Plot an Alt-Az map of the stars seen by the observer.
-          FOV is the filed of view of the sky (190 includes more stars than the ones visible). 
+            FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
+            The parameters are:
+            - observer: an Observer object with the position and time of observation
+            - FOV: the field of view of the sky (in degrees)
+            - figsize: the diameter of the figure (in inches)
+            - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism) 
 
-          The other flags are: 
-          LINES : Plot the constellation lines 
-          HELPERS : Plot the H.A.Rey helper lines 
-          SHOW : Show the plot or not 
-          SAVE : Save the plot with the given save_name 
-          SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-          CONSTELLATION_LABELS : Plot the constellation names 
-          CONSTELLATION_PARTS : Plot the constellation diagram parts 
-          STAR_NAMES : Plot the star names 
-          ASTERISMS : Plot the asterisms and their labels           
-          font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism) 
+            The other flags are: 
+            LINES : Plot the constellation lines 
+            HELPERS : Plot the H.A.Rey helper lines 
+            SHOW : Show the plot or not 
+            SAVE : Save the plot with the given save_name 
+            SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+            CONSTELLATION_LABELS : Plot the constellation names 
+            CONSTELLATION_PARTS : Plot the constellation diagram parts 
+            STAR_NAMES : Plot the star names 
+            ASTERISMS : Plot the asterisms and their labels
           '''
         
         map_radius = 1.0  # The map has radius of one unit

@@ -8,6 +8,18 @@ from HARey_constellation_cards.print_and_play import print_and_play
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
+''' HARey main class: this module inherits from all the other modules.
+    It contains the following functions:
+    - HARey: main class that loads the stars, constellations, markers and language automatically
+
+    - set_limiting_magnitude: set the limiting magnitude of the stars to be plotted (higher values means more little stars in the background) 
+    - set_fonts: set the fonts used in the plots and the cardback
+    - set_colors: set the colors used in the plots
+
+    - plot_legend: plot the star magnitude legend, like HARey did
+    
+'''
+
 class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play):
 
     # HARey main class, inherits from all the others. 

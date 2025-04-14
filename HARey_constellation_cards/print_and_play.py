@@ -1,6 +1,11 @@
 import os
 from fpdf import FPDF
 
+'''This module automates creating a set of cards. It constains the following functions:
+    - print_card_set: create a complete set of cards for one constellations
+    - print_and_play: arrange all the cards inside a PDF ready to print
+'''
+
 class print_and_play:
 
     # Function to plot a card set
