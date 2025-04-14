@@ -78,9 +78,9 @@ class print_and_play:
 
             # When plotting the card backs, remember to add the bleed
             if p == 0:
-                pdf.image(f'Card_output/{card}', x_pos[x]-self.bleed, y_pos[y]-self.bleed, cw + 2*self.bleed, ch + 2*self.bleed)
+                pdf.image(f'{folder}/{card}', x_pos[x]-self.bleed, y_pos[y]-self.bleed, cw + 2*self.bleed, ch + 2*self.bleed)
             else:
-                pdf.image(f'Card_output/{card}', x_pos[x], y_pos[y], cw, ch)
+                pdf.image(f'{folder}/{card}', x_pos[x], y_pos[y], cw, ch)
 
         if CUTTING_HEPLERS:
 
