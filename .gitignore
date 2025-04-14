@@ -1,0 +1,12 @@
+# Ignore Card output and the other directories
+Card_output
+inkscape_scripts
+
+# Ignore the generated PDF files
+Cards.pdf
+
+# Ignore the prototype SVG files
+cardback.svg
+
+# ignore pycache files
+__pycache__/
