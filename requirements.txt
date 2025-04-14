@@ -1,0 +1,7 @@
+numpy 
+matplotlib 
+pandas
+
+fpdf
+svgpath2mpl
+svgpathtools
