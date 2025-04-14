@@ -96,7 +96,7 @@ def load_constellations(constellation_file, names_file, language='COMMON'):
 
 ############################# Load Markers #############################à
 
-def load_markers(markers_folder='utilities/markers'):
+def load_markers(markers_folder='markers'):
     '''Load the custom svg markers and convert them to be used by matplotlib'''
 
     #Load empty marker (background of all other markers)

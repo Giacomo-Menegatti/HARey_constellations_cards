@@ -10,7 +10,7 @@ class card_template:
         The card templates must be a greyscale image with a DPI=300
     '''
 
-    def __init__(self, format='tarot', dpi=300, cardback_file='utilities/cardbacks/tarot_round.png'):
+    def __init__(self, format='tarot', dpi=300, cardback_file='cardbacks/tarot_round.png'):
 
         # Default cardback color (will be redefined by the main module)
         self.main_color = 'black'
@@ -24,7 +24,7 @@ class card_template:
 
 
     # Function to read between the different cardbacks
-    def set_card_template(self, format='tarot-round', cardback_file='utilities/cardbacks/tarot_round.png'):
+    def set_card_template(self, format='tarot-round', cardback_file='cardbacks/tarot_round.png'):
     
         if format == 'tarot-round':
             #card dimensions and corner radius (inches)

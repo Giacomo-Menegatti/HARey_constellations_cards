@@ -14,9 +14,9 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
     # This module contains the common methods and variables used by the other modules
 
     def __init__(self,
-                 hip_file = 'utilities/hip_main.dat', 
-                 constellations_file = 'utilities/index.json',
-                 object_names = 'utilities/languages.csv',
+                 hip_file = 'hip_main.dat', 
+                 constellations_file = 'index.json',
+                 object_names = 'languages.csv',
                  language = 'COMMON'):
                 
         print('Loading constellations diagrams....    ', end=' ')
@@ -30,7 +30,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
 
         print('Done!\nLoading custom markers....      ', end=' ')
         # Load the custom markers
-        self.markers, self.star_markers = load_markers(markers_folder='utilities/markers')
+        self.markers, self.star_markers = load_markers(markers_folder='markers')
         print('Done!')
        
         #Initialize graphical parameters to default values
@@ -58,7 +58,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         self.inkscape_font = 'DejaVu Sans'
 
         # Read the card template module and overwrite its values
-        card_template.__init__(self, format='tarot-round', dpi=300, cardback_file='utilities/cardbacks/tarot_round.png')
+        card_template.__init__(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
         
 
     # Function to set the limiting magnitude
