@@ -50,10 +50,10 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         self.star_size = 100  # Scaling value to display the stars
 
         # Colors used in the plots
-        self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'navy', 
+        self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
                     'ecliptic':  'crimson', 'horizon': 'white', 'cardinal_markers': 'darkred', 
                     'grid' : 'yellow', 'asterisms': 'limegreen', 'helpers': 'coral', 
-                    'starmap_border': 'gold', 'star_labels': 'gold', 'constellation_labels' : 'cyan',
+                    'starmap_border': 'xkcd:gold', 'star_labels': 'gold', 'constellation_labels' : 'cyan',
                     'ecliptic_label' : 'crimson', 'asterism_labels': 'lime', 'constellation_parts' : 'violet',
                     'horizon_label' : 'white',
                     
