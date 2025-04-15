@@ -22,6 +22,9 @@ import numpy as np
     - Gall_dims: to calculate the dimensions of the Gall projection
     - Gall_vertical: to calculate the vertical dimension of the Gall projection
     - Gall_horizontal: to calculate the horizontal dimension of the Gall projection
+
+    # Star size from magnitude
+    - mag2size: to calculate the size of the stars from their magnitude
 '''
 ### COORDINATE CONVERSIONS
 
@@ -162,7 +165,11 @@ def Gall_vertical(dec):
 def Gall_horizontal(ra):
     return np.deg2rad(ra)/np.sqrt(2)
 
+############ STAR SIZE FROM MAGNITUDE ##########
 
+def mag2size(mag, step=4.5):
+    '''The luminosity of a star depend on the magnitude as F = F0 10**(-0.4*mag)
+        The luminosity initially is proprtional to the area of the star (so bigger stars look better),
+        then after the step value switches to length proportionality (so fainter stars look better) '''
 
-
-
+    return 10**(-0.2*mag) if mag < step else 10**(-0.4*(mag-step)-0.2*step)

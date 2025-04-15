@@ -1,11 +1,11 @@
-from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers
+from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers, plot_star_cmap
 from HARey_constellation_cards.sky_view import sky_view
 from HARey_constellation_cards.card_plot import card_plot
 from HARey_constellation_cards.card_template import card_template
 from HARey_constellation_cards.universal_sky_map import universal_sky_map
 from HARey_constellation_cards.print_and_play import print_and_play
+from HARey_constellation_cards.astro_projection import Observer
 
-import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
 ''' HARey main class: this module inherits from all the other modules.
@@ -20,7 +20,7 @@ from matplotlib.font_manager import FontProperties
     
 '''
 
-class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play):
+class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play, Observer):
 
     # HARey main class, inherits from all the others. 
     # This module contains the common methods and variables used by the other modules
@@ -47,10 +47,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
        
         #Initialize graphical parameters to default values
         self.limiting_magnitude = 8 # Maximum magnitude of plotted stars
-        self.bkg_star_size = 250  # Scaling value to display the smaller stars
-
-        #Relative star markers sizes in plots
-        self.star_sizes = (1, 0.65, 0.45, 0.35, 0.25, 0.15)
+        self.star_size = 100  # Scaling value to display the stars
 
         # Colors used in the plots
         self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'navy', 
@@ -103,21 +100,3 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
     def set_colors(self, dict):
         ''' Set the colors use by the HARey module. Take a dictionary as input {color_key: color}'''
         self.colors.update(dict)
-
-
-    # Function to plot the legend
-    def plot_legend(self, SAVE = False):
-        ''' Plot the HARey star magnitude legend'''
-
-        fig, ax = plt.subplots(figsize=(5,1), facecolor = self.colors['sky'])
-        ax.set_title('Star magnitude', color='w', fontsize=20)
-        ax.set_facecolor(self.colors['sky'])
-        for i in range(6):
-            ax.scatter(i, 0, marker = self.star_markers[i], s=800*self.star_sizes[i], linewidths=0, color=self.colors['star'])
-            ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
-        ax.set_axis_off()
-        ax.set_ylim(-0.4,0.2)
-        ax.set_xlim(-0.5,5.5)
-        if SAVE:
-            plt.savefig('magnitude_legend.png', bbox_inches = 'tight')
-        plt.show()

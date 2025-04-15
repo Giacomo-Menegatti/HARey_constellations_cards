@@ -136,37 +136,53 @@ class card_plot:
 
 
 
-    def plot_card(self, id, BEST_AR=False, LINES=True, SAVE=False, save_name=None, SHOW=True, 
-                           CONSTELLATION_PARTS = False, STAR_NAMES = False, SIS_SCRIPT = False):
+    def plot_card(self, id, HAREY=True, CON_LINES=False, BEST_AR=False, STAR_COLORS=False,
+                           CON_PARTS = False, STAR_NAMES = False, SIS_SCRIPT = False, 
+                           SHOW=True, SAVE=False, save_name=None, star_size = None):
 
         ''' Plot the constellation using the current card template. 
         The parameters are:
             id : Constellation ID (e.g. 'And' for Andromeda)
-            save_name : Name of the file to save the plot. If None, it will be saved as id_lines.png or id_bare.png
+            save_name : Name of the file in which the plot is saved. If None, it will be saved as id_lines.png or id_bare.png
+            star_size : Size of the stars. If None, it will be set to the default value specified in the class HARey
             
         The flags are:
-            LINES : Plot the constellation lines 
+            HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
+            CON_LINES : Plot the constellation lines 
             BEST_AR : Rotate the constellation to completely fill the plot. Otherwise, plot with north side UP.
-            SHOW : Show the plot
-            SAVE : Save the plot with the given save_name 
+            STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
+
             SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-            CONSTELLATION_PARTS : Plot the constellation diagram parts 
-            STAR_NAMES : Plot the star names           
+            CON_PARTS : Plot the constellation diagram parts 
+            STAR_NAMES : Plot the star names   
+
+            SHOW : Show the plot.
+            SAVE : Save the plot. If the save name is specified, is True by default        
         '''
+        
+        # If the save_name is not None, save automatically the plot
+        if not save_name == None:
+            SAVE = True
+
         # Default file name
-        if save_name==None:
-            save_name = f'{id}_{'lines' if LINES else 'bare'}.png'
+        if SAVE and save_name==None:
+            save_name = f'{id}_{'lines' if CON_LINES else 'bare'}.png'
                 
         #Get the custom markers
         limiting_magnitude = self.limiting_magnitude
         stars = self.stars
         constellations = self.constellations
         constellation_ids = self.constellation_ids
+        marker_size = self.star_size if star_size == None else star_size
+        star_sizes = marker_size*stars['size']
+    
 
         #Get the custom markers
         empty_marker = self.markers['empty']
         north_marker = self.markers['north']
-        star_markers = self.star_markers
+
+        # If HAREY, use the custom star markers, else use simple dots
+        star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
         colors = self.colors
         label_font = self.fonts['labels']
 
@@ -208,7 +224,7 @@ class card_plot:
         ax.set_aspect('equal')
         ax.set_axis_off()
         
-        if LINES:
+        if CON_LINES:
             for constellation_id in constellation_ids:
                 #Plot the central constellation a little more evident than the others
                 alpha = 1 if constellation_id == id else 0.5
@@ -220,34 +236,31 @@ class card_plot:
             ecliptic.set_clip_path(box)
 
         
-        # Stars that are not in a constellation shape are of 4th magnitude or higher and are represented with a dot
-        bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-        magnitude = stars['magnitude'][bkg_stars]
-        marker_size = self.bkg_star_size * 10 ** (magnitude / -2.5)
+       # Stars that are not in a constellation shape are represented with a dot
+        bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)        
+        color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=marker_size, color='white', marker='.', linewidths=0, zorder=2)
-        
-        # Plot the constellation stars with the custom markers
-        mag_class = np.vectorize(lambda x : 0 if x< 0.5 else 6 if x >= 5.5 or np.isnan(x) else np.round(x))(stars['magnitude'])
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.8)
 
         # Plot a blank circle around the stars to make them more evident
-        for i, (m, s) in enumerate(zip(star_markers,self.star_sizes)):
-            mask = np.logical_and(mag_class==i, -bkg_stars)
-            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=120*s, color=colors['sky'], linewidths=0, zorder=2)
-        
-         
-        for i, (m, s) in enumerate(zip(star_markers, self.star_sizes)):
-            # The stars that are part of the constellation are drawn a little more evident
-            mask = np.logical_and(mag_class==i, -bkg_stars)
-            mask_constellation = np.logical_and(mask, stars.constellation == id)
-            mask_others = np.logical_and(mask, stars.constellation != id)
+        for i, m in enumerate(star_markers):
+            # Get the stars that are part of a constellation shape
+            mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')            
 
-            ax.scatter(stars_x[mask_constellation], stars_y[mask_constellation], marker=m, s=100*s, color=colors['star'], linewidths=0, zorder=2)
-            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=100*s, color=colors['star'], linewidths=0, zorder=2, alpha=0.8)
+            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
+
+            # The stars that are part of the constellation are drawn a little more evident
+            mask_constellation = np.logical_and(mask, stars.constellation == id)
+            color = stars[mask_constellation]['color'] if STAR_COLORS else self.colors['star']
+            ax.scatter(stars_x[mask_constellation], stars_y[mask_constellation], marker=m, s=star_sizes[mask_constellation], color=color, linewidths=0, zorder=2)
+            
+            mask_others = np.logical_and(mask, stars.constellation != id)
+            color = stars[mask_others]['color'] if STAR_COLORS else self.colors['star']
+            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.8)
 
         #Plot the North indicator as last thing
-        if LINES: 
+        if CON_LINES: 
             #The angle is between -90 and 90 and plotted near the edge of the card
             pad = 0.7*self.pad*self.dpi
             # Angle of the intersection of the horizontal and vertical edge
@@ -289,7 +302,7 @@ class card_plot:
                 if str(star) in self.names:
                     plot_label(ax, self.names[str(star)], indexes = star, color=colors['star_labels'], fontsize=10, ha='center',va='top')
             
-        if CONSTELLATION_PARTS: 
+        if CON_PARTS: 
             # Plot constellation parts
             for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
                 plot_label(ax, self.names[key], indexes = constellations[key]['stars'], color=colors['constellation_parts'], fontsize=8, ha='center',va='center')
@@ -325,11 +338,11 @@ class card_plot:
                     
                 f.write('\n# Constellation parts labels\n')
                 # Plot constellation parts
-                if CONSTELLATION_PARTS:
+                if CON_PARTS:
                     for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
                         write_sis(f, self.names[key], constellations[key]['stars'], fontsize=8, color=colors['constellation_parts'])
 
-                if LINES:
+                if CON_LINES:
                     f.write('\n# Ecliptic label\n')
                     # Add a label close to the ecliptic if it is inside the constellation
                     mask = ((ecliptic_x > -width) & (ecliptic_x < width) & (ecliptic_y > -height) & (ecliptic_y < height)).tolist()

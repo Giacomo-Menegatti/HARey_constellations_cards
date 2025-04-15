@@ -11,27 +11,44 @@ from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2rad
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
 class sky_view:
-    def plot_sky_view(self, observer, FOV = 190, figsize = 8, LINES=True, SHOW=True, SAVE=False, save_name = 'Sky_map.png', font_sizes=(5,6,7), 
-                     CONSTELLATION_NAMES = True, CONSTELLATION_PARTS = False, STAR_NAMES = True, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False):
-        '''Plot an Alt-Az map of the stars seen by the observer.
-            FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
-            The parameters are:
-            - observer: an Observer object with the position and time of observation
-            - FOV: the field of view of the sky (in degrees)
-            - figsize: the diameter of the figure (in inches)
-            - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism) 
+    def plot_sky_view(self, observer,  FOV = 190, HAREY=True, CON_LINES=False, STAR_COLORS=False, 
+                           CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False,  SIS_SCRIPT = False, 
+                           SHOW=True, SAVE=False, save_name=None, star_size = 50, figsize = 8, font_sizes=(5,6,7)):
 
-            The other flags are: 
-            LINES : Plot the constellation lines 
-            HELPERS : Plot the H.A.Rey helper lines 
-            SHOW : Show the plot or not 
-            SAVE : Save the plot with the given save_name 
-            SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-            CONSTELLATION_LABELS : Plot the constellation names 
-            CONSTELLATION_PARTS : Plot the constellation diagram parts 
-            STAR_NAMES : Plot the star names 
-            ASTERISMS : Plot the asterisms and their labels
-          '''
+        '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
+                FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
+                The parameters are:
+                - observer: an Observer object with the position and time of observation
+                - FOV: the field of view of the sky (in degrees)
+                - figsize: the diameter of the figure (in inches)
+                - star_size: the size of the stars in the plot.
+                - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
+                - save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
+                
+            The flags are:
+                HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
+                CON_LINES : Plot the constellation lines 
+                HELPERS : Plot the H.A.Rey helper lines
+                STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
+
+                SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+                CON_NAMES : Plot the constellation names
+                ASTERISMS : Plot the asterisms and their labels
+                CON_PARTS : Plot the constellation diagram parts 
+                STAR_NAMES : Plot the star names   
+
+                SHOW : Show the plot.
+                SAVE : Save the plot. If the save name is specified, is True by default        
+            '''
+        
+        # If the save_name is not None, save automatically the plot
+        if not save_name == None:
+            SAVE = True
+
+        # Default file name
+        if SAVE and save_name==None:
+            save_name = 'Sky_view.png'
+
         
         map_radius = 1.0  # The map has radius of one unit
         inner_radius = 0.95 # Map inside the border
@@ -41,12 +58,15 @@ class sky_view:
         limiting_magnitude = self.limiting_magnitude
         constellations = self.constellations
         constellation_ids = self.constellation_ids
+        star_sizes = star_size*stars['size']
 
-        #Get the custom markers
-        sizes = self.star_sizes
+        #Get the custom markers        
         empty_marker = self.markers['empty']
         cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
-        star_markers = self.star_markers
+        
+        # If HAREY, use the custom star markers, else use simple dots
+        star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
+
         font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 
         fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
@@ -75,7 +95,7 @@ class sky_view:
         stars_x, stars_y = stars_x*r_scale, stars_y*r_scale   
 
         # Plot constellation lines
-        if(LINES):
+        if CON_LINES:
             for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
                 plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=0.5, alpha=0.8)
                 plot_line.set_clip_path(map)
@@ -93,28 +113,25 @@ class sky_view:
                 plot_line.set_clip_path(map)
 
         # Plot the stars after the lines 
-        # Stars that are not in a constellation shape are of 4th magnitude or higher and are represented with a dot
+        # Stars that are not in a constellation shape are represented with a dot
         bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-        magnitude = stars['magnitude'][bkg_stars]
-        marker_size = self.bkg_star_size * 10 ** (magnitude / -2.5)    
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],
-                s=marker_size, color='white', marker='.', linewidths=0, 
-                zorder=2)
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color='white', marker='.', linewidths=0, zorder=2)
         
-        # Plot the constellation stars with the custom markers
-        mag_class = stars['mag_class']
+        # Plot the stars that are part of a constellation shape
+        for i, m in enumerate(star_markers):
+            
+            mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')    
 
-        # Plot a blanck circle before the star to make it appear the lines stop before reaching the star
-        for i, (m, s) in enumerate(zip(star_markers,sizes)):
-            mask = np.logical_and(mag_class==i, -bkg_stars)
-            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=60*s, color=colors['sky'], linewidths=0, zorder=2)
+            # Plot a blank circle before the star to make it appear the lines stop before reaching the star
+            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
             ax.set_clip_path(map)
 
-        for i, (m, s) in enumerate(zip(star_markers,sizes)):
-            mask = np.logical_and(mag_class==i, -bkg_stars)
-            ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=50*s, color=colors['star'], linewidths=0, zorder=2, alpha=0.8)
+            # If star_colors is True, plot the stars with their true color
+            color = stars[mask]['color'] if STAR_COLORS else self.colors['star']
+            # Plot the star with the custom markers
+            ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
         
 
         #Plot the compass ring   
@@ -140,9 +157,7 @@ class sky_view:
 
         if SIS_SCRIPT:
             # Save the image before adding the labels
-            plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)  
-
-       
+            plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)         
 
                   
         # Function to plot a label at the mean x and y positions
@@ -154,12 +169,12 @@ class sky_view:
                 ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
 
         #Plot labels
-        if CONSTELLATION_NAMES:
+        if CON_NAMES:
             for id in constellation_ids:
                 plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')
                     
         #Plot minor labels
-        if CONSTELLATION_PARTS:
+        if CON_PARTS:
             for id in [id for id in constellations.keys() if id.startswith('.')]:
                  plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
 
@@ -201,13 +216,13 @@ class sky_view:
             with open(f'{dir}/{file_name}', 'w') as f:
 
                 #Plot constellation labels
-                if CONSTELLATION_NAMES:
+                if CON_NAMES:
                     f.write('# Constellation names \n')
                     for id in constellation_ids:
                         write_sis(f, self.names[id], constellations[id]['stars'], color=colors['constellation_labels'], fontsize = 'l')      
 
                 # Plot constellation parts labels
-                if CONSTELLATION_PARTS:
+                if CON_PARTS:
                     f.write('\n# Constellation parts labels\n')
                     for id in [id for id in constellations.keys() if id.startswith('.')]:
                         write_sis(f, self.names[id], constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'])
