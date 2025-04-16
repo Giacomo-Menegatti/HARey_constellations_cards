@@ -20,8 +20,8 @@ class universal_sky_map:
 		deformations that are inevitably created when spherical surface is projected on a plane.
 	'''
 
-	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150,  LINES=True, GRID = True, SHOW=True, SAVE=False, save_name = 'Equatorial_map.png',
-                     CONSTELLATION_NAMES = False, CONSTELLATION_PARTS = False, STAR_NAMES = True, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7)):
+	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150,  HAREY = True, STAR_COLORS= False, CON_LINES=False, GRID = True, SHOW=True, SAVE=False, 
+                     CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, save_name = None, font_sizes=(2,3,4), star_size=50):
 		'''Plot an equatorial Gall stereographic projection of the whole sky
 		    The parameters are:
 			max_dims : the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
@@ -29,19 +29,30 @@ class universal_sky_map:
 			dec_FOV : the vertical field of view (in degrees)
 			save_name : the name of the file to save the plot
 			font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
+			star_size : the size of the stars in the plot
 
 			The other flags are: 
-			GRID : Plot the grid in the map view
-			LINES : Plot the constellation lines 
-			HELPERS : Plot the H.A.Rey helper lines 
-			SHOW : Show the plot or not 
-			SAVE : Save the plot with the given save_name 
+			HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
+			CON_LINES : Plot the constellation lines 
+			HELPERS : Plot the H.A.Rey helper lines
+			STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
+			
 			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-			CONSTELLATION_LABELS : Plot the constellation names 
-			CONSTELLATION_PARTS : Plot the constellation diagram parts 
+			CON_NAMES : Plot the constellation names 
+			CON_PARTS : Plot the constellation diagram parts 
 			STAR_NAMES : Plot the star names 
 			ASTERISMS : Plot the asterisms and their labels
-          '''
+
+			SHOW : Show the plot.
+			SAVE : Save the plot. If the save name is specified, is True by default   
+          '''	
+		# If the save_name is not None, save automatically the plot
+		if not save_name == None:
+			SAVE = True
+
+        # Default file name
+		if SAVE and save_name==None:
+			save_name = 'Equatorial_map.png'
 		
 		stars = self.stars
 		colors = self.colors
@@ -49,10 +60,13 @@ class universal_sky_map:
 		limiting_magnitude = self.limiting_magnitude
 		constellations = self.constellations
 		constellation_ids = self.constellation_ids
-		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
+		star_sizes = star_size*stars['size']
 
-		star_sizes = self.star_sizes
+		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 		star_markers = self.star_markers
+
+		# If the HAREY ption is selected, use the custom star markers, else use simple dots
+		star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
 
 		# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 		# i.e., a label around the origin is plotted near the mean value in the center of the plot
@@ -104,7 +118,7 @@ class universal_sky_map:
 			ecliptic.set_clip_path(box)
 
 			# Plot constellation lines
-			if LINES:
+			if CON_LINES:
 				for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
 					# Divide the line in individual segments
 					for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
@@ -127,21 +141,28 @@ class universal_sky_map:
 						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
 						plot_line.set_clip_path(box)
 
-			# Plot bkg stars
+			 # Plot the stars after the lines 
+			# Stars that are not in a constellation shape are represented with a dot
 			bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-			marker_size = self.bkg_star_size * 10 ** (stars['magnitude'] / -2.5)
-			ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=marker_size[bkg_stars], 
-			  		color=colors['star'], marker='.', linewidths=0, zorder=2)
-			
-			#Plot a blank circle around the stars to stop the constellation lines
-			for i, (m, s) in enumerate(zip(star_markers, star_sizes)):
-					mask = np.logical_and(stars['mag_class']==i, -bkg_stars)
-					ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=60*s, color=colors['sky'], linewidths=0, zorder=2)
+			color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
 
-			# Plot the constellation stars
-			for i, (m, s) in enumerate(zip(star_markers, star_sizes)):
-					mask = np.logical_and(stars['mag_class']==i, -bkg_stars)
-					ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=50*s, color=colors['star'], linewidths=0, zorder=2, alpha=0.8)
+			# Plot bkg stars
+			ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
+
+			# Plot the stars that are part of a constellation shape
+			for i, m in enumerate(star_markers):
+				
+				mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')    
+
+				# Plot a blank circle before the star to end the lines before reaching the star
+				ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
+				ax.set_clip_path(box)
+
+				# If star_colors is True, plot the stars with their true color
+				color = stars[mask]['color'] if STAR_COLORS else self.colors['star']
+				# Plot the star with the custom markers
+				ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
+				ax.set_clip_path(box)
 
 			# Compute the labels positions
 			def compute_label_pos(id, indexes):
@@ -151,12 +172,12 @@ class universal_sky_map:
 					labels_pos[id] = (label_x/scale, label_y/scale)
             
 			# Constellation labels
-			if CONSTELLATION_NAMES:
+			if CON_NAMES:
 				for id in constellation_ids:
 					compute_label_pos(id, indexes=constellations[id]['stars'])
 
 			# Minor labels
-			if CONSTELLATION_PARTS:
+			if CON_PARTS:
 				for id in [id for id in constellations.keys() if id.startswith('.')]:
 					compute_label_pos(id, indexes = constellations[id]['stars'])
 
@@ -244,13 +265,13 @@ class universal_sky_map:
 			ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font=labels_font)
 
 		# Plot the labels
-		if CONSTELLATION_NAMES:
+		if CON_NAMES:
 			for id in constellation_ids:
 				if id in labels_pos.keys():
 					plot_label(ax, self.names[id], labels_pos[id], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')  
 					
         #Plot minor labels
-		if CONSTELLATION_PARTS:
+		if CON_PARTS:
 			for id in [id for id in constellations.keys() if id.startswith('.')]:
 				if id in labels_pos.keys():
 					plot_label(ax, self.names[id], labels_pos[id], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
@@ -293,14 +314,14 @@ class universal_sky_map:
 			with open(f'{dir}/{file_name}', 'w') as f:
 
 				#Plot constellation labels
-				if CONSTELLATION_NAMES:
+				if CON_NAMES:
 					f.write('# Constellation names \n')
 					for id in constellation_ids:
 						if id in labels_pos.keys():
 							write_sis(f, self.names[id], labels_pos[id], color=colors['constellation_labels'], fontsize='l')      
 
 				# Plot constellation parts labels
-				if CONSTELLATION_PARTS:
+				if CON_PARTS:
 					f.write('\n# Constellation parts labels\n')
 					for id in [id for id in constellations.keys() if id.startswith('.')]:
 						if id in labels_pos.keys():
@@ -343,28 +364,42 @@ class universal_sky_map:
 
 
 
-	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, LINES=True, GRID=True, SHOW=True, SAVE=False, save_name = 'Northern_sky.png',
-                     CONSTELLATION_NAMES = True, CONSTELLATION_PARTS = False, STAR_NAMES = True, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7)):
+	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, HAREY = True, CON_LINES=False, STAR_COLORS=False, GRID=True, SHOW=True, SAVE=False, 
+                     CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7), save_name = None, star_size=100):
 		'''Plot a stereographic map of the stars near the poles.
 			The parameters are:
-			pole : the pole around which the plot is done, 'N' for north and 'S' for south
-			FOV : the total field of view (in degrees)
-			figsize : the diameter of the figure (in inches)
-			font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
+			- pole : the pole around which the plot is done, 'N' for north and 'S' for south
+			- FOV : the total field of view (in degrees)
+			- figsize : the diameter of the figure (in inches)
+			- font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
+			- star_size : the size of the stars in the plot
+			- save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
 
 			The other flags are: 
-			pole = 'N' or 'S   
-			GRID : Plot the grid in the map view
-			LINES : Plot the constellation lines 
-			HELPERS : Plot the H.A.Rey helper lines 
-			SHOW : Show the plot or not 
-			SAVE : Save the plot with the given save_name 
+			GRID : Plot the grid in the map view			
+			HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
+			CON_LINES : Plot the constellation lines 
+			HELPERS : Plot the H.A.Rey helper lines
+			STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
+
 			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
-			CONSTELLATION_LABELS : Plot the constellation names 
-			CONSTELLATION_PARTS : Plot the constellation diagram parts 
+			CON_NAMES : Plot the constellation names 
+			CON_PARTS : Plot the constellation diagram parts 
 			STAR_NAMES : Plot the star names 
-			ASTERISMS : Plot the asterisms and their labels           
+			ASTERISMS : Plot the asterisms and their labels  
+
+			SHOW : Show the plot or not 
+			SAVE : SAVE : Save the plot. If the save name is specified, is True by default         
 		'''
+
+		# If the save_name is not None, save automatically the plot
+		if not save_name == None:
+			SAVE = True
+
+		# Default file name
+		if SAVE and save_name==None:
+			pole_name = 'North' if pole == 'N' else 'South' if pole == 'S' else ''
+			save_name = f'{pole_name}_polar_map.png'
 
 		stars = self.stars
 		colors = self.colors
@@ -373,9 +408,11 @@ class universal_sky_map:
 		constellations = self.constellations
 		constellation_ids = self.constellation_ids
 
-		star_sizes = self.star_sizes
-		star_markers = self.star_markers
+		star_sizes = star_size*stars['size']
+		
 		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
+		# If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
+		star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
 
 		# Create figure and circular patch
 		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
@@ -390,7 +427,6 @@ class universal_sky_map:
 		
 		# Depending on the value of the pole, invert the dec values
 		c = 1 if pole=='N' else -1 if pole=='S' else 0
-		save_name = 'Northern_sky.png' if pole == 'N' else 'Southern_sky' if pole == 'S' else ''
 		
 		# Draw the ecliptic
 		(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
@@ -403,7 +439,7 @@ class universal_sky_map:
 		stars_x, stars_y = stars_x*scale, stars_y*scale 
 
 		# Plot constellation lines
-		if(LINES):
+		if CON_LINES:
 			for line in [line for id in self.constellation_ids for line in self.constellations[id]['lines']]:
 				plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['star'], linewidth=0.5, alpha=0.8)
 				plot_line.set_clip_path(map)	
@@ -421,28 +457,27 @@ class universal_sky_map:
 				plot_line.set_clip_path(map)		
 
 		# Plot the stars after the lines 
-        # Stars that are not in a constellation shape are of 4th magnitude or higher and are represented with a dot
+		# Stars that are not in a constellation shape are represented with a dot
 		bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-		magnitude = stars['magnitude'][bkg_stars]
-		marker_size = self.bkg_star_size * 10 ** (magnitude / -2.5)    
+		color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
 
 		# Plot bkg stars
-		ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],
-				s=marker_size, color='white', marker='.', linewidths=0, 
-				zorder=2)
+		ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
 
-		# Plot the constellation stars with the custom markers
-		mag_class = stars['mag_class']
 
-		# Plot a blanck circle before the star to make it appear the lines stop before reaching the star
-		for i, (m, s) in enumerate(zip(star_markers, star_sizes)):
-			mask = np.logical_and(mag_class==i, -bkg_stars)
-			ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=50*s, color=colors['sky'], linewidths=0, zorder=2)
+		 # Plot the stars that are part of a constellation shape
+		for i, m in enumerate(star_markers):
+
+			mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')    
+
+			# Plot a blank circle before the star to make it appear the lines stop before reaching the star
+			ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
 			ax.set_clip_path(map)
 
-		for i, (m, s) in enumerate(zip(star_markers,star_sizes)):
-			mask = np.logical_and(mag_class==i, -bkg_stars)
-			ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=45*s, color=colors['star'], linewidths=0, zorder=2, alpha=0.8)
+			# If star_colors is True, plot the stars with their true color
+			color = stars[mask]['color'] if STAR_COLORS else self.colors['star']
+			# Plot the star with the custom markers
+			ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
 
 
 		# Plot the grid
@@ -485,12 +520,12 @@ class universal_sky_map:
 				ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = labels_font) 
 
 		#Plot labels
-		if CONSTELLATION_NAMES:
+		if CON_NAMES:
 			for id in constellation_ids:
 				plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')
 					
 		#Plot minor labels
-		if CONSTELLATION_PARTS:
+		if CON_PARTS:
 			for id in [id for id in constellations.keys() if id.startswith('.')]:
 					plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
 
@@ -531,13 +566,13 @@ class universal_sky_map:
 
 			with open(f'{dir}/{file_name}', 'w') as f:
 			#Plot constellation labels
-				if CONSTELLATION_NAMES:
+				if CON_NAMES:
 					f.write('# Constellation names \n')
 					for id in constellation_ids:
 						write_sis(f, self.names[id], constellations[id]['stars'], color=colors['constellation_labels'], fontsize = 'l')      
 
 				# Plot constellation parts labels
-				if CONSTELLATION_PARTS:
+				if CON_PARTS:
 					f.write('\n# Constellation parts labels\n')
 					for id in [id for id in constellations.keys() if id.startswith('.')]:
 						write_sis(f, self.names[id], constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'])

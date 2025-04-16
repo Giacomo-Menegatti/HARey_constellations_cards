@@ -4,8 +4,9 @@ from HARey_constellation_cards.card_plot import card_plot
 from HARey_constellation_cards.card_template import card_template
 from HARey_constellation_cards.universal_sky_map import universal_sky_map
 from HARey_constellation_cards.print_and_play import print_and_play
-from HARey_constellation_cards.astro_projection import Observer
+from HARey_constellation_cards.astro_projection import mag2size
 
+import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
 ''' HARey main class: this module inherits from all the other modules.
@@ -20,7 +21,7 @@ from matplotlib.font_manager import FontProperties
     
 '''
 
-class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play, Observer):
+class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play):
 
     # HARey main class, inherits from all the others. 
     # This module contains the common methods and variables used by the other modules
@@ -68,6 +69,9 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
 
         # Read the card template module and overwrite its values
         card_template.__init__(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
+
+        # Read the functions to make them methods 
+        self.plot_star_cmap = plot_star_cmap
         
 
     # Function to set the limiting magnitude
@@ -100,3 +104,18 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
     def set_colors(self, dict):
         ''' Set the colors use by the HARey module. Take a dictionary as input {color_key: color}'''
         self.colors.update(dict)
+
+
+    def plot_legend(self):
+        ''' Plot the HARey star magnitude legend'''
+
+        fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors['sky'])
+        ax.set_title('Star magnitude', color='w', fontsize=20)
+        ax.set_facecolor(self.colors['sky'])
+        for i in range(6):
+            ax.scatter(i, 0, marker = self.star_markers[i], s=800*mag2size(i), linewidths=0, color=self.colors['star'])
+            ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
+        ax.set_axis_off()
+        ax.set_ylim(-0.4,0.2)
+        ax.set_xlim(-0.5,5.5)
+        return fig

@@ -64,7 +64,7 @@ class sky_view:
         empty_marker = self.markers['empty']
         cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
         
-        # If HAREY, use the custom star markers, else use simple dots
+        # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
         star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
 
         font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
@@ -115,9 +115,10 @@ class sky_view:
         # Plot the stars after the lines 
         # Stars that are not in a constellation shape are represented with a dot
         bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
+        color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color='white', marker='.', linewidths=0, zorder=2)
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
         
         # Plot the stars that are part of a constellation shape
         for i, m in enumerate(star_markers):
