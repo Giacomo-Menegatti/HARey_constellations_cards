@@ -149,23 +149,6 @@ def load_markers(markers_folder='markers'):
 
     return markers, star_markers
 
-# Function to plot the legend
-
-def plot_legend(self, facecolor='xkcd:midnight'):
-    ''' Plot the HARey star magnitude legend'''
-
-    fig, ax = plt.subplots(figsize=(5,1), facecolor=facecolor)
-    ax.set_title('Star magnitude', color='w', fontsize=20)
-    ax.set_facecolor(facecolor)
-    for i in range(6):
-        ax.scatter(i, 0, marker = self.star_markers[i], s=800*self.star_sizes[i], linewidths=0, color=self.colors['star'])
-        ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
-    ax.set_axis_off()
-    ax.set_ylim(-0.4,0.2)
-    ax.set_xlim(-0.5,5.5)
-
-    return fig
-
 ############################## STAR COLORS ############################
 
 def bv2color(bv, star_cmap):
