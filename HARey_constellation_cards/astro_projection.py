@@ -166,7 +166,7 @@ def Gall_horizontal(ra):
     return np.deg2rad(ra)/np.sqrt(2)
 
 ############ STAR SIZE FROM MAGNITUDE ##########
-
+@np.vectorize
 def mag2size(mag, step=4.5):
     '''The luminosity of a star depend on the magnitude as F = F0 10**(-0.4*mag)
         The luminosity initially is proprtional to the area of the star (so bigger stars look better),

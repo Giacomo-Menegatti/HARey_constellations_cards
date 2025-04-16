@@ -1,10 +1,11 @@
-from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers, plot_star_cmap
+from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers
 from HARey_constellation_cards.sky_view import sky_view
 from HARey_constellation_cards.card_plot import card_plot
 from HARey_constellation_cards.card_template import card_template
 from HARey_constellation_cards.universal_sky_map import universal_sky_map
 from HARey_constellation_cards.print_and_play import print_and_play
-from HARey_constellation_cards.astro_projection import mag2size
+from HARey_constellation_cards.star_colormap import StarColorMap
+from HARey_constellation_cards.astro_projection import Observer, mag2size
 
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
@@ -21,16 +22,23 @@ from matplotlib.font_manager import FontProperties
     
 '''
 
-class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play):
+class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play, StarColorMap, Observer):
 
-    # HARey main class, inherits from all the others. 
-    # This module contains the common methods and variables used by the other modules
+    # HARey main class, inherits FUNCTIONS from all the others. 
+    # (Observer is a class with its own init, must be recast as a method of HARey) 
+    # This module contains the common methods and variables used by the other modules.
 
     def __init__(self,
-                 hip_file = 'hip_main.dat', 
+                 hip_file = 'hip_main.dat',
                  constellations_file = 'index.json',
                  object_names = 'languages.csv',
                  language = 'COMMON'):
+        
+        # Initialize the star_colormap
+        StarColorMap.__init__(self)
+
+        # Recast Oberver as a method of HARey
+        self.Observer = Observer
                 
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
@@ -40,6 +48,8 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         print('Done!\nLoading star coordinates....    ', end=' ')
         # Load the stars positions and magnitude
         self.stars = load_stars(hip_file, self.constellations)
+
+
 
         print('Done!\nLoading custom markers....      ', end=' ')
         # Load the custom markers
@@ -68,10 +78,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         self.inkscape_font = 'DejaVu Sans'
 
         # Read the card template module and overwrite its values
-        card_template.__init__(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
-
-        # Read the functions to make them methods 
-        self.plot_star_cmap = plot_star_cmap
+        card_template.set_card_template(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
         
 
     # Function to set the limiting magnitude
@@ -113,7 +120,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors['sky'])
         for i in range(6):
-            ax.scatter(i, 0, marker = self.star_markers[i], s=800*mag2size(i), linewidths=0, color=self.colors['star'])
+            ax.scatter(i, 0, marker = self.star_markers[i], s=800*mag2size(i, step=4.5), linewidths=0, color=self.colors['star'])
             ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
         ax.set_axis_off()
         ax.set_ylim(-0.4,0.2)

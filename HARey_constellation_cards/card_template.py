@@ -13,24 +13,10 @@ import io
 
 class card_template:
     ''' This modules defines the card format and properties.
-        The card templates used are greyscale images with DPI=300.
-    '''
-
-    def __init__(self, format='tarot', dpi=300, cardback_file='cardbacks/tarot_round.png'):
-
-        # Default cardback color (will be redefined by the main module)
-        self.main_color = 'black'
-        self.accent_color = 'white'
-        self.dpi = dpi
-
-        # Print bleed 
-        self.bleed = 0
-        self.set_card_template(format, cardback_file)
-
-
+        The card templates used are greyscale images with DPI=300.    '''
 
     # Function to read between the different cardbacks
-    def set_card_template(self, format='tarot-round', cardback_file='cardbacks/tarot_round.png'):
+    def set_card_template(self, dpi = 300, format='tarot-round', cardback_file='cardbacks/tarot_round.png'):
     
         if format == 'tarot-round':
             #card dimensions and corner radius (inches)
@@ -83,6 +69,8 @@ class card_template:
             self.set_card_template()   
 
         # Read the black_and_white template (imread converts it to RGBA)
+        self.dpi = dpi
+        self.bleed = 0.0 #inches
         self.template = plt.imread(cardback_file)
 
 
