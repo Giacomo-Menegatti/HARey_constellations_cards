@@ -416,6 +416,7 @@ class UniversalSkyMap:
 		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
 		
 		map_radius = stereo_radius(FOV)
+		# Restrict the plotting are a bit to avoid clipping the circle near the borders
 		scale = figsize/map_radius
 		map_radius = scale*map_radius
 
@@ -498,8 +499,10 @@ class UniversalSkyMap:
 		for col in ax.collections:
 				col.set_clip_path(map)
 
-		ax.set_xlim(-map_radius, map_radius)
-		ax.set_ylim(-map_radius, map_radius)
+		# Put the border a little outside of the plot to avoid clipping the figure
+		border = map_radius/0.99
+		ax.set_xlim(-border, border)
+		ax.set_ylim(-border, border)
 		ax.set_axis_off()
 
 		if pole == 'N':
