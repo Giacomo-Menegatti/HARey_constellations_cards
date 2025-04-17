@@ -14,13 +14,13 @@ from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_ra
 	- polar_map: plot a map of the sky around the poles with a stereographic projection
 '''
 
-class universal_sky_map:
+class UniversalSkyMap:
 	''' Plot a universal map of the sky. The plot is done with a stereographic projection at the 
 		north and south poles, and with a Gall stereographic projection at the equator, to minimize the 
 		deformations that are inevitably created when spherical surface is projected on a plane.
 	'''
 
-	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150,  HAREY = True, STAR_COLORS= False, CON_LINES=False, GRID = True, SHOW=True, SAVE=False, 
+	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150,  STAR_COLORS= False, CON_LINES=False, GRID = True, SHOW=True, SAVE=False, 
                      CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, save_name = None, font_sizes=(2,3,4), star_size=50):
 		'''Plot an equatorial Gall stereographic projection of the whole sky
 		    The parameters are:
@@ -32,12 +32,11 @@ class universal_sky_map:
 			star_size : the size of the stars in the plot
 
 			The other flags are: 
-			HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
 			CON_LINES : Plot the constellation lines 
 			HELPERS : Plot the H.A.Rey helper lines
 			STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
 			
-			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. Automatically saves the plot.
 			CON_NAMES : Plot the constellation names 
 			CON_PARTS : Plot the constellation diagram parts 
 			STAR_NAMES : Plot the star names 
@@ -46,8 +45,8 @@ class universal_sky_map:
 			SHOW : Show the plot.
 			SAVE : Save the plot. If the save name is specified, is True by default   
           '''	
-		# If the save_name is not None, save automatically the plot
-		if not save_name == None:
+		# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
+		if not save_name == None or SIS_SCRIPT:
 			SAVE = True
 
         # Default file name
@@ -66,7 +65,7 @@ class universal_sky_map:
 		star_markers = self.star_markers
 
 		# If the HAREY ption is selected, use the custom star markers, else use simple dots
-		star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
+		star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
 
 		# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 		# i.e., a label around the origin is plotted near the mean value in the center of the plot
@@ -364,7 +363,7 @@ class universal_sky_map:
 
 
 
-	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, HAREY = True, CON_LINES=False, STAR_COLORS=False, GRID=True, SHOW=True, SAVE=False, 
+	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, CON_LINES=False, STAR_COLORS=False, GRID=True, SHOW=True, SAVE=False, 
                      CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7), save_name = None, star_size=100):
 		'''Plot a stereographic map of the stars near the poles.
 			The parameters are:
@@ -377,12 +376,11 @@ class universal_sky_map:
 
 			The other flags are: 
 			GRID : Plot the grid in the map view			
-			HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
 			CON_LINES : Plot the constellation lines 
 			HELPERS : Plot the H.A.Rey helper lines
 			STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
 
-			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. Automatically saves the plot
 			CON_NAMES : Plot the constellation names 
 			CON_PARTS : Plot the constellation diagram parts 
 			STAR_NAMES : Plot the star names 
@@ -392,8 +390,8 @@ class universal_sky_map:
 			SAVE : SAVE : Save the plot. If the save name is specified, is True by default         
 		'''
 
-		# If the save_name is not None, save automatically the plot
-		if not save_name == None:
+		# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
+		if not save_name == None or SIS_SCRIPT:
 			SAVE = True
 
 		# Default file name
@@ -412,7 +410,7 @@ class universal_sky_map:
 		
 		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 		# If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-		star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
+		star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
 
 		# Create figure and circular patch
 		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)

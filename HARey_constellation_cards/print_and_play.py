@@ -6,15 +6,15 @@ from fpdf import FPDF
     - print_and_play: arrange all the cards inside a PDF ready to print
 '''
 
-class print_and_play:
+class PrintAndPlay:
 
     # Function to plot a card set
-    def print_card_set(self, id, save_folder=None, BEST_AR=True, SIS_SCRIPT=False, CONSTELLATION_PARTS = True, STAR_NAMES = True, bleed = 0.0):
+    def print_card_set(self, id, save_folder=None, BEST_AR=True, SIS_SCRIPT=False, CON_PARTS = True, STAR_NAMES = True, STAR_COLORS = False, bleed = 0.0):
         ''' Print a set of memory cards: 
             - A first cardback with colors cardback_1, accent_1
             - A second cardback with colors cardback_2, accent_2
-            - The constellation without lines and names
-            - The constellation with lines, ecliptic and north indicator
+            - The constellation without CON_LINES and names
+            - The constellation with CON_LINES, ecliptic and north indicator
             The cards are saved locally is a save_folder is not provided.
             If bleed is enabled, the cardbacks are saved with a small printing bleed (in inches)
         '''
@@ -31,10 +31,10 @@ class print_and_play:
         self.write_cardback(id, self.colors['cardback_1'], self.colors['accent_1'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_1.png')
         self.write_cardback(id, self.colors['cardback_2'], self.colors['accent_2'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_2.png')
         
-        # Plot the constellations, one with lines and one without
-        self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, LINES=False, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
-        self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, LINES=True, CONSTELLATION_PARTS = CONSTELLATION_PARTS,
-                                STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_lines_4.png')
+        # Plot the constellations, one with CON_LINES and one without
+        self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=False, STAR_COLORS=STAR_COLORS, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
+        self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=True, CON_PARTS = CON_PARTS, STAR_COLORS=STAR_COLORS,
+                                STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_CON_LINES_4.png')
         
 
 
@@ -42,7 +42,7 @@ class print_and_play:
     def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HEPLERS = True):
         ''' Arrange all the cards inside the folder in a PDF ready to print.
             The cards are arranged to be printed front-and-back, and are choosen alphabetically.
-            CUTTING_HELPERS add helper lines at the border to help when cutting the cards.
+            CUTTING_HELPERS add helper CON_LINES at the border to help when cutting the cards.
         '''
         #List all the files in the folder and keep only the images
         
@@ -89,7 +89,7 @@ class print_and_play:
                 pdf.page = page       
                 pdf.set_draw_color(150)
 
-                #Draw a set of lines at the borders
+                #Draw a set of CON_LINES at the borders
                 for x in (hw-cw-pad, hw-pad, hw+pad, hw+pad+cw):
                     pdf.line(x, 0, x, l)                    # Top helpers
                     pdf.line(x, pdf.h-l, x, pdf.h)          # Bottom helpers

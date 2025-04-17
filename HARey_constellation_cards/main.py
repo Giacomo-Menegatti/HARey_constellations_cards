@@ -1,13 +1,14 @@
-from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers
-from HARey_constellation_cards.sky_view import sky_view
-from HARey_constellation_cards.card_plot import card_plot
-from HARey_constellation_cards.card_template import card_template
-from HARey_constellation_cards.universal_sky_map import universal_sky_map
-from HARey_constellation_cards.print_and_play import print_and_play
+from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers, load_names
+from HARey_constellation_cards.sky_view import SkyView
+from HARey_constellation_cards.card_plot import CardPlot
+from HARey_constellation_cards.card_template import CardTemplate
+from HARey_constellation_cards.universal_sky_map import UniversalSkyMap
+from HARey_constellation_cards.print_and_play import PrintAndPlay
 from HARey_constellation_cards.star_colormap import StarColorMap
 from HARey_constellation_cards.astro_projection import Observer, mag2size
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.font_manager import FontProperties
 
 ''' HARey main class: this module inherits from all the other modules.
@@ -18,11 +19,11 @@ from matplotlib.font_manager import FontProperties
     - set_fonts: set the fonts used in the plots and the cardback
     - set_colors: set the colors used in the plots
 
-    - plot_legend: plot the star magnitude legend, like HARey did
+    - plot_legend: plot the star magnitude legend
     
 '''
 
-class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_play, StarColorMap, Observer):
+class HARey(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
 
     # HARey main class, inherits FUNCTIONS from all the others. 
     # (Observer is a class with its own init, must be recast as a method of HARey) 
@@ -31,7 +32,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
     def __init__(self,
                  hip_file = 'hip_main.dat',
                  constellations_file = 'index.json',
-                 object_names = 'languages.csv',
+                 names_file = 'names.csv',
                  language = 'COMMON'):
         
         # Initialize the star_colormap
@@ -42,21 +43,40 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
                 
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
-        self.constellations, self.constellation_ids, self.asterisms, self.helpers, self.named_stars, \
-            self.names = load_constellations(constellations_file, object_names, language)
+        self.constellations, self.constellation_ids, self.asterisms, self.helpers,\
+            self.named_stars =load_constellations(constellations_file)
 
         print('Done!\nLoading star coordinates....    ', end=' ')
         # Load the stars positions and magnitude
-        self.stars = load_stars(hip_file, self.constellations)
+        self.stars = load_stars(hip_file)
 
+        print('Done!\nComputing stars colors, sizes and markers...    ', end=' ')
+        # Compute stars colors
+        self.stars['color'] = self.bv2color(self, self.stars['B-V'])
 
+        # Load the star marker sizes
+        self.stars['size'] = mag2size(self.stars['magnitude'])
+
+        # Compute the stars magnitude class (used to define the marker)
+        self.stars['mag_class'] = np.vectorize(lambda x: 0 if x < 0.5 else 6 if x > 5.5 else np.round(x))(self.stars['magnitude'])
+
+        # Add to the stars array the constellation of which they are part
+        self.stars['constellation'] = 'none'
+        for id in self.constellation_ids:
+            self.stars.loc[self.constellations[id]['stars'], 'constellation'] = id
 
         print('Done!\nLoading custom markers....      ', end=' ')
         # Load the custom markers
         self.markers, self.star_markers = load_markers(markers_folder='markers')
-        print('Done!')
+
+        print('Done!\nLoading the object names....      ', end=' ')
+        # Load the names from the names.csv file
+        self.names = load_names(names_file, language)
+
+        print('Done!\n\n')
        
         #Initialize graphical parameters to default values
+        self.USE_HAREY_MARKERS = True
         self.limiting_magnitude = 8 # Maximum magnitude of plotted stars
         self.star_size = 100  # Scaling value to display the stars
 
@@ -78,7 +98,7 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         self.inkscape_font = 'DejaVu Sans'
 
         # Read the card template module and overwrite its values
-        card_template.set_card_template(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
+        CardTemplate.set_card_template(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
         
 
     # Function to set the limiting magnitude
@@ -112,6 +132,15 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         ''' Set the colors use by the HARey module. Take a dictionary as input {color_key: color}'''
         self.colors.update(dict)
 
+    # Functions to change the print options
+    def set_HARey_markers_off(self):
+        '''Disable the USE_HAREY_MARKERS: now the stars are represented as simple circles'''
+        self.USE_HAREY_MARKERS = False
+    
+    def set_HARey_markers_on(self):
+        ''' Enable the USE_HAREY_MARKERS: the stars will be plotted with different markers for each magnitude'''
+        self.USE_HAREY_MARKERS = True
+
 
     def plot_legend(self):
         ''' Plot the HARey star magnitude legend'''
@@ -119,9 +148,12 @@ class HARey(sky_view, card_template, card_plot, universal_sky_map, print_and_pla
         fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors['sky'])
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors['sky'])
+
         for i in range(6):
-            ax.scatter(i, 0, marker = self.star_markers[i], s=800*mag2size(i, step=4.5), linewidths=0, color=self.colors['star'])
+            marker = self.star_markers[i] if self.USE_HAREY_MARKERS else '.'
+            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, step=4.5), linewidths=0, color=self.colors['star'])
             ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
+
         ax.set_axis_off()
         ax.set_ylim(-0.4,0.2)
         ax.set_xlim(-0.5,5.5)

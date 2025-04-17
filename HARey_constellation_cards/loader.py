@@ -16,7 +16,7 @@ from svgpath2mpl import parse_path
 
 ########################################### Loading Stars and constellations ####################################
 
-def load_stars(filename, constellations=None):
+def load_stars(filename):
     '''Read the Hipparcos data on stars position and magnitude and return all of it in a dataframe. 
     If data on the constellations are present, add them too.'''
 
@@ -31,14 +31,14 @@ def load_stars(filename, constellations=None):
     
     # Drop the stars with no magnitude and no color info
     stars_df = stars_df.dropna(subset='magnitude')
-    stars_df = stars_df.dropna(subset='B-V')  
+    stars_df = stars_df.dropna(subset='B-V')
 
     return stars_df
 
 # Function to read the constellations from the index.json file and the translations from the language.csv file
-def load_constellations(constellation_file, names_file, language='COMMON'):
-    '''Load the constellations from a STellarium SkyCultures file. One file contains the labels and stars present in each constellation shape, 
-        the other contains the name of each constellation for each label. To use a new language, edit the file containing the Names.
+def load_constellations(constellation_file):
+    '''Load the constellations from a STellarium SkyCultures file. This contains the constellation lines,
+       the helper rays and asterisms, and the brighter stars that have their own names.
     '''
     with open(constellation_file) as json_file:
         data = json.load(json_file)
@@ -52,8 +52,8 @@ def load_constellations(constellation_file, names_file, language='COMMON'):
         id = constellation['id'][dummy_len:]
         
         stars = []
-        # Join all the stars in the individual lines
-        stars = np.unique(np.concatenate(constellation['lines']))
+        # Join all the stars in the individual lines and convert it to a list
+        stars = np.unique(np.concatenate(constellation['lines'])).tolist()
         
         constellations[id] = {'lines':constellation['lines'], 'stars':stars}
 
@@ -90,10 +90,14 @@ def load_constellations(constellation_file, names_file, language='COMMON'):
         #names.append({'ID':hip, 'NAME':name})
     #pd.DataFrame.from_dict(names).to_csv('initial_names.csv')
 
+    return constellations, main_ids, asterisms, helpers, named_stars
+
+def load_names(names_file, language='COMMON'):
+    ''' Load the object names. The COMMON language contains the IAU standard names. To add more languages, edit the names.csv file'''
     names = pd.read_csv(names_file)
     names = names.fillna('')
     names = dict(zip(names['ID'], [name.replace('\\n', '\n') for name in names[language]]))
-    return constellations, main_ids, asterisms, helpers, named_stars, names
+    return names
 
 ############################# Load Markers #############################à
 

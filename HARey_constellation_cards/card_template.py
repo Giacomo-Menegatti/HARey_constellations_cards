@@ -11,7 +11,7 @@ import io
 '''
 
 
-class card_template:
+class CardTemplate:
     ''' This modules defines the card format and properties.
         The card templates used are greyscale images with DPI=300.    '''
 

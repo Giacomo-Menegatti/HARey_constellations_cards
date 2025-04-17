@@ -15,7 +15,7 @@ from HARey_constellation_cards.astro_projection import stereographic_projection,
     '''
 
 
-class card_plot:
+class CardPlot:
     def project_constellation(self, constellation_id, BEST_AR=False):
 
         '''Create a stereographic projection centered on the constellation.
@@ -136,7 +136,7 @@ class card_plot:
 
 
 
-    def plot_card(self, id, HAREY=True, CON_LINES=False, BEST_AR=False, STAR_COLORS=False,
+    def plot_card(self, id, CON_LINES=False, BEST_AR=False, STAR_COLORS=False,
                            CON_PARTS = False, STAR_NAMES = False, SIS_SCRIPT = False, 
                            SHOW=True, SAVE=False, save_name=None, star_size = None):
 
@@ -147,12 +147,11 @@ class card_plot:
             star_size : Size of the stars. If None, it will be set to the default value specified in the class HARey
             
         The flags are:
-            HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
             CON_LINES : Plot the constellation lines 
             BEST_AR : Rotate the constellation to completely fill the plot. Otherwise, plot with north side UP.
             STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
 
-            SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+            SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. It automaticaaly saves the plot.
             CON_PARTS : Plot the constellation diagram parts 
             STAR_NAMES : Plot the star names   
 
@@ -160,8 +159,8 @@ class card_plot:
             SAVE : Save the plot. If the save name is specified, is True by default        
         '''
         
-        # If the save_name is not None, save automatically the plot
-        if not save_name == None:
+        # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
+        if not save_name == None or SIS_SCRIPT:
             SAVE = True
 
         # Default file name
@@ -182,7 +181,7 @@ class card_plot:
         north_marker = self.markers['north']
 
         # If HAREY, use the custom star markers, else use simple dots
-        star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
+        star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
         colors = self.colors
         label_font = self.fonts['labels']
 

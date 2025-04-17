@@ -10,8 +10,8 @@ from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2rad
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
-class sky_view:
-    def plot_sky_view(self, observer,  FOV = 190, HAREY=True, CON_LINES=False, STAR_COLORS=False, 
+class SkyView:
+    def plot_sky_view(self, observer,  FOV = 190, CON_LINES=False, STAR_COLORS=False, 
                            CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False,  SIS_SCRIPT = False, 
                            SHOW=True, SAVE=False, save_name=None, star_size = 50, figsize = 8, font_sizes=(5,6,7)):
 
@@ -25,13 +25,12 @@ class sky_view:
                 - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
                 - save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
                 
-            The flags are:
-                HAREY : Use the HARey custom markers for the stars. Otherwise, plot the stars as points
+            The flags are: 
                 CON_LINES : Plot the constellation lines 
                 HELPERS : Plot the H.A.Rey helper lines
                 STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
 
-                SIS_SCRIPT : Create an Inkscape script to adjust the labels manually  
+                SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. Automatically saves the plot
                 CON_NAMES : Plot the constellation names
                 ASTERISMS : Plot the asterisms and their labels
                 CON_PARTS : Plot the constellation diagram parts 
@@ -41,8 +40,8 @@ class sky_view:
                 SAVE : Save the plot. If the save name is specified, is True by default        
             '''
         
-        # If the save_name is not None, save automatically the plot
-        if not save_name == None:
+        # If the save_name is not None or the SIS_SCRIPT is enabled, save automatically the plot
+        if not save_name == None or SIS_SCRIPT:
             SAVE = True
 
         # Default file name
@@ -65,7 +64,7 @@ class sky_view:
         cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
         
         # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-        star_markers = self.star_markers if HAREY else ['.']*len(self.star_markers)
+        star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
 
         font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 
