@@ -34,7 +34,7 @@ class PrintAndPlay:
         # Plot the constellations, one with CON_LINES and one without
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=False, STAR_COLORS=STAR_COLORS, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=True, CON_PARTS = CON_PARTS, STAR_COLORS=STAR_COLORS,
-                                STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_CON_LINES_4.png')
+                                STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_lines_4.png')
         
 
 
@@ -42,7 +42,7 @@ class PrintAndPlay:
     def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HEPLERS = True):
         ''' Arrange all the cards inside the folder in a PDF ready to print.
             The cards are arranged to be printed front-and-back, and are choosen alphabetically.
-            CUTTING_HELPERS add helper CON_LINES at the border to help when cutting the cards.
+            CUTTING_HELPERS add helper lines at the border to help when cutting the cards.
         '''
         #List all the files in the folder and keep only the images
         
