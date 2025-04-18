@@ -74,14 +74,14 @@ class CardTemplate:
             # Circular plot for the quiz game
             self.height = 5
             self.width = 5
-            self.pad = 0.5
+            self.pad = 1.0
             self.card_AR = self.width/self.height
             self.box_style = 'circle, pad=0.0'
 
             # Area of the card fully occupied by the constellation
             self.plot_AR = 1
 
-            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, with no default cardback')
+            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in.')
 
         else:
             print('This format is not recognized! Reverting to default format')
