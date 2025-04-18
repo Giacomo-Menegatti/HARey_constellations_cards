@@ -132,7 +132,7 @@ class CardPlot:
         local_stars_y = stars_y[local_stars_mask]
         borders = (np.max(local_stars_x), np.max(local_stars_y))
         
-        return (stars_x, stars_y), borders, (ecliptic_x, ecliptic_y), north_angle
+        return (stars_x, stars_y), borders, (ecliptic_x, ecliptic_y), north_angle 
 
 
 
@@ -215,7 +215,7 @@ class CardPlot:
         ax.set_ylim(-height,height)
         fig.add_axes(ax)
 
-        box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=f'round, pad=0.0, rounding_size={self.dpi*self.round}',
+        box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=self.box_style,
                             fill=True, facecolor=colors['sky'], edgecolor=None, linewidth=0)
         
         ax.add_patch(box)

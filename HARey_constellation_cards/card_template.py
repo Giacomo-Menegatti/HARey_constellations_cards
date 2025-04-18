@@ -16,7 +16,7 @@ class CardTemplate:
         The card templates used are greyscale images with DPI=300.    '''
 
     # Function to read between the different cardbacks
-    def set_card_template(self, dpi = 300, format='tarot-round', cardback_file='cardbacks/tarot_round.png'):
+    def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300):
     
         if format == 'tarot-round':
             #card dimensions and corner radius (inches)
@@ -24,7 +24,8 @@ class CardTemplate:
             self.width = 2.75
             self.pad = 0.25
             self.card_AR = self.width/self.height
-            self.round = 0.2
+            # Style passed to the fancybbox patch
+            self.box_style = f'round, pad=0.0, rounding_size={0.2*dpi}'
 
             # Area of the card fully occupied by the constellation
             self.plot_AR = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
@@ -32,37 +33,55 @@ class CardTemplate:
             # Position and dimension of the text box (in inches)
             self.text_x = 0.4
             self.text_y = 3.6
-            self.text_box_pad = 0.2
-            self.text_box_round = 0.3
-
-            # Maximum width and height inside which the text is constrained
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.8
+            self.text_box_style = f"round, pad = 0.2, rounding_size=0.3"  
+            
+            # If the cardback is not specified, use the default one 
+            if cardback_file == None:
+                cardback_file = 'cardbacks/tarot_round.png'
+            self.template = plt.imread(cardback_file)       
 
-            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in')
+            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')
 
         elif format == 'tarot-square':
             #card dimensions and corner radius (inches)
             self.height = 4.75
             self.width = 2.75
             self.pad = 0.25
-            self.card_AR = self.width/self.height
-            self.round = 0
-
+            self.card_AR = self.width/self.height 
             # Area of the card fully occupied by the constellation
             self.plot_AR = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
 
+            # Style passed to the fancybbox function
+            self.box_style = f'square, pad=0.0'       
+            
             # Position and dimension of the text box (in inches)
             self.text_x = 0.4
             self.text_y = 3.6
-            self.text_box_pad = 0.2
-            self.text_box_round = 0.05
-
-            # Maximum width and height inside which the text is constrained
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.8
+            self.text_box_style = f"round, pad = 0.2, rounding_size=0.05"           
 
-            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in')
+            # If the cardback is not specified, use the default one 
+            if cardback_file == None:
+                cardback_file = 'cardbacks/tarot_square.png'
+            self.template = plt.imread(cardback_file)       
+
+            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')
+
+        elif format == 'circle':
+            # Circular plot for the quiz game
+            self.height = 5
+            self.width = 5
+            self.pad = 0.5
+            self.card_AR = self.width/self.height
+            self.box_style = 'circle, pad=0.0'
+
+            # Area of the card fully occupied by the constellation
+            self.plot_AR = 1
+
+            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, with no default cardback')
 
         else:
             print('This format is not recognized! Reverting to default format')
@@ -71,7 +90,6 @@ class CardTemplate:
         # Read the black_and_white template (imread converts it to RGBA)
         self.dpi = dpi
         self.bleed = 0.0 #inches
-        self.template = plt.imread(cardback_file)
 
 
     # Function to color the cardback and write the name
@@ -107,12 +125,15 @@ class CardTemplate:
         text_box = Rectangle(xy=(self.text_x*dpi, self.text_y*dpi), width=dpi*self.box_width, height=dpi*self.box_height, 
                              fill=False, edgecolor='red', linewidth=0)
         ax.add_patch(text_box)
-        r = text_box.get_window_extent()
-        
 
-        name = self.names[id]   
-        text = ax.text((self.text_x+self.box_width/2)*dpi, (self.text_y+self.box_height/2)*dpi, color=accent_color,
-                        s=name, horizontalalignment='center', verticalalignment='center', font=self.fonts['cardback'])
+        r = text_box.get_window_extent()        
+
+        name = self.names[id]  
+        text_x, text_y = (self.text_x+self.box_width/2)*dpi, (self.text_y+self.box_height/2)*dpi
+
+        text = ax.text(text_x, text_y, color=accent_color, s=name, ha='center', va='center', font=self.fonts['cardback'], 
+                        bbox = dict(boxstyle=self.text_box_style, fill=False, edgecolor=accent_color, linewidth=1.5))
+        
         t = text.get_window_extent()
 
 
@@ -121,7 +142,7 @@ class CardTemplate:
         text.set_fontsize(text.get_fontsize()*s) 
 
         # Add a fancy box around the text
-        text.set_bbox(dict(boxstyle=f'round, pad={self.text_box_pad}, rounding_size={self.text_box_round}', fill=False, edgecolor=accent_color, linewidth=1))
+        #text.set_bbox(dict(boxstyle='round', fill=False, edgecolor='green', linewidth=1))
 
         if SAVE:
             if save_name == None:
@@ -137,7 +158,7 @@ class CardTemplate:
                     buff.seek(0)
                     image = plt.imread(buff)
 
-                # Add padding on the first two axes
+                # Add padding on the first two axes (the third axis are the color channels)
                 image = np.pad(image, pad_width=((bleed_pad,bleed_pad),(bleed_pad,bleed_pad),(0,0)), mode='edge')
                 plt.imsave(save_name, image)  
 
