@@ -228,7 +228,8 @@ class CardPlot:
                 #Plot the central constellation a little more evident than the others
                 alpha = 1 if constellation_id == id else 0.5
                 for line in constellations[constellation_id]['lines']:
-                    ax.plot(stars_x[line], stars_y[line], color=colors['star'], linewidth=0.6, alpha=alpha)     
+                    con_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=0.6, alpha=alpha)  
+                    con_line.set_clip_path(box)   # Clip the constellation lines outside of the card
 
             #Draw ecliptic            
             ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=colors['ecliptic'], linestyle='dotted', linewidth=0.8)
