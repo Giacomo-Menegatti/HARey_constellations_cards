@@ -3,7 +3,7 @@ Card_output/
 inkscape_scripts/
 
 # Ignore the generated PDF files
-*.pdf
+
 
 # Ignore the local PNG files
 *.png
