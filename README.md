@@ -1,5 +1,7 @@
 # HARey constellations cards
-[Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time did not make it any easier for people to find the constellation in the night sky. So he redrew the constellations to be simple and easy to find, like the balls-and-sticks drawings used by astronomers today, but with a shape that was much closer to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
+[Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time made it challenging for people to find the constellation in the night sky.
+
+So he redrew the constellations to be simple, like the balls-and-sticks drawings used by astronomers today, but with a shape to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
 
 
 <p align="center">
@@ -19,43 +21,58 @@ And what skills I lack in drawing, I hopefully make up in python programming.
 
 
 ## Disclaimer
-In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the stellarium github repository, while the star markers and the cardback images are my personal work in [InkScape](https://inkscape.org). The fonts used are free for personal use.
+In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the Stellarium github repository, while the star markers and the cardback images are my personal work in [InkScape](https://inkscape.org). The fonts used are free for personal use.
 
 
 ## Usage
-The aim of the project is to create a deck of memory cards to learn the constellations and find them in the night sky.
+The __HARey__ module contains the code to display the night sky with H.A.Rey's style. It can make star charts for a given time and place, or maps of the whole sky. It focuses on creating constellation cards because I felt it a useful way to learn and remember images, like the _countries of the world_ flashcards.  
 
-This project is based on the Stellarium [modern_rey](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern_rey) sky culture. [Stellarium](https://stellarium.org/it) is an open source planetarium software that shows the stars as they appear to the naked eye or a telescope. The sky cultures enable users to see different constellations diagrams than the ones used by the IAU. My project starts from the _index.json_ containing the constellations shapes and the Hipparcos star catalogue. 
+This project is based on the Stellarium [modern_rey](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern_rey) sky culture. [Stellarium](https://stellarium.org/it) is an open source planetarium software that shows the stars as they appear to the naked eye or to a telescope. The sky cultures are different diagrams of the constellations than the modern IAU ones, drawn by past cultures around the world. My project starts from the _index.json_ containing the constellations shapes and the Hipparcos star catalogue. 
 
 For a complete example and explanation, see the __Constellations_memory_demo.ipynb__ notebook.
 
 ## Translations
-The translations for all the names are contained in the __languages.csv__ file. Right now only IAU names, English (used by HARey) and Italian are present. New contributions are welcome, please open a pull request to edit the file.
+The __names.csv__ file contains the translations used in the module. Right now only IAU names, English (used by HARey in his books) and Italian are present. New contributions are welcome, please contact me to add a new translation.
 
 ## Functions and Methods
+The __HARey__ module contains the following methods:
+- __load_constellations()__, __load_stars()__, __load_names()__ : load the sky culture diagrams and the Hipparcos catalogue. They are applied automatically when creating a new HARey instance.
+- __plot_card()__: plot the sky around a constellation inside a card template. The __BEST_AR__ flag rotates the constellation to better fit the card, otherwise the plot is done with the North side up
+- __sky_view()__: plot the visble sky as seen by an observer at a given time and time
+- - __polar_map()__: plot the stars around the poles, using a stereographic projection
+- __equatorial_map()__: plot the stars close to the equator, using a Gall-stereographic projection
+- __set_card_template()__ : set the card template and the cardback image. The template properties are specified in the _card_template.py_ module.
+- __write_cardback()__ : create the cardback for a card by setting the colors and writing the constellation name.
+- __print_card_set()__ : create a set of cards for one constellation: the constellation with and without lines and two different cardbacks
+- __print_and__play()__ : arrange the images inside a folder inside a pdf ready for printing. 
+
+
 
 Most of the methods rely on the same plotting functions, with the following flags common to most of them:
-- __LINES__ : Plot the constellation lines
+- __CON_LINES__ : Plot the constellation lines
 - __ASTERISMS__ : Plot the asterisms lines. Asterisms are patterns of stars that are easy to recognize but not a constellation (e.g. the Big Dipper)
 - __HELPERS__ : Plot the helper lines. These are imaginary lines that connect bright stars to each other and make it easier to find features in the sky.
-- __CONSTELLATION_NAMES__ : Show the constellation names
-- __CONSTELLATION_PARTS__ : Show the constellation parts (e.g. feet, head, ecc.) from the HARey drawings
+- __CON_NAMES__ : Show the constellation names
+- __CON_PARTS__ : Show the constellation parts (e.g. feet, head, ecc.) from the HARey drawings
 - __STAR_NAMES__ : Plot the brightest stars names
+- __STAR_COLORS__ : Use the Stellarium color map to draw the stars. Otherwise, all stars are drawn white as H.A.Rey did
 - __SHOW__ : Show the image (default True)
 - __SAVE__ : Save the figure
 - __SIS_SCRIPT__ : Creates a Simple InkScape Script to create the labels as interactive text windows.
 
 ## Inkscape
-When the labels are added to the image, they often end up overlapping and being difficult to see. I tried to use the adjustText library to get a Better result, but never got a satisfactory plot. For this reason I decided to focus on manually adjusting the labels in InkScape, where I did all the rest of the graphical work. This uses the Simple Inkscape Scripting extension, which enables python programs to create text windows in the svg image. 
+When the labels are added to the image, they often end up overlapping and being difficult to see. I tried to use the adjustText library to get a better result, but never got a satisfactory plot. For this reason I decided to focus on manually adjusting the labels in InkScape, where I did all the rest of the graphical work. This uses the Simple Inkscape Scripting extension, which enables python programs to create text windows in the svg image. 
 Importing the labels is done in the following way:
-- Open the PNG image in Inkscape (saved without labels)
+- Install the __SIMPLE INKSCAPE SCRIPTING__ extension to InkScape
+- Open the PNG image in Inkscape (the image is saved without labels)
 - Inside Inkscape, open Extensions -> Render -> Simple Inkscape Scripting
-- When the extension window opens, search the .py script (it is saved with the same name as the image) and click Apply. The labels will appear with the correct sizes and colors and in the correct places, hopefully requiring only minimal movements and resizing to improve the result.
+- Search the right .py script (it is saved with the same name as the image) and click Apply.
+The labels will appear with the correct sizes and colors and in the correct places, hopefully requiring only minimal movements and resizing to improve readability.
 
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first
+Contributions are highly welcome, expecially for the artistic stuff. For major changes, please open an issue first
 to discuss what you would like to change.
 
 <p align="center">
