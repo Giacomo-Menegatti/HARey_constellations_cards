@@ -35,7 +35,7 @@ class CardTemplate:
             self.text_y = 3.6
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.8
-            self.text_box_style = f"round, pad = 0.2, rounding_size=0.3"  
+            self.text_box_style = "round, pad = 0.2, rounding_size=0.3"  
             
             # If the cardback is not specified, use the default one 
             if cardback_file == None:
@@ -54,14 +54,14 @@ class CardTemplate:
             self.plot_AR = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
 
             # Style passed to the fancybbox function
-            self.box_style = f'square, pad=0.0'       
+            self.box_style = 'square, pad=0.0'       
             
             # Position and dimension of the text box (in inches)
             self.text_x = 0.4
             self.text_y = 3.6
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.8
-            self.text_box_style = f"round, pad = 0.2, rounding_size=0.05"           
+            self.text_box_style = "round, pad = 0.2, rounding_size=0.05"           
 
             # If the cardback is not specified, use the default one 
             if cardback_file == None:
@@ -87,9 +87,11 @@ class CardTemplate:
             print('This format is not recognized! Reverting to default format')
             self.set_card_template()   
 
+        # Set the bleed to zero
+        self.bleed = 0
+
         # Read the black_and_white template (imread converts it to RGBA)
         self.dpi = dpi
-        self.bleed = 0.0 #inches
 
 
     # Function to color the cardback and write the name
@@ -110,10 +112,8 @@ class CardTemplate:
         bright = self.template[:,:,:3].sum(axis=2)/3
         bright = bright[:,:,np.newaxis]
         image = to_rgba(main_color)*bright + to_rgba(accent_color)*(1.0-bright)
-
-        # If there is no bleed, add trasparency to have the correct shape
-        if self.bleed == 0:
-            image[alpha_mask] = (1,1,1,0)        
+        # Clip with the transparecny mask
+        image[alpha_mask] = (1,1,1,0)        
 
         fig = plt.figure(figsize = (image.shape[1]/dpi, image.shape[0]/dpi), dpi=dpi) #figure with correct aspect ratio
         ax = plt.axes((0,0,1,1)) #axes over whole figure
@@ -148,19 +148,7 @@ class CardTemplate:
             if save_name == None:
                 save_name = f'{id}_cardback.png'
 
-            # Add the bleed padding around the image
-            if self.bleed > 0:
-                bleed_pad = round(self.bleed*dpi)
-
-                # Convert the plot to image but don't save it yet
-                with io.BytesIO() as buff:
-                    plt.savefig(buff, format='png', dpi=self.dpi, bbox_inches='tight', pad_inches=0)
-                    buff.seek(0)
-                    image = plt.imread(buff)
-
-                # Add padding on the first two axes (the third axis are the color channels)
-                image = np.pad(image, pad_width=((bleed_pad,bleed_pad),(bleed_pad,bleed_pad),(0,0)), mode='edge')
-                plt.imsave(save_name, image)  
+                plt.savefig(save_name, format='png', dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
             else:
                 plt.savefig(save_name, dpi = dpi, transparent=True)            

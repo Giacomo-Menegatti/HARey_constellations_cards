@@ -3,6 +3,8 @@ from matplotlib.cm import ScalarMappable
 import matplotlib.pyplot as plt
 import numpy as np
 
+'''This module contains the StarColorMap module. It contains the code to assign a color from the B-V index value of a star.'''
+
 class StarColorMap:
 
     def __init__(self):

@@ -9,14 +9,14 @@ from fpdf import FPDF
 class PrintAndPlay:
 
     # Function to plot a card set
-    def print_card_set(self, id, save_folder=None, BEST_AR=True, SIS_SCRIPT=False, CON_PARTS = True, STAR_NAMES = True, STAR_COLORS = False, bleed = 0.0):
+    def print_card_set(self, id, save_folder=None, BEST_AR=True, SIS_SCRIPT=False, CON_PARTS = True, STAR_NAMES = True, STAR_COLORS = False, bleed = 0.1):
         ''' Print a set of memory cards: 
             - A first cardback with colors cardback_1, accent_1
             - A second cardback with colors cardback_2, accent_2
             - The constellation without CON_LINES and names
             - The constellation with CON_LINES, ecliptic and north indicator
             The cards are saved locally is a save_folder is not provided.
-            If bleed is enabled, the cardbacks are saved with a small printing bleed (in inches)
+            If bleed is enabled, the images are saved with a small printing bleed (in inches)
         '''
 
         # Directory in which the cards are saved
@@ -35,6 +35,9 @@ class PrintAndPlay:
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=False, STAR_COLORS=STAR_COLORS, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=True, CON_PARTS = CON_PARTS, STAR_COLORS=STAR_COLORS,
                                 STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_lines_4.png')
+        
+        # Reset the bleed after this point
+        self.bleed = 0 
         
 
 
@@ -84,8 +87,8 @@ class PrintAndPlay:
 
         if CUTTING_HEPLERS:
 
-            # draw the helpers only on the fronts page (cardbacks have a pad for bleed)
-            for page in range(2, n_pages+1, 2):
+            # draw the helpers only on the cardbacks pages (fronts have a little bleed)
+            for page in range(1, n_pages+1, 2):
                 pdf.page = page       
                 pdf.set_draw_color(150)
 

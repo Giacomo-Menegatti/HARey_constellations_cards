@@ -78,7 +78,7 @@ class HARey(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, Star
         #Initialize graphical parameters to default values
         self.USE_HAREY_MARKERS = True
         self.limiting_magnitude = 8 # Maximum magnitude of plotted stars
-        self.star_size = 100  # Scaling value to display the stars
+        self.star_size = 150  # Scaling value to display the stars
 
         # Colors used in the plots
         self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
@@ -88,7 +88,7 @@ class HARey(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, Star
                     'ecliptic_label' : 'crimson', 'asterism_labels': 'lime', 'constellation_parts' : 'violet',
                     'horizon_label' : 'white',
                     
-                    'cardback_1':  'midnightblue', 'cardback_2': 'maroon',
+                    'cardback_1':  'xkcd:marine blue', 'cardback_2': 'xkcd:dark red',
                     'accent_1': 'darkgoldenrod', 'accent_2': 'darkgoldenrod'}
         
 

@@ -10,7 +10,7 @@ from HARey_constellation_cards.astro_projection import stereographic_projection,
 
 '''This module contains the code used to create the constellations cards. 
     It has the following functions:
-    - project_constellation: to project the constellation on the card plane, find the north direction and the constellation boundaries
+    - project_constellation: to project the constellation on a plane, find the north direction and the constellation boundaries
     - plot_card: to plot the constellation on the card, inside the card template chosen by the user.
     '''
 
@@ -192,13 +192,15 @@ class CardPlot:
         card_AR = self.card_AR
         
         #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
+        #Also, if self.bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
+
         if (x_span/y_span < plot_AR):
             # If the card is thinner than the plot area, add pad around y and enlarge the x span to fit the whole card
-            y_span = (1 + 2 * self.pad/self.height) * y_span
+            y_span = (1 + 2 * (self.pad + self.bleed) /self.height) * y_span
             x_span = y_span*card_AR
         else:
             # If the card is thicker, add pad around x and enlarge the y span to fit the whole card
-            x_span = (1 + 2* self.pad/self.width) * x_span
+            x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
             y_span = x_span/card_AR
 
         height = self.height*self.dpi/2
@@ -215,7 +217,11 @@ class CardPlot:
         ax.set_ylim(-height,height)
         fig.add_axes(ax)
 
-        box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=self.box_style,
+        # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
+        box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
+
+        # Apply the card template as a mask to round the corners
+        box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
                             fill=True, facecolor=colors['sky'], edgecolor=None, linewidth=0)
         
         ax.add_patch(box)
@@ -241,7 +247,7 @@ class CardPlot:
         color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.8)
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.7)
 
         # Plot a blank circle around the stars to make them more evident
         for i, m in enumerate(star_markers):
