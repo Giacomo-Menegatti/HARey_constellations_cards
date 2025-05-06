@@ -1,22 +1,32 @@
 # HARey constellations cards
-[Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey) (pen name HARey) was a skilled author and illustrator, mostly known for being the creator of the _Curious George_ book series. He also took an interest in star charts, and felt that the intricate illustrations used at the time made it challenging for people to find the constellation in the night sky.
+This python module aims to teach people about constellations by creating a set of flashcards that will be useful to learn to recognize the constellations in the night sky.
 
-So he redrew the constellations to be simple, like the balls-and-sticks drawings used by astronomers today, but with a shape to their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
+## How this idea was born
+HARey, pen name of [Hans Augusto Reyersbach](https://en.wikipedia.org/wiki/H._A._Rey), was a skilled author and illustrator, mostly known for being the creator, together with his wife Margret, of the _Curious George_ book series. He also took an interest in star charts, and felt that the beautiful and intricate illustrations used at the time made it challenging for people to find the constellation in the night sky.
+
+<p align="center">
+<img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/harey.jpg", height = 250>
+<img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/george.jpg", height = 250>
+</p>
+
+So he redrew the constellations to be as simple as possible, like the balls-and-sticks drawings used by astronomers today, but with a shape that recalled their namesakes. This led to the publication of [The Stars: A New Way to See Them](https://en.wikipedia.org/wiki/The_Stars:_A_New_Way_to_See_Them) and his drawings became famous among stargazers.
+
+
+This project is my personal homage to his book _Find the Constellations_, which is intended for teaching kids stargazing. In this book I found expecially useful the Memory-like quiz system that presented the constellations with and without the diagram lines, which challenged people's minds to look at the stars and imagine the lines between them. This proved very, very effective when stargazing. 
 
 
 <p align="center">
-<img src="https://images-na.ssl-images-amazon.com/images/I/716tfSmegfL._AC_UL210_SR210,210_.jpg" >
+<img src="https://images-na.ssl-images-amazon.com/images/I/716tfSmegfL._AC_UL210_SR210,210_.jpg", height=250  >
+<img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/stars.jpg", height=250 >
 </p>
-
-This project is my personal homage to his book _Find the Constellations_, which is intended for teaching kids stargazing. In this book I found expecially useful the Memory-like quiz system that presented the constellations with and without the diagram lines, which challenged people's minds to look at the stars and imagine the lines between them. This proved very, very effective when stargazing. 
 
 Thus was born this project: an attempt to create a real game of [Memory](https://en.wikipedia.org/wiki/Concentration_(card_game)) with cards that borrowed from H.A.Rey's beautifil drawings: _Imitation is the sincerest form of flattering_. 
 And what skills I lack in drawing, I hopefully make up in python programming.
 
 <p align="center">
-  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_back_1.png" width="256">
-  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_bare_3.png" width="256">
-  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_lines_4.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Orion_lines.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Orion_back.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Orion_tinted_lines.png" width="256">
 </p>
 
 
