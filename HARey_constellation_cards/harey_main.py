@@ -18,12 +18,13 @@ from matplotlib.font_manager import FontProperties
     - set_limiting_magnitude: set the limiting magnitude of the stars to be plotted (higher values means more little stars in the background) 
     - set_fonts: set the fonts used in the plots and the cardback
     - set_colors: set the colors used in the plots
+    - set_harey_markers_on and set_harey_markers_off : use the HARey markers to plot the stars instead of simple circles
 
     - plot_legend: plot the star magnitude legend
     
 '''
 
-class HARey(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
+class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
 
     # HARey main class, inherits FUNCTIONS from all the others. 
     # (Observer is a class with its own init, must be recast as a method of HARey) 
@@ -77,7 +78,7 @@ class HARey(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, Star
        
         #Initialize graphical parameters to default values
         self.USE_HAREY_MARKERS = True
-        self.limiting_magnitude = 8 # Maximum magnitude of plotted stars
+        self.limiting_magnitude = 7 # Maximum magnitude of plotted stars
         self.star_size = 150  # Scaling value to display the stars
 
         # Colors used in the plots
