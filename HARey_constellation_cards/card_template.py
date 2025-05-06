@@ -23,12 +23,12 @@ class CardTemplate:
             self.height = 4.75
             self.width = 2.75
             self.pad = 0.25
-            self.card_AR = self.width/self.height
+            self.AR_card = self.width/self.height
             # Style passed to the fancybbox patch
             self.box_style = f'round, pad=0.0, rounding_size={0.2*dpi}'
 
             # Area of the card fully occupied by the constellation
-            self.plot_AR = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
+            self.AR_plot = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
 
             # Position and dimension of the text box (in inches)
             self.text_x = 0.4
@@ -49,9 +49,9 @@ class CardTemplate:
             self.height = 4.75
             self.width = 2.75
             self.pad = 0.25
-            self.card_AR = self.width/self.height 
+            self.AR_card = self.width/self.height 
             # Area of the card fully occupied by the constellation
-            self.plot_AR = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
+            self.AR_plot = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
 
             # Style passed to the fancybbox function
             self.box_style = 'square, pad=0.0'       
@@ -75,11 +75,11 @@ class CardTemplate:
             self.height = 5
             self.width = 5
             self.pad = 1.0
-            self.card_AR = self.width/self.height
+            self.AR_card = self.width/self.height
             self.box_style = 'circle, pad=0.0'
 
             # Area of the card fully occupied by the constellation
-            self.plot_AR = 1
+            self.AR_plot = 1
 
             print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in.')
 
@@ -95,11 +95,16 @@ class CardTemplate:
 
 
     # Function to color the cardback and write the name
-    def write_cardback(self, id, main_color=None, accent_color=None, SHOW=True, SAVE=False, save_name=None):
+    def plot_cardback(self, id, main_color=None, accent_color=None, SHOW=True, SAVE=False, save_name=None):
         ''' Plot the cardback and write the constellation name on it, then save it 
             The constellation name is not wrapped automatically, so new lines must be manually inserted in the languages.csv file
             where needed.        
         '''     
+
+        # If the save_name is not None, save automatically the plot
+        if not save_name == None:
+            SAVE = True
+
         dpi = self.dpi 
                 
         main_color = self.colors['cardback_1'] if main_color == None else main_color

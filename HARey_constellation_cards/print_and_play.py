@@ -28,8 +28,8 @@ class PrintAndPlay:
             
         # Create the two cardbacks
         self.bleed = bleed
-        self.write_cardback(id, self.colors['cardback_1'], self.colors['accent_1'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_1.png')
-        self.write_cardback(id, self.colors['cardback_2'], self.colors['accent_2'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_2.png')
+        self.plot_cardback(id, self.colors['cardback_1'], self.colors['accent_1'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_1.png')
+        self.plot_cardback(id, self.colors['cardback_2'], self.colors['accent_2'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_2.png')
         
         # Plot the constellations, one with CON_LINES and one without
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=False, STAR_COLORS=STAR_COLORS, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
