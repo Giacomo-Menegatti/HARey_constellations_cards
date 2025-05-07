@@ -28,7 +28,7 @@ And what skills I lack in drawing, I hopefully make up in python programming.
   <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Orion_tinted_lines.png" width="256">
 </p>
 
-## Disclaimer
+### Disclaimer
 In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the Stellarium github repository, while the star markers and the cardback images are my personal work in [InkScape](https://inkscape.org). The fonts used are free for personal use.
 
 
@@ -37,10 +37,7 @@ The __HAReyMain__ module contains the code to display the night sky with H.A.Rey
 
 This project is based on the Stellarium [modern_rey](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern_rey) sky culture. [Stellarium](https://stellarium.org/it) is an open source planetarium software that shows the stars as they appear to the naked eye or to a telescope. The sky cultures are different diagrams of the constellations than the modern IAU ones, drawn by past cultures around the world. My project starts from the _index.json_ containing the constellations shapes and the Hipparcos star catalogue. 
 
-For a complete example and explanation, see the __Constellations_memory_demo.ipynb__ notebook.
-
-## Translations
-The __names.csv__ file contains the translations used in the module. Right now only IAU names, English (used by HARey in his books) and Italian are supported. New contributions are welcome, please contact me to add a new language.
+For a complete example and a (pedantic) explanation, see the __Constellations_memory_demo.ipynb__ notebook.
 
 ## Functions and Methods
 The __HAReyMain__ module contains the following methods:
@@ -53,8 +50,6 @@ The __HAReyMain__ module contains the following methods:
 - __plot_cardback()__ : create the cardback for a card by setting the colors and writing the constellation name.
 - __print_card_set()__ : create a set of cards for one constellation: the constellation with and without lines and two different cardbacks
 - __print_and__play()__ : arrange the images inside a folder inside a pdf ready for printing. 
-
-
 
 Most of the methods rely on the same plotting functions, with the following flags common to most of them:
 - __CON_LINES__ : Plot the constellation lines
@@ -76,6 +71,9 @@ Importing the labels is done in the following way:
 - Inside Inkscape, open Extensions -> Render -> Simple Inkscape Scripting
 - Search the right .py script (it is saved with the same name as the image) and click Apply.
 The labels will appear with the correct sizes and colors and in the correct places, hopefully requiring only minimal movements and resizing to improve readability.
+
+## Translations
+The __names.csv__ file contains the translations used in the module. Right now only IAU names, English (used by HARey in his books) and Italian are supported. New contributions are welcome, please contact me to add a new language.
 
 
 ## Contributing
