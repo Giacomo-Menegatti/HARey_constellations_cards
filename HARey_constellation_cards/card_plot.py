@@ -172,9 +172,11 @@ class CardPlot:
         stars = self.stars
         constellations = self.constellations
         constellation_ids = self.constellation_ids
+
+        # set marker sizes and line widths
         marker_size = self.star_size if star_size == None else star_size
         star_sizes = marker_size*stars['size']
-    
+        line_w = marker_size * 0.0055
 
         #Get the custom markers
         empty_marker = self.markers['empty']
@@ -188,20 +190,20 @@ class CardPlot:
         (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = self.project_constellation(id, BEST_AR=BEST_AR)
 
         # Fix the plot aspect ratio to fit inside the card plot area
-        plot_AR = self.plot_AR
-        card_AR = self.card_AR
+        AR_plot = self.AR_plot
+        AR_card = self.AR_card
         
         #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
         #Also, if self.bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
 
-        if (x_span/y_span < plot_AR):
+        if (x_span/y_span < AR_plot):
             # If the card is thinner than the plot area, add pad around y and enlarge the x span to fit the whole card
             y_span = (1 + 2 * (self.pad + self.bleed) /self.height) * y_span
-            x_span = y_span*card_AR
+            x_span = y_span*AR_card
         else:
             # If the card is thicker, add pad around x and enlarge the y span to fit the whole card
             x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
-            y_span = x_span/card_AR
+            y_span = x_span/AR_card
 
         height = self.height*self.dpi/2
         width = self.width*self.dpi/2
@@ -234,11 +236,11 @@ class CardPlot:
                 #Plot the central constellation a little more evident than the others
                 alpha = 1 if constellation_id == id else 0.5
                 for line in constellations[constellation_id]['lines']:
-                    con_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=0.6, alpha=alpha)  
+                    con_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth = line_w, alpha=alpha)  
                     con_line.set_clip_path(box)   # Clip the constellation lines outside of the card
 
             #Draw ecliptic            
-            ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=colors['ecliptic'], linestyle='dotted', linewidth=0.8)
+            ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=colors['ecliptic'], linestyle='dotted', linewidth=1.2* line_w)
             ecliptic.set_clip_path(box)
 
         

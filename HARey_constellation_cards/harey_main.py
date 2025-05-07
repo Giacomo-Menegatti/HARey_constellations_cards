@@ -34,10 +34,11 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
                  hip_file = 'hip_main.dat',
                  constellations_file = 'index.json',
                  names_file = 'names.csv',
-                 language = 'COMMON'):
+                 language = 'COMMON', 
+                 star_colors = 'stellarium'):
         
-        # Initialize the star_colormap
-        StarColorMap.__init__(self)
+        # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
+        StarColorMap.__init__(self, star_colors)
 
         # Recast Oberver as a method of HARey
         self.Observer = Observer

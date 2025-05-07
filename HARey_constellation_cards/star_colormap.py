@@ -3,14 +3,16 @@ from matplotlib.cm import ScalarMappable
 import matplotlib.pyplot as plt
 import numpy as np
 
-'''This module contains the StarColorMap module. It contains the code to assign a color from the B-V index value of a star.'''
+'''This module contains the StarColorMap module. It contains the code to assign a color from the B-V index value of a star.
+    Two slightly different maps are supported, Stellarium and Helland. 
+'''
 
 class StarColorMap:
 
-    def __init__(self):
+    def __init__(self, star_colors = 'stellarium'):
         
         # Star colors used in Stellarium    
-        star_colors_stellarium = [
+        colors_stellarium = [
             (0.602745, 0.713725, 1.0),  (0.604902, 0.715294, 1.0),  (0.607059, 0.716863, 1.0),  (0.609215, 0.718431, 1.0),
             (0.611372, 0.72, 1.0),      (0.613529, 0.721569, 1.0),  (0.63549, 0.737255, 1.0),   (0.651059, 0.749673, 1.0),
             (0.666627, 0.762092, 1.0),  (0.682196, 0.77451, 1.0),   (0.697764, 0.786929, 1.0),  (0.713333, 0.799347, 1.0),
@@ -44,7 +46,7 @@ class StarColorMap:
             (1.0, 0.774609, 0.624412),  (1.0, 0.774315, 0.627647),  (1.0, 0.77402, 0.630883),   (1.0, 0.773726, 0.634118),
             (1.0, 0.773432, 0.637353),  (1.0, 0.773138, 0.640588),  (1.0, 0.772843, 0.643824),  (1.0, 0.772549, 0.647059)]
         
-        # Helland color map. Stars are redder than with stellaarium, Boundaries are -0.4, 2
+        # Helland color map. Stars are redder than with stellarium, Boundaries are -0.4, 2
         colors_helland = [(0.66667, 0.77647, 1.0    ),    (0.67843, 0.78431, 1.0    ),    (0.68627, 0.78824, 1.0    ),    (0.69412, 0.79216, 1.0 ),
             (0.70196, 0.8    , 1.0    ),    (0.7098 , 0.80392, 1.0    ),    (0.71765, 0.80784, 1.0    ),    (0.72549, 0.81176, 1.0    ),
             (0.72941, 0.81961, 1.0    ),    (0.73725, 0.82353, 1.0    ),    (0.7451 , 0.82745, 1.0    ),    (0.75294, 0.83137, 1.0    ),
@@ -71,20 +73,21 @@ class StarColorMap:
             (1.0    , 0.73725, 0.51765),    (1.0    , 0.73333, 0.51373),    (1.0    , 0.73333, 0.50588),    (1.0    , 0.72941, 0.50196),
             (1.0    , 0.72549, 0.49412),    (1.0    , 0.72157, 0.48627),    (1.0    , 0.71765, 0.48235),    (1.0    , 0.71765, 0.47451)]
 
-
-        self.bv_start = -0.335
-        self.bv_finish = 3.347        
-        self.star_cmap = ListedColormap(star_colors_stellarium)
+        stellarium_cmap = {'cmap': ListedColormap(colors_stellarium), 'start': -0.335, 'finish': 3.347}
+        helland_cmap = {'cmap': ListedColormap(colors_helland), 'start': -0.4, 'finish': 2}
+        self.star_cmaps = {'stellarium': stellarium_cmap, 'helland': helland_cmap}
+    
+        self.star_cmap = self.star_cmaps[star_colors]
     
     @np.vectorize
     def bv2color(self, bv):
         '''Convert the B-V color index to a rgb color'''        
-        color = self.star_cmap((bv-self.bv_start)/(self.bv_finish - self.bv_start))
+        color = self.star_cmap['cmap']((bv - self.star_cmap['start'])/(self.star_cmap['finish'] - self.star_cmap['start']))
         return to_hex(color)
     
     def plot_star_cmap(self):
-        fig, ax = plt.subplots(figsize=(6, 1.5), layout='constrained')
-        norm = Normalize(vmin=self.bv_start, vmax=self.bv_finish)
-        fig.colorbar(ScalarMappable(norm=norm, cmap=self.star_cmap),cax=ax, orientation='horizontal', label='B-V color index')
+        fig, ax = plt.subplots( figsize=(6, 1.5), layout='constrained')
+        norm = Normalize( vmin=self.star_cmap['start'], vmax=self.star_cmap['finish'])
+        fig.colorbar(ScalarMappable(norm = norm, cmap=self.star_cmap['cmap']), cax=ax, orientation='horizontal', label='B-V color index')
         ax.set_title('Star colors')
         return fig
