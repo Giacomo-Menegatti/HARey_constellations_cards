@@ -167,9 +167,8 @@ def Gall_horizontal(ra):
 
 ############ STAR SIZE FROM MAGNITUDE ##########
 @np.vectorize
-def mag2size(mag, step=4.5):
+def mag2size(mag, step=3.5):
     '''The luminosity of a star depend on the magnitude as F = F0 10**(-0.4*mag)
-        The luminosity initially is proprtional to the area of the star (so bigger stars look better),
-        then after the step value switches to length proportionality (so fainter stars look better) '''
+        Brighter stars also have different markers to distinguish them, so a more gradual scaling is used'''
 
-    return 10**(-0.2*mag) if mag < step else 10**(-0.4*(mag-step)-0.2*step)
+    return 10**(-0.25*mag) if mag < step else 10**(-0.4*(mag-step)-0.25*step)

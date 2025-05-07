@@ -80,7 +80,7 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
         #Initialize graphical parameters to default values
         self.USE_HAREY_MARKERS = True
         self.limiting_magnitude = 7 # Maximum magnitude of plotted stars
-        self.star_size = 150  # Scaling value to display the stars
+        self.star_size = 100  # Scaling value to display the stars
 
         # Colors used in the plots
         self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
@@ -151,9 +151,9 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors['sky'])
 
-        for i in range(6):
+        for i in range(5):
             marker = self.star_markers[i] if self.USE_HAREY_MARKERS else '.'
-            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, step=4.5), linewidths=0, color=self.colors['star'])
+            ax.scatter(i, 0, marker = marker, s=800*mag2size(i), linewidths=0, color=self.colors['star'])
             ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
 
         ax.set_axis_off()
