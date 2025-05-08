@@ -93,6 +93,37 @@ class Observer():
         date_str = self.datetime_utc.strftime('%d-%m-%Y  %H:%M')
         return f'Observer position \n {lat_str}, {long_str}, \n time of observation \n {date_str} UTC '
     
+# IS VISIBLE FUNCTION
+
+def is_visible(lat_str, limit_stars):
+    ''' Takes latitude string (i.e. '45 N') and the limit stars (northernmost, southernmost).
+        Defines if a constellation is visible by an observer at a given latitude.
+        Constellations are classified as not visible, partly visible, visible and circumpolar
+    '''
+
+    lat = float(lat_str[:-1]) if lat_str[-1]=='N' else -float(lat_str[:-1])
+    # northern and southern visibility border (assuming perfect visibility)
+    north_bound, south_bound = min(lat+90, 90), max(lat-90, -90)
+    # circumpolar bound
+    circ_bound = 90 - lat if lat >= 0 else -90 - lat
+    
+    # Northernmost and southernmost stars (declination)
+    northmost = max(limit_stars)
+    southmost = min(limit_stars)
+
+    # if the constellation is outside the borders, it's not visible
+    if southmost >= north_bound or northmost <= south_bound:
+        return 'not visible'
+    # check if it is inside the circumpolar region
+    elif (lat >= 0 and southmost >= circ_bound) or (northmost <= circ_bound and lat < 0):
+        return 'circumpolar'
+    # check if it is inside the border
+    elif (lat >= 0 and southmost >= south_bound) or (northmost <= north_bound and lat < 0):
+        return 'visible'
+    # check if at least part of it is inside the border
+    elif northmost >= south_bound or southmost <= north_bound:
+        return 'partly visible'
+    
 
 
 
