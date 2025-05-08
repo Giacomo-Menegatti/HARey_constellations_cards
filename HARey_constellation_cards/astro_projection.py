@@ -202,4 +202,4 @@ def mag2size(mag, step=3.5):
     '''The luminosity of a star depend on the magnitude as F = F0 10**(-0.4*mag)
         Brighter stars also have different markers to distinguish them, so a more gradual scaling is used'''
 
-    return 10**(-0.25*mag) if mag < step else 10**(-0.4*(mag-step)-0.25*step)
+    return 10**(-0.2*mag) if mag < step else 10**(-0.4*(mag-step)-0.2*step)

@@ -90,7 +90,7 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
                     'ecliptic_label' : 'crimson', 'asterism_labels': 'lime', 'constellation_parts' : 'violet',
                     'horizon_label' : 'white',
                     
-                    'cardback_1':  'xkcd:marine blue', 'cardback_2': 'xkcd:dark red',
+                    'cardback_1':  'xkcd:marine blue', 'cardback_2': 'xkcd:blood',
                     'accent_1': 'darkgoldenrod', 'accent_2': 'darkgoldenrod'}
         
 

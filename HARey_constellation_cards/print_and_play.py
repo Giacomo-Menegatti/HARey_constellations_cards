@@ -35,18 +35,20 @@ class PrintAndPlay:
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=False, STAR_COLORS=STAR_COLORS, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
         self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=True, CON_PARTS = CON_PARTS, STAR_COLORS=STAR_COLORS,
                                 STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_lines_4.png')
-        
-        # Reset the bleed after this point
-        self.bleed = 0 
-        
+    
+        # reset the bleed after completing the cards
+        self.bleed = 0
 
 
     # Function to arrange card images in a PDF ready to print    
-    def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HEPLERS = True):
+    def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HEPLERS = True, bleed = 0.1):
         ''' Arrange all the cards inside the folder in a PDF ready to print.
             The cards are arranged to be printed front-and-back, and are choosen alphabetically.
             CUTTING_HELPERS add helper lines at the border to help when cutting the cards.
         '''
+
+        self.bleed = bleed
+
         #List all the files in the folder and keep only the images
         
         files = os.listdir(folder)
@@ -79,12 +81,12 @@ class PrintAndPlay:
 
             pdf.page = (n//8)*2 + p + 1
 
-            # When plotting the card backs, remember to add the bleed
+            # When plotting the card fronts, remember to add the bleed
             if p == 0:
-                pdf.image(f'{folder}/{card}', x_pos[x]-self.bleed, y_pos[y]-self.bleed, cw + 2*self.bleed, ch + 2*self.bleed)
-            else:
                 pdf.image(f'{folder}/{card}', x_pos[x], y_pos[y], cw, ch)
-
+            else:
+                pdf.image(f'{folder}/{card}', x_pos[x]-self.bleed, y_pos[y]-self.bleed, cw + 2*self.bleed, ch + 2*self.bleed)
+                
         if CUTTING_HEPLERS:
 
             # draw the helpers only on the cardbacks pages (fronts have a little bleed)
@@ -104,4 +106,6 @@ class PrintAndPlay:
                     pdf.line(hw-pad/2, y, hw+pad/2, y)          
 
         print(f'\n{n_cards} cards have been printed in the file {filename}\n')
-        pdf.output(filename)
+        pdf.output(f'{folder}/{filename}')
+
+        self.bleed = 0

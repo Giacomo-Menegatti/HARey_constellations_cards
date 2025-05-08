@@ -205,18 +205,24 @@ class CardPlot:
             x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
             y_span = x_span/AR_card
 
-        height = self.height*self.dpi/2
-        width = self.width*self.dpi/2
+
+
+        fig = plt.figure(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
+
+        # Convert the measures to pixels
+        height = self.height*self.dpi/2 + self.bleed*self.dpi
+        width = self.width*self.dpi/2 + self.bleed*self.dpi
 
         # Scale the coordinates
         scale = height/y_span        
         stars_x, stars_y = stars_x*scale, stars_y*scale
         ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
-        fig = plt.figure(figsize = (self.width, self.height), dpi=self.dpi) #figure with correct aspect ratio
         ax = plt.axes((0,0,1,1)) #axes over whole figure
         ax.set_xlim(-width,width)
         ax.set_ylim(-height,height)
+        ax.set_aspect('equal')
+        ax.set_axis_off()
         fig.add_axes(ax)
 
         # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
@@ -228,9 +234,6 @@ class CardPlot:
         
         ax.add_patch(box)
 
-        ax.set_aspect('equal')
-        ax.set_axis_off()
-        
         if CON_LINES:
             for constellation_id in constellation_ids:
                 #Plot the central constellation a little more evident than the others
