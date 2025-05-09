@@ -120,7 +120,7 @@ def load_markers(markers_folder='markers'):
         markers[direction]=marker
 
     # HARey star markers
-    for i in range(4):
+    for i in range(5):
         _, attributes = svg2paths(f'{markers_folder}/star_marker_{i}.svg')
         star_marker = parse_path(attributes[0]['d'])
         star_marker.vertices -= star_marker.vertices.mean(axis=0)

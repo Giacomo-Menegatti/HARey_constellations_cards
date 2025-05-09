@@ -52,12 +52,9 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
         # Load the stars positions and magnitude
         self.stars = load_stars(hip_file)
 
-        print('Done!\nComputing stars colors, sizes and markers...    ', end=' ')
+        print('Done!\nComputing stars colors...    ', end=' ')
         # Compute stars colors
         self.stars['color'] = self.bv2color(self, self.stars['B-V'])
-
-        # Load the star marker sizes
-        self.stars['size'] = mag2size(self.stars['magnitude'])
 
         # Compute the stars magnitude class (used to define the marker)
         self.stars['mag_class'] = np.vectorize(lambda x: 0 if x < 0.5 else 6 if x > 5.5 else np.round(x))(self.stars['magnitude'])
@@ -151,9 +148,9 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors['sky'])
 
-        for i in range(5):
+        for i in range(6):
             marker = self.star_markers[i] if self.USE_HAREY_MARKERS else '.'
-            ax.scatter(i, 0, marker = marker, s=800*mag2size(i), linewidths=0, color=self.colors['star'])
+            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude), linewidths=0, color=self.colors['star'])
             ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
 
         ax.set_axis_off()

@@ -6,7 +6,7 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 import os
 
-from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec
+from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec, mag2size
 
 '''This module contains the code used to create the constellations cards. 
     It has the following functions:
@@ -175,7 +175,7 @@ class CardPlot:
 
         # set marker sizes and line widths
         marker_size = self.star_size if star_size == None else star_size
-        star_sizes = marker_size*stars['size']
+        star_sizes = marker_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
         line_w = marker_size * 0.0055
 
         #Get the custom markers
@@ -273,20 +273,22 @@ class CardPlot:
         #Plot the North indicator as last thing
         if CON_LINES: 
             #The angle is between -90 and 90 and plotted near the edge of the card
-            pad = 0.7*self.pad*self.dpi
+            space = (0.7*self.pad + self.bleed)*self.dpi
+
+            plot_width, plot_height = width-space, height -space
             # Angle of the intersection of the horizontal and vertical edge
-            card_angle = np.arctan((width-pad)/(height-pad))
+            card_angle = np.arctan(plot_width/plot_height)
             # The indicator is plotted near the closest edge
             
             if north_angle <= -card_angle:
                 # Left side 
-                (x,y) = (-width+pad, -(width-pad)/np.tan(north_angle))
+                (x,y) = (-plot_width, -(plot_width)/np.tan(north_angle))
             elif north_angle >= card_angle:
                 # Right side   
-                (x,y) = (width-pad, (width-pad)/np.tan(north_angle))
+                (x,y) = (plot_width, (plot_width)/np.tan(north_angle))
             else:
                 # Up side
-                (x,y) = ((height-pad)*np.tan(north_angle), height-pad)                
+                (x,y) = ((plot_height)*np.tan(north_angle), plot_height)                
 
             t = Affine2D().rotate_deg(np.rad2deg(-north_angle))
             ax.plot(x,y, marker=MarkerStyle(empty_marker, transform=t), markersize=11, color='white', markeredgewidth=0)

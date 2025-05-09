@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Circle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereographic_polar, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal
+from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereographic_polar, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, mag2size
 
 '''This module contains the code to plot a universal map of the sky.
 	It contains the following functions:
@@ -59,7 +59,7 @@ class UniversalSkyMap:
 		limiting_magnitude = self.limiting_magnitude
 		constellations = self.constellations
 		constellation_ids = self.constellation_ids
-		star_sizes = star_size*stars['size']
+		star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
 
 		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 		star_markers = self.star_markers
@@ -406,7 +406,7 @@ class UniversalSkyMap:
 		constellations = self.constellations
 		constellation_ids = self.constellation_ids
 
-		star_sizes = star_size*stars['size']
+		star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
 		
 		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 		# If the HAREY plot option is enables use the custom star markers, otherwise use simple dots

@@ -197,9 +197,9 @@ def Gall_horizontal(ra):
     return np.deg2rad(ra)/np.sqrt(2)
 
 ############ STAR SIZE FROM MAGNITUDE ##########
-@np.vectorize
-def mag2size(mag, step=3.5):
-    '''The luminosity of a star depend on the magnitude as F = F0 10**(-0.4*mag)
-        Brighter stars also have different markers to distinguish them, so a more gradual scaling is used'''
 
-    return 10**(-0.2*mag) if mag < step else 10**(-0.4*(mag-step)-0.2*step)
+def mag2size(mag, lim_mag):
+    '''Compute the star size from its magnitude. It uses the scaling law used by Skyfield'''
+
+    #return 10**(-0.2*mag) if mag < step else 10**(-0.4*(mag-step)-0.2*step)
+    return (1 - mag/lim_mag )**2

@@ -6,7 +6,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereographic_projection
+from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereographic_projection, mag2size
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
@@ -57,7 +57,7 @@ class SkyView:
         limiting_magnitude = self.limiting_magnitude
         constellations = self.constellations
         constellation_ids = self.constellation_ids
-        star_sizes = star_size*stars['size']
+        star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
 
         #Get the custom markers        
         empty_marker = self.markers['empty']
