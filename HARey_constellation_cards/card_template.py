@@ -74,7 +74,7 @@ class CardTemplate:
             # Circular plot for the quiz game
             self.height = 5
             self.width = 5
-            self.pad = 1.0
+            self.pad = 1.2
             self.AR_card = self.width/self.height
             self.box_style = 'circle, pad=0.0'
 
