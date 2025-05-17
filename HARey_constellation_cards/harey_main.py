@@ -1,3 +1,5 @@
+"""HARey main module. This module inherits from all the others."""
+
 from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers, load_names
 from HARey_constellation_cards.sky_view import SkyView
 from HARey_constellation_cards.card_plot import CardPlot
@@ -11,32 +13,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
 
-''' HARey main class: this module inherits from all the other modules.
-    It contains the following functions:
-    - HARey: main class that loads the stars, constellations, markers and language automatically
 
+# HARey main Class
+class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
+    """
+    HARey main class. The one class to rule them all.
+
+    This module inherits from all the other modules and contains the main functions to plot the stars, constellations, markers and cardbacks.
+    It serves as a hub for all other modules to share variables and data.
+
+    CONTAINS : 
+    - HARey: main class that loads the stars, constellations, markers and language automatically
     - set_limiting_magnitude: set the limiting magnitude of the stars to be plotted (higher values means more little stars in the background) 
     - set_fonts: set the fonts used in the plots and the cardback
     - set_colors: set the colors used in the plots
     - set_harey_markers_on and set_harey_markers_off : use the HARey markers to plot the stars instead of simple circles
-
     - plot_legend: plot the star magnitude legend
-    
-'''
 
-class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
+    """
 
-    # HARey main class, inherits FUNCTIONS from all the others. 
-    # (Observer is a class with its own init, must be recast as a method of HARey) 
-    # This module contains the common methods and variables used by the other modules.
-
-    def __init__(self,
-                 hip_file = 'hip_main.dat',
-                 constellations_file = 'index.json',
-                 names_file = 'names.csv',
-                 language = 'COMMON', 
-                 star_colors = 'stellarium'):
+    def __init__(self,hip_file = 'hip_main.dat',constellations_file = 'index.json',
+                 names_file = 'names.csv',language = 'COMMON', star_colors = 'stellarium'):
+        """
+        Initialize the HARey class. This function loads the stars, constellations, markers and language automatically.
         
+        Arguments : 
+        - hip_file : path to the HIPPARCOS catalogue file.
+        - constellations_file : path to the json conatining the constellation figures data. It can be swapped with another Stellarium skyculture file.
+        - names_file : path to the names.csv file. It contains the names of the stars and constellations in different languages.
+        - language : language to choose in the names.csv file. More languages will be added in the future.
+        - star_colors : color map to use for the star colors, either 'stellarium' or 'helland'. They are similar, helland is a bit redder.
+        """
         # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
         StarColorMap.__init__(self, star_colors)
 
@@ -102,16 +109,23 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
 
     # Function to set the limiting magnitude
     def set_limiting_magnitude(self, limiting_magnitude=8):
-        ''' Set the max magnitude of stars that will be plotted. The HIP catalogue goes up to 10, but 8
-            is a good limit to avoid plotting too many points.
-        '''
+        """
+        Set the limiting magnitude of the stars. Higher values will plot more dim stars.
+        
+        The HIP catalogue reaches up to 13, but 8 is a good compromise between a fancy plot and a readable one.
+        """
         self.limiting_magnitude = limiting_magnitude
 
 
     # Function to set the fonts that will be used
     def set_fonts(self, labels_font_file = None, cards_font_file= None):
-        ''' Set the fonts used in the plot labels and the cardback names. Takes as input the .ttf files '''
+        """
+        Set the fonts used in the plot labels and the cardback names.
 
+        Arguments :
+        - labels_font_file : path to the font file to use for the labels in the plots.
+        - cards_font_file : path to the font file to use for the names on the card backs.        
+        """
         if not labels_font_file == None:
 
             labels_font = FontProperties(fname=labels_font_file)
@@ -128,22 +142,21 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
 
     # Function to set the colors palette used in the plots
     def set_colors(self, dict):
-        ''' Set the colors use by the HARey module. Take a dictionary as input {color_key: color}'''
+        """Set the colors used by the HARey module. Take a dictionary as input {color_key: color}."""
         self.colors.update(dict)
 
     # Functions to change the print options
     def set_HARey_markers_off(self):
-        '''Disable the USE_HAREY_MARKERS: now the stars are represented as simple circles'''
+        """Disable the USE_HAREY_MARKERS and plot the stars with simple circles."""
         self.USE_HAREY_MARKERS = False
     
     def set_HARey_markers_on(self):
-        ''' Enable the USE_HAREY_MARKERS: the stars will be plotted with different markers for each magnitude'''
+        """Enable the USE_HAREY_MARKERS : the stars will be plotted with different markers for each magnitude."""
         self.USE_HAREY_MARKERS = True
 
 
     def plot_legend(self):
-        ''' Plot the HARey star magnitude legend'''
-
+        """Plot the legend of the star markers and magnitudes."""
         fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors['sky'])
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors['sky'])

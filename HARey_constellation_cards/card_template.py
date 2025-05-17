@@ -1,23 +1,30 @@
+"""This module contains the class CardTemplate, which defines the card format and properties."""
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_rgba
 import numpy as np 
 import io
 
-'''This module contains the card templates parameters, such as width, height, dpi, roundness, etc.
-    It contains the following functions:
-    - set_card_template: set the card template and choose the correct parameters. 
-    - write_cardback: create the cardback and write the constellation name on it
-'''
-
-
 class CardTemplate:
-    ''' This modules defines the card format and properties.
-        The card templates used are greyscale images with DPI=300.    '''
+    """
+    CARD TEMPLATE CLASS.
+
+    Contains:
+    - set_card_template: function to set the card template (size, style, card back image)
+    - plot_cardback: function to plot the card back and write the constellation name on it
+    """
 
     # Function to read between the different cardbacks
     def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300):
-    
+        """
+        Set the card template.
+
+        Arguments :
+        - format : 'tarot-round', 'tarot-square', 'circle'. More templates will be added. Each templates specify the card dimensions and poition of the plot area and of the text box
+        - cardback_file : path to the card back image. If None, the card will have no back image. the cardback must be a black and white image with transparency (RGBA) and the same dimensions as the card.
+        - dpi : dpi of the card. Should be the same as the cardback image. 
+        """
         if format == 'tarot-round':
             #card dimensions and corner radius (inches)
             self.height = 4.75
@@ -96,11 +103,18 @@ class CardTemplate:
 
     # Function to color the cardback and write the name
     def plot_cardback(self, id, main_color=None, accent_color=None, SHOW=True, SAVE=False, save_name=None):
-        ''' Plot the cardback and write the constellation name on it, then save it 
-            The constellation name is not wrapped automatically, so new lines must be manually inserted in the languages.csv file
-            where needed.        
-        '''     
+        """
+        Plot the card back and write the constellation name on it.
 
+        Arguments :
+        - id : id of the constellation
+        - main_color : color of the card back (RGB tuple)
+        - accent_color : color of the text and decorartions (RGB tuple)
+        - save_name : name of the file to save the plot. If specified, SAVE is set to True
+        - SHOW : if True, show the plot. If False, don't show the plot. Useful if many card are plotted at once
+        - SAVE : if True, save the plot. If save_name is not specified, the card will be saved as id_cardback.png
+        
+        """
         # If the save_name is not None, save automatically the plot
         if not save_name == None:
             SAVE = True
