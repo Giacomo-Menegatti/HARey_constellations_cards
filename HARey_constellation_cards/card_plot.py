@@ -1,3 +1,9 @@
+"""
+CARD PLOT.
+
+This module contains the class CardPlot, which is used to plot the constellation cards.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
@@ -8,22 +14,30 @@ import os
 
 from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec, mag2size
 
-'''This module contains the code used to create the constellations cards. 
-    It has the following functions:
-    - project_constellation: to project the constellation on a plane, find the north direction and the constellation boundaries
-    - plot_card: to plot the constellation on the card, inside the card template chosen by the user.
-    '''
-
 
 class CardPlot:
+    """
+    Class to plot the constellation cards.
+
+    CONTAINS:
+    - project_constellation: Project the constellation to a stereographic projection, rotate it and find its borders.
+    - plot_card: Plot the constellation card using the card template.
+    """
+
     def project_constellation(self, constellation_id, BEST_AR=False):
+        """
+        Project the constellation to a stereographic projection and find its borders.
 
-        '''Create a stereographic projection centered on the constellation.
-            Returns the projected star coordinates, the boundaries of the constellation, the projected ecliptic and the North direction. 
-            If BEST_AR=True, rotates the constellation to maximize the aspect ratio (vertical spread versus horizontal spread), 
-            otherwise all constellations are drawn North up. 
-        '''
+            Arguments: 
+            constellation_id : Constellation ID (e.g. 'And' for Andromeda).
+            BEST_AR : Rotate the constellation to maximize the aspect ratio. Otherwise, plot with north side UP.
 
+            Returns:
+            stars_x, stars_y : Coordinates of the stars in the projected constellation.
+            borders : Borders of the constellation.
+            ecliptic_x, ecliptic_y : Coordinates of the ecliptic in the projection.
+            north_angle : Angle of the north direction.
+        """
         stars = self.stars
 
         #Take the stars of the constellation shape
@@ -139,26 +153,24 @@ class CardPlot:
     def plot_card(self, id, CON_LINES=False, BEST_AR=False, STAR_COLORS=False,
                            CON_PARTS = False, STAR_NAMES = False, SIS_SCRIPT = False, 
                            SHOW=True, SAVE=False, save_name=None, star_size = None):
+        """
+        Plot the constellation card inside the card template.
 
-        ''' Plot the constellation using the current card template. 
-        The parameters are:
-            id : Constellation ID (e.g. 'And' for Andromeda)
-            save_name : Name of the file in which the plot is saved. If None, it will be saved as id_lines.png or id_bare.png
-            star_size : Size of the stars. If None, it will be set to the default value specified in the class HARey
-            
-        The flags are:
-            CON_LINES : Plot the constellation lines 
-            BEST_AR : Rotate the constellation to completely fill the plot. Otherwise, plot with north side UP.
-            STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
+        Arguments:
+        id : Constellation ID (e.g. 'Ori' for Orion).
+        save_name : Name of the file to save the plot. If specified, sets SAVE to True.
+        star_size : Size of the stars in the plot. If None, the default size is used.
 
-            SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. It automaticaaly saves the plot.
-            CON_PARTS : Plot the constellation diagram parts 
-            STAR_NAMES : Plot the star names   
-
-            SHOW : Show the plot.
-            SAVE : Save the plot. If the save name is specified, is True by default        
-        '''
-        
+        Flags:
+        CON_LINES : Plot the constellation lines. 
+        BEST_AR : Rotate the constellation to maximize the aspect ratio and fill the card. Otherwise, plot with north side UP.
+        STAR_COLORS : Use the computed star colors for the stars. Otherwise, use the default color (white).
+        CON_PARTS : Plot the constellation parts labels (e.g. 'belt' in Orion).
+        STAR_NAMES : Plot the star names labels (e.g. 'Betelgeuse' in Orion).
+        SIS_SCRIPT : Create a script to plot interactive labels in Inkscape, to manually adjust their positions. If enabled, the plot is shown with the labels, but the saved image has no labels.
+        SHOW : Show the plot. If False, the plot is not shown (useful when many cards are plotted at once).
+        SAVE : Save the plot. If the save_name is None, the default names ID_lines.png or ID_bare.png are used.
+        """        
         # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
         if not save_name == None or SIS_SCRIPT:
             SAVE = True
@@ -300,10 +312,9 @@ class CardPlot:
         if SIS_SCRIPT:  # Save the iamge bfore adding labels
             plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
             
-
         # Function to plot a label at the mean x and y positions
         def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
-            '''Take the mean x and y and plot a label there'''
+            """Take the mean x and y and plot a label there."""
             label_x = np.mean(stars_x[indexes])
             label_y = np.mean(stars_y[indexes])
             ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=label_font,  ha = ha, va = va) 
