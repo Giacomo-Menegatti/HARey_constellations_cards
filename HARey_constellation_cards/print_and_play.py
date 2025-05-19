@@ -1,24 +1,40 @@
+"""This module contains the class PrintAndPlay, which automates the creation of cards."""
+
 import os
 from fpdf import FPDF
 
-'''This module automates creating a set of cards. It constains the following functions:
-    - print_card_set: create a complete set of cards for one constellations
-    - print_and_play: arrange all the cards inside a PDF ready to print
-'''
-
 class PrintAndPlay:
+    """
+    Class to automate the creation of cards.
+    
+    Contains:
+    - print_card_set : create a complete set of cards for one constellation
+    - print_and_play : arrange the cards inside of a PDF ready to print
+    """
 
     # Function to plot a card set
     def print_card_set(self, id, save_folder=None, BEST_AR=True, SIS_SCRIPT=False, CON_PARTS = True, STAR_NAMES = True, STAR_COLORS = False, bleed = 0.1):
-        ''' Print a set of memory cards: 
+        """
+        Print a set of memory cards for one constellation.
+
+        This includes:
             - A first cardback with colors cardback_1, accent_1
             - A second cardback with colors cardback_2, accent_2
             - The constellation without CON_LINES and names
             - The constellation with CON_LINES, ecliptic and north indicator
-            The cards are saved locally is a save_folder is not provided.
-            If bleed is enabled, the images are saved with a small printing bleed (in inches)
-        '''
+        
+        Arguments:
+        id (str) : constellation id (e.g 'Ori' for Orion)
+        save_folder (str) : folder in which the cards are saved. If None, the cards are saved in the current directory
+        bleed (float) : size of the bleed around the card images in inches. This is used to ensure that the card image completely overlaps the cardback when printed.
 
+        Flags:
+        BEST_AR : if True, the constellation is rotated to the best aspect ratio to completely fill the card. Otherwise, the constellation is plotted north up.
+        SIS_SCRIPT : Create a SIS_SCRIPT to create the labels in InkScape to manually adjust their position. If it is enabled, the constellations are saved without labels.
+        CON_PARTS : Plot the constellation parts labels (e.g. 'belt' in Orion).
+        STAR_COLORS : Use the computed star colors for the stars. Otherwise, use the default color (white).
+        STAR_NAMES : Plot the star names labels (e.g. 'Betelgeuse' in Orion).
+        """
         # Directory in which the cards are saved
         dir = save_folder if not save_folder == None else '.'
 
@@ -42,11 +58,17 @@ class PrintAndPlay:
 
     # Function to arrange card images in a PDF ready to print    
     def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HEPLERS = True, bleed = 0.1):
-        ''' Arrange all the cards inside the folder in a PDF ready to print.
-            The cards are arranged to be printed front-and-back, and are choosen alphabetically.
-            CUTTING_HELPERS add helper lines at the border to help when cutting the cards.
-        '''
+        """
+        Create a PDF with all the images in the folder, arranging them in a 2 sided print ready for cutting.
 
+        The images are arranged in groups of 8, with 4 images on each page. The first page contains the cardbacks and the second page contains the card fronts.
+
+        Arguments:
+        folder (str) : folder where the images are saved. If not specified, search the iimages in the current directory.
+        filename (str) : name of the PDF file.
+        CUTTING_HEPLERS (bool) : if True, draw cutting helper to simply cutting the cards. The helpers are drawn only on the cardback pages.
+        bleed (float) : size of the bleed around the images in inches. The bleed is added in the previous function to ensure that the cardbacks are completely covered by the images.       
+        """ 
         self.bleed = bleed
 
         #List all the files in the folder and keep only the images

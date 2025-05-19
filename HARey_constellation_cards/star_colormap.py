@@ -1,16 +1,16 @@
+"""StarColorMap contains the code to assign a color from the B-V index value of a star."""
+
 from matplotlib.colors import ListedColormap, Normalize, to_hex
 from matplotlib.cm import ScalarMappable
 import matplotlib.pyplot as plt
 import numpy as np
 
-'''This module contains the StarColorMap module. It contains the code to assign a color from the B-V index value of a star.
-    Two slightly different maps are supported, Stellarium and Helland. 
-'''
 
 class StarColorMap:
+    """Class to create a colormap for the stars based on their B-V index."""
 
     def __init__(self, star_colors = 'stellarium'):
-        
+        """Initialize the colormap used."""
         # Star colors used in Stellarium    
         colors_stellarium = [
             (0.602745, 0.713725, 1.0),  (0.604902, 0.715294, 1.0),  (0.607059, 0.716863, 1.0),  (0.609215, 0.718431, 1.0),
@@ -81,11 +81,20 @@ class StarColorMap:
     
     @np.vectorize
     def bv2color(self, bv):
-        '''Convert the B-V color index to a rgb color'''        
+        """
+        Convert the B-V color index to a color in the colomap.
+
+        Arguments :
+        bv (float) : B-V color index of the star
+
+        Returns :
+        color (str) : Color in hex format        
+        """       
         color = self.star_cmap['cmap']((bv - self.star_cmap['start'])/(self.star_cmap['finish'] - self.star_cmap['start']))
         return to_hex(color)
     
     def plot_star_cmap(self):
+        """Plot the colormap used to color the stars."""
         fig, ax = plt.subplots( figsize=(6, 1.5), layout='constrained')
         norm = Normalize( vmin=self.star_cmap['start'], vmax=self.star_cmap['finish'])
         fig.colorbar(ScalarMappable(norm = norm, cmap=self.star_cmap['cmap']), cax=ax, orientation='horizontal', label='B-V color index')
