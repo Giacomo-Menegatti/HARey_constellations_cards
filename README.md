@@ -44,7 +44,7 @@ The __HAReyMain__ module contains the following methods:
 - __load_constellations()__, __load_stars()__, __load_names()__ : load the sky culture diagrams and the Hipparcos catalogue. They are applied automatically when creating a new HARey instance.
 - __plot_card()__: plot the sky around a constellation inside a card template. The __BEST_AR__ flag rotates the constellation to better fit the card, otherwise the plot is done with the North side up
 - __sky_view()__: plot the visble sky as seen by an observer at a given time and time
-- - __polar_map()__: plot the stars around the poles, using a stereographic projection
+- __polar_map()__: plot the stars around the poles, using a stereographic projection
 - __equatorial_map()__: plot the stars close to the equator, using a Gall-stereographic projection
 - __set_card_template()__ : set the card template and the cardback image. The template properties are specified in the _card_template.py_ module.
 - __plot_cardback()__ : create the cardback for a card by setting the colors and writing the constellation name.
