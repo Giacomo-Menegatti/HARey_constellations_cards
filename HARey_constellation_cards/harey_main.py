@@ -83,7 +83,7 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
        
         #Initialize graphical parameters to default values
         self.USE_HAREY_MARKERS = True
-        self.limiting_magnitude = 7 # Maximum magnitude of plotted stars
+        self.limiting_magnitude = 6.5 # Maximum magnitude of plotted stars
         self.star_size = 100  # Scaling value to display the stars
 
         # Colors used in the plots
@@ -108,11 +108,11 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
         
 
     # Function to set the limiting magnitude
-    def set_limiting_magnitude(self, limiting_magnitude=8):
+    def set_limiting_magnitude(self, limiting_magnitude=6.5):
         """
         Set the limiting magnitude of the stars. Higher values will plot more dim stars.
         
-        The HIP catalogue reaches up to 13, but 8 is a good compromise between a fancy plot and a readable one.
+        The HIP catalogue reaches up to 13, but 6.5 is a good compromise between a fancy plot and a readable one.
         """
         self.limiting_magnitude = limiting_magnitude
 

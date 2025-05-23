@@ -95,7 +95,7 @@ class CardPlot:
             ar = []
 
             # Start rotating from the north direction, left or right, by 5 degrees
-            angles = np.deg2rad(np.arange(45,-135,-5)) + north_angle
+            angles = np.deg2rad(np.arange(85,-85,-5)) + north_angle
             for alpha in angles:  
 
                 stars_xR, stars_yR = rotate(local_stars_x, local_stars_y, alpha)                                
@@ -264,7 +264,7 @@ class CardPlot:
         color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.7)
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.6)
 
         # Plot a blank circle around the stars to make them more evident
         for i, m in enumerate(star_markers):
@@ -280,7 +280,7 @@ class CardPlot:
             
             mask_others = np.logical_and(mask, stars.constellation != id)
             color = stars[mask_others]['color'] if STAR_COLORS else self.colors['star']
-            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.8)
+            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.6)
 
         #Plot the North indicator as last thing
         if CON_LINES: 
