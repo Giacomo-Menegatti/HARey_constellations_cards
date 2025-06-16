@@ -6,14 +6,14 @@ from HARey_constellation_cards.harey_main import HAReyMain
 from HARey_constellation_cards.loader import load_names
 
 # QUIZ SETTINGS
-LANGUAGE = 'ITALIANO'                 #Names of the constellations
+LANGUAGE = 'IAU-EN'                 #Names of the constellations
 
-NUMBER_OF_QUESTIONS = 5
-NUMBER_OF_OPTIONS = 4
-NUMBER_OF_CONSTELLATIONS = 20
+NUMBER_OF_QUESTIONS = 15
+NUMBER_OF_OPTIONS = 8
+NUMBER_OF_CONSTELLATIONS = 50
 
-# Random rotate rotates the constellation image, instead of keepinf the north side up
-RANDOM_ROTATE = True
+# Random rotate rotates the constellation image, instead of keeping the north side up
+RANDOM_ROTATE = False
 
 # to_print contains all the constellation
 to_print = ['CMa', 'Car', 'Pup', 'Aur', 'Boo', 'Cru', 'Aql', 'Lyr',
@@ -40,7 +40,7 @@ names = load_names(f'{path}/names.csv', language=LANGUAGE)
 if not os.path.exists(folder):
     os.mkdir(folder)
 
-    harey = HAReyMain()
+    harey = HAReyMain(language=LANGUAGE)
     harey.set_card_template(format='circle')
 
     # Fill it with the constellations (this may take a while)
@@ -191,7 +191,7 @@ button_frame.pack(pady=10)
 # Create answer buttons
 for i in range(NUMBER_OF_OPTIONS):
     btn = tk.Button(button_frame, text="", command=lambda i=i: check_answer(i), **button_style)
-    btn.grid(row=0, column=i, padx=10, pady=10)
+    btn.grid(row=i//4, column=i%4, padx=10, pady=10)
     buttons.append(btn)
 
 # Start with first question

@@ -94,8 +94,8 @@ def load_constellations(constellation_file):
 
     return constellations, main_ids, asterisms, helpers, named_stars
 
-def load_names(names_file, language='ENGLISH - IAU'):
-    ''' Load the object names. The ENGLISH - IAU language contains the IAU standard names. To add more languages, edit the names.csv file'''
+def load_names(names_file, language='IAU-EN'):
+    ''' Load the object names. The IAU-EN language contains the IAU standard names. To add more languages, edit the names.csv file'''
     names = pd.read_csv(names_file)
     names = names.fillna('')
     names = dict(zip(names['ID'], [name.replace('\\n', '\n') for name in names[language]]))

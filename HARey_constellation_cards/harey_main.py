@@ -33,7 +33,7 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
     """
 
     def __init__(self,hip_file = 'hip_main.dat',constellations_file = 'index.json',
-                 names_file = 'names.csv',language = 'COMMON', star_colors = 'stellarium'):
+                 names_file = 'names.csv',language = 'IAU-EN', star_colors = 'stellarium'):
         """
         Initialize the HARey class. This function loads the stars, constellations, markers and language automatically.
         
@@ -84,7 +84,7 @@ class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, 
         #Initialize graphical parameters to default values
         self.USE_HAREY_MARKERS = True
         self.limiting_magnitude = 6.5 # Maximum magnitude of plotted stars
-        self.star_size = 100  # Scaling value to display the stars
+        self.star_size = 250  # Scaling value to display the stars
 
         # Colors used in the plots
         self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
