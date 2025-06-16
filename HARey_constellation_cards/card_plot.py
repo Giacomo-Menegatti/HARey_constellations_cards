@@ -12,7 +12,7 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 import os
 
-from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec, mag2size
+from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec, mag2size, stereo_radius
 
 
 class CardPlot:
@@ -144,7 +144,10 @@ class CardPlot:
         # Get the constellation borders
         local_stars_x = stars_x[local_stars_mask]
         local_stars_y = stars_y[local_stars_mask]
-        borders = (np.max(local_stars_x), np.max(local_stars_y))
+        borders_x, borders_y = np.max(local_stars_x), np.max(local_stars_y)
+        # If the constellation is small, enlarge the borders to make the surroundings visible (use a fov of 20 degrees)
+        min_distance = stereo_radius(15)
+        borders = (max(borders_x, min_distance), max(borders_y, min_distance))
         
         return (stars_x, stars_y), borders, (ecliptic_x, ecliptic_y), north_angle 
 

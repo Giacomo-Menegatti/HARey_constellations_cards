@@ -30,12 +30,9 @@ class CardTemplate:
             self.height = 4.75
             self.width = 2.75
             self.pad = 0.25
-            self.AR_card = self.width/self.height
+            
             # Style passed to the fancybbox patch
             self.box_style = f'round, pad=0.0, rounding_size={0.2*dpi}'
-
-            # Area of the card fully occupied by the constellation
-            self.AR_plot = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
 
             # Position and dimension of the text box (in inches)
             self.text_x = 0.4
@@ -44,61 +41,127 @@ class CardTemplate:
             self.box_height = 0.8
             self.text_box_style = "round, pad = 0.2, rounding_size=0.3"  
             
-            # If the cardback is not specified, use the default one 
-            if cardback_file == None:
-                cardback_file = 'cardbacks/tarot_round.png'
-            self.template = plt.imread(cardback_file)       
-
-            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')
+            # Default cardback style
+            self.default_cardback_file = 'cardbacks/tarot_round.png'   
 
         elif format == 'tarot-square':
-            #card dimensions and corner radius (inches)
             self.height = 4.75
             self.width = 2.75
-            self.pad = 0.25
-            self.AR_card = self.width/self.height 
-            # Area of the card fully occupied by the constellation
-            self.AR_plot = (self.width - 2*self.pad) / (self.height - 2*self.pad)            
+            self.pad = 0.25        
 
-            # Style passed to the fancybbox function
             self.box_style = 'square, pad=0.0'       
             
-            # Position and dimension of the text box (in inches)
             self.text_x = 0.4
             self.text_y = 3.6
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.8
             self.text_box_style = "round, pad = 0.2, rounding_size=0.05"           
 
-            # If the cardback is not specified, use the default one 
-            if cardback_file == None:
-                cardback_file = 'cardbacks/tarot_square.png'
-            self.template = plt.imread(cardback_file)       
+            self.default_cardback_file = 'cardbacks/tarot_square.png'
 
-            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')
+        elif format == 'jumbo-round':
+            # Jumbo format 3.5x5.5 inches
+            self.height = 5.5
+            self.width = 3.5
+            self.pad = 0.35
+
+            self.box_style = f'round, pad=0.0, rounding_size={0.25*dpi}'
+
+            self.text_x = 0.4
+            self.text_y = 4.1
+            self.box_width = self.width-2*self.text_x
+            self.box_height = 1.0
+            self.text_box_style = "round, pad = 0.25, rounding_size=0.4"           
+
+            self.default_cardback_file = 'cardbacks/jumbo_round.png'
+
+        elif format == 'jumbo-square':
+            # Jumbo format 3.5x5.5 inches
+            self.height = 5.5
+            self.width = 3.5
+            self.pad = 0.35
+
+            self.box_style = f'square, pad=0.0'
+
+            self.text_x = 0.4
+            self.text_y = 4.1
+            self.box_width = self.width-2*self.text_x
+            self.box_height = 1.0
+            self.text_box_style = "round, pad = 0.25, rounding_size=0.05"           
+
+            self.default_cardback_file = 'cardbacks/jumbo_square.png'
+
+        elif format == 'poker-round':
+            # Poker card format, 2.5x3.5 inches
+            self.height = 3.5
+            self.width = 2.5
+            self.pad = 0.15
+
+            self.box_style = f'round, pad=0.0, rounding_size={0.15*dpi}'
+
+            self.text_x = 0.4
+            self.text_y = 2.7
+            self.box_width = self.width-2*self.text_x
+            self.box_height = 0.55
+            self.text_box_style = "round, pad = 0.1, rounding_size=0.2"           
+
+            self.default_cardback_file = 'cardbacks/poker_round.png'
+
+        elif format == 'poker-square':
+            # Poker card format, 2.5x3.5 inches
+            self.height = 3.5
+            self.width = 2.5
+            self.pad = 0.15
+
+            self.box_style = f'square, pad=0.0'
+
+            self.text_x = 0.4
+            self.text_y = 2.7
+            self.box_width = self.width-2*self.text_x
+            self.box_height = 0.55
+            self.text_box_style = "round, pad = 0.1, rounding_size=0.05"           
+
+            self.default_cardback_file = 'cardbacks/poker_square.png'
 
         elif format == 'circle':
             # Circular plot for the quiz game
             self.height = 5
             self.width = 5
-            self.pad = 1.2
-            self.AR_card = self.width/self.height
+            self.pad = 1.2 
+
             self.box_style = 'circle, pad=0.0'
 
             # Area of the card fully occupied by the constellation
             self.AR_plot = 1
-
-            print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in.')
+        
+        elif format == 'square':
+            # Square format
+            self.height = 5
+            self.width = 5
+            self.pad = 0.25
+            
+            self.box_style = 'square, pad=0.0'
 
         else:
             print('This format is not recognized! Reverting to default format')
             self.set_card_template()   
 
+        self.AR_card = self.width/self.height
+        # Area of the card fully occupied by the constellation
+        self.AR_plot = (self.width - 2*self.pad) / (self.height - 2*self.pad)
+                    
         # Set the bleed to zero
         self.bleed = 0
 
         # Read the black_and_white template (imread converts it to RGBA)
         self.dpi = dpi
+        # If the cardback_file is not specified, use the default one for the card type
+        if cardback_file == None:
+            cardback_file = self.default_cardback_file
+
+        self.template = plt.imread(cardback_file)
+          
+        print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')    
 
 
     # Function to color the cardback and write the name

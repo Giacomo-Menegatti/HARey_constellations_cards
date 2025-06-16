@@ -54,10 +54,11 @@ class PrintAndPlay:
     
         # reset the bleed after completing the cards
         self.bleed = 0
+        print(f"Created card set for {id}")
 
 
     # Function to arrange card images in a PDF ready to print    
-    def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HEPLERS = True, bleed = 0.1):
+    def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', CUTTING_HELPERS = True, bleed = 0.1):
         """
         Create a PDF with all the images in the folder, arranging them in a 2 sided print ready for cutting.
 
@@ -66,68 +67,93 @@ class PrintAndPlay:
         Arguments:
         folder (str) : folder where the images are saved. If not specified, search the iimages in the current directory.
         filename (str) : name of the PDF file.
-        CUTTING_HEPLERS (bool) : if True, draw cutting helper to simply cutting the cards. The helpers are drawn only on the cardback pages.
+        CUTTING_HELPERS (bool) : if True, draw cutting helper to simply cutting the cards. The helpers are drawn only on the cardback pages.
         bleed (float) : size of the bleed around the images in inches. The bleed is added in the previous function to ensure that the cardbacks are completely covered by the images.       
         """ 
-        self.bleed = bleed
 
-        #List all the files in the folder and keep only the images
-        
         files = os.listdir(folder)
         cards = [file for file in files if file.endswith('.png')]
         cards.sort() # Sort the cards alphabetically
 
         pdf = FPDF(orientation="P", unit="in", format="A4")
-        
-        hw, hh = pdf.w/2, pdf.h/2           # Half width, half height
-        cw, ch = self.width, self.height    # Card width, card height
-        pad = min((hw-cw)/3, (hh-ch)/3)     # Distance from the center
-        l = 1.5*pad                         #Length of the cutting helper
-        
-        n_cards = len(cards)
-        # Each group of 8 images are plotted on two pages
-        n_pages = ((n_cards-1)//8 + 1)*2
-        x_pos, y_pos = (hw-cw-pad, hw+pad), (hh-ch-pad, hh+pad) # Positions of the top-left corner of the image
 
-        # Create all the pages and the central crosses
+        cw, ch = self.width, self.height    # Card width, card height
+        cwb, chb = cw + 2*bleed, ch + 2*bleed  # card width and height with bleed
+
+        # If the cards are poker sized and the bleed is 0.1 in or less, print 3x3 cards on paper 
+        # If instead they are tarot or jumbo, print 2x2 cards 
+        if cw/ch == 2.5/3.5 and bleed <= 0.1:
+            cards_per_page = 9
+            grid = 3
+        else:
+            cards_per_page = 4
+            grid = 2
+
+        # distance from the page margin
+        margin_w = (pdf.w - grid*cwb)/2
+        margin_h = (pdf.h - grid*chb)/2
+
+        n_cards = len(cards)
+        n_pages = ((n_cards-1)//(2*cards_per_page) + 1)*2
+
+        # Create all the pages and print the separating lines
         for i in range(n_pages):
             pdf.add_page()
-            pdf.line(0,hh, pdf.w, hh)
-            pdf.line(hw, 0, hw, pdf.h)  
+            for i in range(1, grid):
+                pdf.line(0, margin_h + i*chb, pdf.w,  margin_h + i*chb)
+                pdf.line(margin_w + i*cwb, 0, margin_w + i*cwb, pdf.h)  
 
         for n, card in enumerate(cards):
-            i = n%8         # Index of the card inside a group of 8 (4 in a 2 sided print)
-            p = (i%4)//2    # Page of the group (0 for cardbacks, 1 for fronts)
-            x = i%2         # x position
-            y = i//4        # y position
+            # THe cards are ordered as back_1, back_2, front_1, front_2
+            is_back = (n%4)//2 == 0                         # Check if the image is front or back
+            index = 2*(n//4) + n%2                          # Index of the card among the fronts or backs
+            x = index%grid                                 # x-Position of the image in the grid
+            y = (index%cards_per_page)//grid                # y-position
 
-            pdf.page = (n//8)*2 + p + 1
+            pdf.page = 2*(index//cards_per_page) + (n%4)//2 + 1
 
+            print(f'n:{n}, is_back:{is_back}, index:{index}, page:{2*(index//cards_per_page) + (n%4)//2 + 1}, x:{x}, y:{y}')
             # When plotting the card fronts, remember to add the bleed
-            if p == 0:
-                pdf.image(f'{folder}/{card}', x_pos[x], y_pos[y], cw, ch)
+            if is_back:
+                pdf.image(f'{folder}/{card}', margin_w + x*cwb + bleed, margin_h + y*chb + bleed, cw, ch)
             else:
-                pdf.image(f'{folder}/{card}', x_pos[x]-self.bleed, y_pos[y]-self.bleed, cw + 2*self.bleed, ch + 2*self.bleed)
+                pdf.image(f'{folder}/{card}', margin_w + x*cwb, margin_h + y*chb, cwb, chb)
                 
-        if CUTTING_HEPLERS:
+        if CUTTING_HELPERS:
 
-            # draw the helpers only on the cardbacks pages (fronts have a little bleed)
+            # draw the helpers only on the cardbacks pages (fronts are joined together by the bleed)
             for page in range(1, n_pages+1, 2):
                 pdf.page = page       
-                pdf.set_draw_color(150)
+                pdf.set_draw_color(100)
 
-                #Draw a set of CON_LINES at the borders
-                for x in (hw-cw-pad, hw-pad, hw+pad, hw+pad+cw):
-                    pdf.line(x, 0, x, l)                    # Top helpers
-                    pdf.line(x, pdf.h-l, x, pdf.h)          # Bottom helpers
-                    pdf.line(x, hh-pad/2, x, hh+pad/2)      # Middle helpers
+                for i in range(grid):
+                    # Left margin lines
+                    pdf.line(0, margin_h + i*chb + bleed, 0.8*margin_w, margin_h + i*chb + bleed)
+                    pdf.line(0, margin_h + i*chb + bleed + ch, 0.8*margin_w, margin_h + i*chb + bleed + ch)
 
-                for y in (hh-ch-pad, hh-pad, hh+pad, hh+pad+ch):
-                    pdf.line(0, y, l, y)
-                    pdf.line(pdf.w-l, y, pdf.w, y)  
-                    pdf.line(hw-pad/2, y, hw+pad/2, y)          
+                    # Right margin lines
+                    pdf.line(pdf.w, margin_h + i*chb + bleed, pdf.w - 0.8*margin_w, margin_h + i*chb + bleed)
+                    pdf.line(pdf.w, margin_h + i*chb + bleed + ch, pdf.w - 0.8*margin_w, margin_h + i*chb + bleed + ch)
+
+                    # Top margin lines
+                    pdf.line(margin_w + i*cwb + bleed, 0 , margin_w + i*cwb + bleed, 0.8*margin_h)
+                    pdf.line(margin_w + i*cwb + bleed + cw, 0 , margin_w + i*cwb + bleed + cw, 0.8*margin_h)
+
+                    # Bottom margin lines
+                    pdf.line(margin_w + i*cwb + bleed, pdf.h , margin_w + i*cwb + bleed, pdf.h - 0.8*margin_h)
+                    pdf.line(margin_w + i*cwb + bleed + cw, pdf.h , margin_w + i*cwb + bleed + cw, pdf.h - 0.8*margin_h)
+
+                # Internal helpers
+                for i in range(grid+1):
+                    for j in range(grid):
+                        pdf.line(margin_w + i*cwb - 0.8*bleed, margin_h + j*chb + bleed, margin_w + i*cwb + 0.8*bleed, margin_h + j*chb + bleed)
+                        pdf.line(margin_w + i*cwb - 0.8*bleed, margin_h + j*chb + bleed + ch, margin_w + i*cwb + 0.8*bleed, margin_h + j*chb + bleed + ch)
+
+                for i in range(grid):
+                    for j in range(grid+1):
+                        pdf.line(margin_w + i*cwb + bleed, margin_h + j*chb - 0.8*bleed, margin_w + i*cwb + bleed, margin_h + j*chb + 0.8*bleed)
+                        pdf.line(margin_w + i*cwb + bleed + cw, margin_h + j*chb - 0.8*bleed, margin_w + i*cwb + bleed + cw, margin_h + j*chb + 0.8*bleed)
+                    
 
         print(f'\n{n_cards} cards have been printed in the file {filename}\n')
         pdf.output(f'{folder}/{filename}')
-
-        self.bleed = 0
