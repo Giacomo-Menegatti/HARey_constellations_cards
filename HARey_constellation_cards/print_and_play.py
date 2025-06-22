@@ -111,8 +111,7 @@ class PrintAndPlay:
             y = (index%cards_per_page)//grid                # y-position
 
             pdf.page = 2*(index//cards_per_page) + (n%4)//2 + 1
-
-            print(f'n:{n}, is_back:{is_back}, index:{index}, page:{2*(index//cards_per_page) + (n%4)//2 + 1}, x:{x}, y:{y}')
+            
             # When plotting the card fronts, remember to add the bleed
             if is_back:
                 pdf.image(f'{folder}/{card}', margin_w + x*cwb + bleed, margin_h + y*chb + bleed, cw, ch)

@@ -9,23 +9,21 @@ from HARey_constellation_cards.loader import load_names
 LANGUAGE = 'IAU-EN'                 #Names of the constellations
 
 NUMBER_OF_QUESTIONS = 15
-NUMBER_OF_OPTIONS = 8
+NUMBER_OF_OPTIONS = 4
 NUMBER_OF_CONSTELLATIONS = 50
 
 # Random rotate rotates the constellation image, instead of keeping the north side up
 RANDOM_ROTATE = False
 
 # to_print contains all the constellation
-to_print = ['CMa', 'Car', 'Pup', 'Aur', 'Boo', 'Cru', 'Aql', 'Lyr',
-            'Cyg', 'CMi', 'Vir', 'Vel', 'Leo', 'Sco', 'Gem', 'UMa',
-            'Sgr', 'Gru', 'Dra', 'Tau', 'Cas', 'Hya', 'Cet', 'Pav',
-            'Ori', 'Cep', 'Lep', 'Peg', 'PsA', 'Ari', 'UMi', 'Phe',
-            'And', 'TrA', 'Cap', 'Oph', 'Crv', 'Lib', 'Mus', 'Col',
-            'CrB', 'Ser', 'Ara', 'Hyi', 'Per', 'Pyx', 'Mon', 'Lyn',
-            'Aqr', 'Lac', 'Tuc', 'Her', 'Crt', 'Dor', 'Vol', 'Psc',
-            'Del', 'Tri', 'Lup', 'Ind', 'Cnc', 'Cam', 'Ret', 'CVn',
-            'CrA', 'Sge', 'Cen', 'Pic', 'Cir', 'LMi', 'Eri', 'Aps',
-            'Com', 'Tel', 'Oct', 'Cha', 'Sct', 'Nor', 'Equ', 'Vul']
+to_print = ['CMa', 'Pup', 'Aur', 'CMi', 'Boo', 'Aql', 'Sco', 'Vel',
+            'Lyr', 'Cyg', 'UMa', 'Leo', 'Vir', 'Gem', 'Cas', 'Sgr',
+            'Ori', 'Tau', 'Gru', 'Dra', 'Hya', 'Cep', 'Cet', 'UMi',
+            'Lep', 'Peg', 'PsA', 'Lib', 'Phe', 'Oph', 'Crv', 'Ari',
+            'And', 'Pyx', 'CrB', 'Per', 'Cap', 'Col', 'Ser', 'Cen',
+            'Tri', 'Her', 'Lyn', 'Aqr', 'Lup', 'Eri', 'Mon', 'CVn',
+            'Lac', 'Cnc', 'Crt', 'Sge', 'Psc', 'Del', 'Cam', 'LMi',
+            'CrA', 'Sct', 'Com', 'Equ', 'Vul']
 
 # Folder of the cards
 path = os.getcwd()
@@ -42,6 +40,7 @@ if not os.path.exists(folder):
 
     harey = HAReyMain(language=LANGUAGE)
     harey.set_card_template(format='circle')
+    harey.set_limiting_magnitude(6)
 
     # Fill it with the constellations (this may take a while)
     for ID in to_print[0:NUMBER_OF_CONSTELLATIONS]:
