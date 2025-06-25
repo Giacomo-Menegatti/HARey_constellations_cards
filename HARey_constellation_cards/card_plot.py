@@ -5,6 +5,7 @@ This module contains the class CardPlot, which is used to plot the constellation
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 from matplotlib.transforms import Affine2D
@@ -12,7 +13,7 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 import os
 
-from HARey_constellation_cards.astro_projection import stereographic_projection, ecliptic2radec, mag2size, stereo_radius
+from HARey_constellation_cards.astro_projection import stereo_centered, ecliptic2radec, mag2size, stereo_radius
 
 
 class CardPlot:
@@ -46,17 +47,20 @@ class CardPlot:
 
         # Take one star (the brightest) as the center of the projection
         brightest_star = local_stars.iloc[np.argmin(local_stars['magnitude'])]
-        projection = stereographic_projection(brightest_star['ra'], brightest_star['dec'])
-        # Execute the projection
-        stars_x, stars_y = projection(stars['ra'], stars['dec'])
+        # Perform the stereographic projection
+        stars_x, stars_y = stereo_centered(stars['ra'], stars['dec'], brightest_star['ra'], brightest_star['dec'])
+
+        # Convert the values to  Pandas series by adding the index
+        stars_x = pd.Series(data = stars_x, index=stars.index)
+        stars_y = pd.Series(data = stars_y, index=stars.index)
 
         #Project the ecliptic
         (ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
-        ecliptic_x, ecliptic_y = projection(ecliptic_ra, ecliptic_dec)
+        ecliptic_x, ecliptic_y = stereo_centered(ecliptic_ra, ecliptic_dec, brightest_star['ra'], brightest_star['dec'])
 
         # Project the north pole. This is done because the north pole is not infinitely distant on the sphere, so 
         # just choosing up as north direction creates mistakes for constellations near the pole.
-        north_x, north_y = projection(0, 90)
+        north_x, north_y = stereo_centered(0, 90, brightest_star['ra'], brightest_star['dec'])
 
         # Center the constellation
         local_stars_x = stars_x[local_stars_mask]

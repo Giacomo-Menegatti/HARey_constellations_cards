@@ -32,8 +32,16 @@ import numpy as np
 
 ### COORDINATE CONVERSIONS
 
+Rz = lambda theta: np.array([[np.cos(theta), -np.sin(theta), 0],[np.sin(theta), np.cos(theta), 0 ], [0,0,1]])
 
+Ry = lambda phi: np.array(([[np.cos(phi), 0, np.sin(phi)],[0,1,0], [-np.sin(phi), 0, np.cos(phi)]]))
 
+def sph2cart(long, lat, r=1):
+    return r*np.cos(lat)*np.cos(long), r*np.cos(lat)*np.sin(long), r*np.sin(lat)
+
+def cart2sph(v):
+    x, y, z = v[0], v[1], v[2]
+    return (np.arcsin(z/np.sqrt(x**2+y**2+z**2)), np.arctan2(y,x))
 
 def date2julian(date):
     """
@@ -51,8 +59,6 @@ def date2julian(date):
         (date.hour - 12)/24 + date.minute/1440 + date.second/86400
     
     return JD0
-
-
 
 
 def radec2altaz(ra_degrees, dec_degrees, observer):
@@ -82,8 +88,6 @@ def radec2altaz(ra_degrees, dec_degrees, observer):
     return np.rad2deg(al), np.rad2deg(Az)
 
 
-
-
 def ecliptic2radec(ecliptic_long, ecliptic_lat):
     """Convert ecliptic coordinates to equatorial ones. All angles are given in degrees."""
     EPS = np.deg2rad(23.4)  #Earth inclination
@@ -95,8 +99,6 @@ def ecliptic2radec(ecliptic_long, ecliptic_lat):
     dec = np.arcsin(c_eps*np.sin(e_lat) + s_eps*np.cos(e_lat)*np.sin(e_long))
 
     return np.rad2deg(ra), np.rad2deg(dec)
-
-
 
 
 ### OBSERVER CLASS
@@ -148,7 +150,7 @@ class Observer():
 # IS VISIBLE FUNCTION
 
 
-def is_visible(lat_str, limit_stars, horizon_limit = 0):
+def is_visible(lat_str, limit_stars, horizon_limit = 5):
     """
     Compute the visibility of a constellation from a given latitude.
 
@@ -184,76 +186,68 @@ def is_visible(lat_str, limit_stars, horizon_limit = 0):
         return 'visible'
     # check if at least part of it is inside the border
     elif northmost >= south_bound or southmost <= north_bound:
-        return 'partly visible'
+        # Check if it is inside the visible horizon limit
+        if northmost >= south_bound + horizon_limit or southmost <= north_bound - horizon_limit:
+            return 'partly visible'
+        else:
+            return 'hardly visible'
+    
     
 
 
 
-##################### STEREOGRAPHIC PROJECTION ####################################
+##################### STEREOGRAPHIC PROJECTION ################
 
-def stereographic_projection(phi_degrees, theta_degrees):
-    """
-    Define the position of the point on the sphere around which the projection happens.
+# The stereo projection has x-positive toward south, y-positive toward east
+# All the projections are rotated to have y-positive toward north, x-positive towards west
 
-    Args:
-        phi_degrees (float): Longitude of the center of the projection in degrees
-        theta_degrees (float): Latitude of the center of the projection in degrees  
+def stereo_polar(phi, theta):
+    theta, phi = np.deg2rad(theta), np.deg2rad(phi)
+    r = np.tan(np.pi/4-theta/2)
+    x, y = r*np.cos(phi), r*np.sin(phi)
+    return -y, -x
 
-    Returns:
-        function: A function that takes the coordinates of the point to project and returns the projected coordinates around the center
-    """
-    phi, theta = np.deg2rad(phi_degrees), np.deg2rad(theta_degrees)
-    x_c = np.cos(phi)*np.cos(theta)
-    y_c = np.sin(phi)*np.cos(theta)
-    z_c = np.sin(theta)
+def stereo_centered(phi, theta, zenith_phi, zenith_theta):
 
-    def project(phi, theta):
-        """
-        Project a point around the center previously defined.
-        
-        Args:
-            phi (float): Longitude of the point to project in degrees
-            theta (float): Latitude of the point to project in degrees
+    theta, phi = np.deg2rad(theta), np.deg2rad(phi)
+    zenith_theta, zenith_phi = np.deg2rad(zenith_theta), np.deg2rad(zenith_phi)
 
-        Returns:
-            tuple: The projected coordinates (x,y) of the point on the stereographic plane
-        """
-        phi, theta = np.deg2rad(phi), np.deg2rad(theta)
-        x = np.cos(phi)*np.cos(theta)
-        y = np.sin(phi)*np.cos(theta)
-        z = np.sin(theta)
+    # Rotate the spherical coordinates
+    R = np.matmul(Ry(zenith_theta-np.pi/2), Rz(-zenith_phi))
+    x,y,z = sph2cart(phi, theta)
+    x,y,z = np.dot(R, (x,y,z))
 
-        t0 = 1/np.sqrt(x_c**2 + y_c**2)
-        t1 = x*x_c
-        t2 = np.sqrt(-z_c**2 + 1)
-        t3 = t0*t2
-        t4 = y*y_c
-        t5 = 1/(t1*t3 + t3*t4 + z*z_c + 1)
-        t6 = t0*z_c
+    # As the values are already in cartesian form, the stereo projection becomes (x/(z+1), y/(z+1))
+    return (-y/(z+1), -x/(z+1))
 
-        return t0*t5*(x*y_c - x_c*y), -t5*(t1*t6 - t2*z + t4*t6)
+def stereo_radius(FOV):
+    fov = np.deg2rad(FOV)
+    return np.tan(fov/4)
 
-    return project
+### AZIMUTAL PROJECTION ###
 
-def stereographic_polar(ra, dec):
-    """
-    Compute the stereographic projection using the north pole as center.
+def azimuthal_polar(phi, theta):
+    """ 
+    Project a point using an azimuthal projection.
 
     Args:
-        ra (float): Right Ascension of the point to project in degrees
-        dec (float): Declination of the point to project in degrees
+        phi (float): Longitude of the point to project in degrees
+        theta (float): Latitude of the point to project in degrees
 
     Returns:
-        tuple: The projected coordinates (x,y) of the point on the stereographic plane
+        tuple: The projected coordinates (x,y) of the point on the plane, with direction (west,north)
     """
-    ra, dec = np.deg2rad(ra), np.deg2rad(dec)
-    stereo_radius = np.tan(np.pi/4 - dec/2)
-    return stereo_radius * np.cos(ra), stereo_radius * np.sin(ra)
+    # Convert degrees in radians
+    theta, phi = np.deg2rad(theta), np.deg2rad(phi)
+    # Get the distance from the centerr
+    azimuth_radius = np.pi/2-theta
+    x, y = azimuth_radius*np.cos(phi), azimuth_radius*np.sin(phi)
+    # The projection has directions south:east. Return the projection with west:north reference 
+    return -y, -x
 
-def stereo_radius(fov):
-    """Return the radius of the stereographic projection for a given Field of View, calculated as tan(FOV/2)."""
-    return np.tan(np.deg2rad(fov)/4)
+def azimuthal_radius(FOV):
 
+    return np.deg2rad(FOV)/2
 
 ### EQUATORIAL GALL PROJECTION
 
@@ -286,6 +280,31 @@ def Gall_vertical(dec):
 def Gall_horizontal(ra):
     """Compute the Gall projection for a given right ascension."""
     return np.deg2rad(ra)/np.sqrt(2)
+
+
+
+### LOCAL TO EQUATORIAL PROJECTION ####
+ 
+def local2equator(phi, theta, lat, pole='N', mode='azimuth'):
+    """"""
+    theta, phi = np.deg2rad(theta), np.deg2rad(phi)
+    lat = np.deg2rad(lat)
+
+    # Rotate the spherical coordinates
+    x,y,z = sph2cart(phi, theta)
+    X = np.dot(Ry(np.pi/2-lat), np.array((x,y,z)))
+
+    if mode == 'azimuth':
+        theta, phi = cart2sph(X)
+        azimuth_radius = np.pi/2-theta if pole == 'N' else np.pi/2+theta if pole=='S' else 0
+            
+        x, y = azimuth_radius*np.cos(phi), azimuth_radius*np.sin(phi)
+
+    elif mode == 'stereo':    
+        x,y,z = X
+        x, y = x/(z+1), y/(z+1)
+        
+    return -y, -x
 
 ############ STAR SIZE FROM MAGNITUDE ##########
 

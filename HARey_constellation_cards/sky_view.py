@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 import matplotlib.pyplot as plt
 from matplotlib.patches import Annulus, Circle
@@ -6,7 +7,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereographic_projection, mag2size
+from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereo_polar, mag2size
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
@@ -84,14 +85,19 @@ class SkyView:
         #Draw ecliptic
         ecliptic_radec = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
         ecliptic_alt, ecliptic_az = radec2altaz(*ecliptic_radec, observer)
-        ecliptic_x, ecliptic_y = stereographic_projection(0,90)(ecliptic_az, ecliptic_alt)
+        ecliptic_x, ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)
         ecliptic, = ax.plot(r_scale*ecliptic_x, r_scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=0.4, alpha=0.7)
         ecliptic.set_clip_path(map)
 
         # Compute the Alt-Az coordinates of the stars
         stars_alt, stars_az = radec2altaz(stars['ra'], stars['dec'], observer)
-        stars_x, stars_y = stereographic_projection(0,90)(stars_az, stars_alt)
+        stars_x, stars_y = stereo_polar(stars_az, stars_alt)
         stars_x, stars_y = stars_x*r_scale, stars_y*r_scale   
+
+        # Convert the values to  Pandas series by adding the index
+        stars_x = pd.Series(data = stars_x, index=stars.index)
+        stars_y = pd.Series(data = stars_y, index=stars.index)
+
 
         # Plot constellation lines
         if CON_LINES:

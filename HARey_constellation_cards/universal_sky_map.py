@@ -1,12 +1,13 @@
 import numpy as np
 import io
 import os
+import pandas as pd
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Circle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereographic_polar, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, mag2size
+from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, mag2size
 
 '''This module contains the code to plot a universal map of the sky.
 	It contains the following functions:
@@ -364,7 +365,7 @@ class UniversalSkyMap:
 
 
 	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, CON_LINES=False, STAR_COLORS=False, GRID=True, SHOW=True, SAVE=False, 
-                     CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7), save_name = None, star_size=100):
+                     CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, font_sizes=(5,6,7), save_name = None, star_size=100, mode='stereo'):
 		'''Plot a stereographic map of the stars near the poles.
 			The parameters are:
 			- pole : the pole around which the plot is done, 'N' for north and 'S' for south
@@ -415,7 +416,7 @@ class UniversalSkyMap:
 		# Create figure and circular patch
 		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
 		
-		map_radius = stereo_radius(FOV)
+		map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
 		# Restrict the plotting are a bit to avoid clipping the circle near the borders
 		scale = figsize/map_radius
 		map_radius = scale*map_radius
@@ -429,13 +430,18 @@ class UniversalSkyMap:
 		
 		# Draw the ecliptic
 		(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
-		ecliptic_x, ecliptic_y = stereographic_polar(ecliptic_ra, c*ecliptic_dec)	
+		ecliptic_x, ecliptic_y = azimuthal_polar(ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(ecliptic_ra, c*ecliptic_dec)	
 		ecliptic, = ax.plot(scale*ecliptic_x, scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=0.4, alpha=0.7)
 		ecliptic.set_clip_path(map)
 
 		# Compute the star positions
-		stars_x, stars_y = stereographic_polar(stars['ra'], c*stars['dec'])
+		stars_x, stars_y = azimuthal_polar(stars['ra'], c*stars['dec']) if mode == 'azimuth' else stereo_polar(stars['ra'], c*stars['dec'])
 		stars_x, stars_y = stars_x*scale, stars_y*scale 
+
+		# Convert the values to  Pandas series by adding the index
+		stars_x = pd.Series(data = stars_x, index=stars.index)
+		stars_y = pd.Series(data = stars_y, index=stars.index)
+
 
 		# Plot constellation lines
 		if CON_LINES:
@@ -491,8 +497,11 @@ class UniversalSkyMap:
 						color=self.colors['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
 
 			for fov in np.arange(10, FOV/2, 10):
-				grid_circle = Circle(xy=(0,0), radius= scale * stereo_radius(2*fov), color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.6, alpha=0.8)
-				ax.text(scale * stereo_radius(2*fov), 0, s = f'{(90 - fov):.0f}° {pole}', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
+
+				radius = azimuthal_radius(2*fov) if mode == 'azimuth' else stereo_radius(2*fov)
+
+				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.6, alpha=0.8)
+				ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 				ax.add_patch(grid_circle)
 
 		# Clip everything and fix plot limits
