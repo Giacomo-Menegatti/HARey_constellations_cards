@@ -93,8 +93,12 @@ class PolarMap:
 		# Plot constellation lines
 		if CON_LINES:
 			for line in [line for id in self.constellation_ids for line in self.constellations[id]['lines']]:
-				plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['star'], linewidth=0.5, alpha=0.8)
-				plot_line.set_clip_path(map)	
+				# Divide the line in individual segments
+				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
+					#If the segment is completely outside the circle, do not plot it
+					if not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2):    
+						plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['star'], linewidth=0.5, alpha=0.8)
+						plot_line.set_clip_path(map)	
 
 		#Plot asterisms
 		if ASTERISMS:
@@ -161,7 +165,7 @@ class PolarMap:
 		ax.set_ylim(-border, border)
 		ax.set_axis_off()
 
-		if pole == 'N':
+		if pole == 'S':
 			ax.invert_xaxis()
 
 		if SIS_SCRIPT:
