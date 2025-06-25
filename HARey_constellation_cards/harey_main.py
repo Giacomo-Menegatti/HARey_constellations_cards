@@ -4,7 +4,8 @@ from HARey_constellation_cards.loader import load_stars, load_constellations, lo
 from HARey_constellation_cards.sky_view import SkyView
 from HARey_constellation_cards.card_plot import CardPlot
 from HARey_constellation_cards.card_template import CardTemplate
-from HARey_constellation_cards.universal_sky_map import UniversalSkyMap
+from HARey_constellation_cards.equatorial_map import EquatorialMap
+from HARey_constellation_cards.polar_map import PolarMap
 from HARey_constellation_cards.print_and_play import PrintAndPlay
 from HARey_constellation_cards.star_colormap import StarColorMap
 from HARey_constellation_cards.astro_projection import Observer, mag2size
@@ -15,7 +16,7 @@ from matplotlib.font_manager import FontProperties
 
 
 # HARey main Class
-class HAReyMain(SkyView, CardPlot, UniversalSkyMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
+class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
     """
     HARey main class. The one class to rule them all.
 
