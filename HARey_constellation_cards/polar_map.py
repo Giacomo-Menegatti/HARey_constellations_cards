@@ -178,7 +178,7 @@ class PolarMap:
 			for i in range(4):
 				ax.add_patch(Circle((0,0), int_r + i*spacing, fill=False, edgecolor='k', lw=0.5))
 
-			# Angle of the spring Equinox, which correspond to the 0 RA value
+			# Angle of the spring Equinox, which correspond to the 0 RA value, which will be down
 			equinox_offest = datetime(2001,3,20).timetuple().tm_yday/365
 
 			r_days = int_r + 1.5*spacing
@@ -191,12 +191,12 @@ class PolarMap:
 				for day in range(5,days_in_month+1,5):
 					# Get the angle as a fraction of the whole year
 					angle = c*(datetime(2001, m, day).timetuple().tm_yday/365 - equinox_offest)
-					a = 2*np.pi*angle
+					a = 2*np.pi*angle + np.pi
 					self.text_place(f'{day}', ax, (r_days*np.sin(a), r_days*np.cos(a)), -a, font_size=figsize*0.0225)
 
 				# Plot the month label
 				angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
-				a = 2*np.pi*angle
+				a = 2*np.pi*angle + np.pi
 				month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
 				self.text_place(month_name, ax, (r_months*np.sin(a), r_months*np.cos(a)), -a, font_size=figsize*0.03)
 
