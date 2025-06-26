@@ -3,16 +3,31 @@ import os
 import pandas as pd
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, PathPatch
+from matplotlib.textpath import TextPath
+from matplotlib.transforms import Affine2D
 from matplotlib.colors import to_hex
+from datetime import datetime
+from calendar import monthrange
 
 from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius, mag2size
 
 class PolarMap:
 
+	def text_place(self, text, ax, xy, angle, font_size):
+		text_path = TextPath((0, 0), text, size=font_size)
+		bb = text_path.get_extents()
+		text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
+		x, y = xy
+		# Rotate and move the path to its position
+
+		trans = (Affine2D().rotate(angle).translate(x, y))
+		patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
+		ax.add_patch(patch)
+
 	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, CON_LINES=False, STAR_COLORS=False, GRID=True, SHOW=True, SAVE=False, 
-                     CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, 
-					 font_sizes=(5,6,7), save_name = None, star_size=100, mode='stereo', CALENDAR=False):
+                    CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, 
+                    font_sizes=(5,6,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False):
 		'''Plot a stereographic map of the stars near the poles.
 			The parameters are:
 			- pole : the pole around which the plot is done, 'N' for north and 'S' for south
@@ -37,7 +52,6 @@ class PolarMap:
 			SHOW : Show the plot or not 
 			SAVE : SAVE : Save the plot. If the save name is specified, is True by default         
 		'''
-
 		# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
 		if not save_name == None or SIS_SCRIPT:
 			SAVE = True
@@ -55,7 +69,7 @@ class PolarMap:
 		constellation_ids = self.constellation_ids
 
 		star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
-		
+			
 		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 		# If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
 		star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
@@ -64,12 +78,13 @@ class PolarMap:
 		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
 		
 		map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
+
 		# Restrict the plotting are a bit to avoid clipping the circle near the borders
-		scale = figsize/map_radius
+		scale = 0.85*figsize/map_radius if ADD_CALENDAR else 0.99*figsize/map_radius
 		map_radius = scale*map_radius
 
 		# Draw the circle patch
-		map = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
+		map = Circle((0, 0), map_radius, color=colors['sky'], fill=True)
 		ax.add_patch(map)
 		
 		# Depending on the value of the pole, invert the dec values
@@ -77,12 +92,12 @@ class PolarMap:
 		
 		# Draw the ecliptic
 		(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
-		ecliptic_x, ecliptic_y = azimuthal_polar(ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(ecliptic_ra, c*ecliptic_dec)	
+		ecliptic_x, ecliptic_y = azimuthal_polar(c*ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(c*ecliptic_ra, c*ecliptic_dec)	
 		ecliptic, = ax.plot(scale*ecliptic_x, scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=0.4, alpha=0.7)
 		ecliptic.set_clip_path(map)
 
 		# Compute the star positions
-		stars_x, stars_y = azimuthal_polar(stars['ra'], c*stars['dec']) if mode == 'azimuth' else stereo_polar(stars['ra'], c*stars['dec'])
+		stars_x, stars_y = azimuthal_polar(c*stars['ra'], c*stars['dec']) if mode == 'azimuth' else stereo_polar(c*stars['ra'], c*stars['dec'])
 		stars_x, stars_y = stars_x*scale, stars_y*scale 
 
 		# Convert the values to  Pandas series by adding the index
@@ -106,7 +121,7 @@ class PolarMap:
 				plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
 				plot_line.set_clip_path(map)
 
-        #Plot helpers
+		#Plot helpers
 		if HELPERS:
 			for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]:  
 				plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
@@ -121,7 +136,7 @@ class PolarMap:
 		ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
 
 
-		 # Plot the stars that are part of a constellation shape
+			# Plot the stars that are part of a constellation shape
 		for i, m in enumerate(star_markers):
 
 			mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')    
@@ -143,7 +158,7 @@ class PolarMap:
 			theta = np.pi/12
 
 			for ra in np.arange(1,25):
-				ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.6, alpha=0.8)
+				ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.4, alpha=0.8)
 				ax.text(0.97*map_radius*np.cos(ra*theta), 0.97*map_radius*np.sin(ra*theta), s=f'{ra} h', font = labels_font,
 						color=self.colors['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
 
@@ -151,25 +166,54 @@ class PolarMap:
 
 				radius = azimuthal_radius(2*fov) if mode == 'azimuth' else stereo_radius(2*fov)
 
-				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.6, alpha=0.8)
+				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.4, alpha=0.8)
 				ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 				ax.add_patch(grid_circle)
+
+		if ADD_CALENDAR:
+			# Add the calendar ring outside of the plot to use it in a planisphere
+			int_r, ext_r = 0.85*figsize, 0.99*figsize
+			spacing = (ext_r-int_r)/4
+
+			for i in range(4):
+				ax.add_patch(Circle((0,0), int_r + i*spacing, fill=False, edgecolor='k', lw=0.5))
+
+			# Angle of the spring Equinox, which correspond to the 0 RA value
+			equinox_offest = datetime(2001,3,20).timetuple().tm_yday/365
+
+			r_days = int_r + 1.5*spacing
+			r_months = int_r + 2.45*spacing
+
+			for m in range(1,13):
+				days_in_month = monthrange(2001,m)[1]
+
+				# Plot the day label
+				for day in range(5,days_in_month+1,5):
+					# Get the angle as a fraction of the whole year
+					angle = c*(datetime(2001, m, day).timetuple().tm_yday/365 - equinox_offest)
+					a = 2*np.pi*angle
+					self.text_place(f'{day}', ax, (r_days*np.sin(a), r_days*np.cos(a)), -a, font_size=figsize*0.0225)
+
+				# Plot the month label
+				angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
+				a = 2*np.pi*angle
+				month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
+				self.text_place(month_name, ax, (r_months*np.sin(a), r_months*np.cos(a)), -a, font_size=figsize*0.03)
+
+			# Add a marker at the center of the plot
+			ax.plot(0,0, 'x', color=colors['grid'], markersize=3, lw=0)
 
 		# Clip everything and fix plot limits
 		for col in ax.collections:
 				col.set_clip_path(map)
 
 		# Put the border a little outside of the plot to avoid clipping the figure
-		border = map_radius/0.99
-		ax.set_xlim(-border, border)
-		ax.set_ylim(-border, border)
+		ax.set_xlim(-figsize,figsize)
+		ax.set_ylim(-figsize,figsize)
 		ax.set_axis_off()
 
-		if pole == 'S':
-			ax.invert_xaxis()
-
 		if SIS_SCRIPT:
-            # Save the image before adding the labels
+			# Save the image before adding the labels
 			plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)  
 
 		# Function to plot a label at the mean x and y positions
@@ -202,9 +246,9 @@ class PolarMap:
 				plot_label(ax, label = self.names[star], indexes = int(star), fontsize='s', color=colors['star_labels'], ha='center',va='bottom')
 
 		if SIS_SCRIPT:
-            # Create a script to plot interactive labels in Inkscape, to manually adjust their positions
-            # To make the position consistent with different settings of Inkscape, 
-            # the coordinates are fractions of the canvas width and height, starting from top left
+			# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
+			# To make the position consistent with different settings of Inkscape, 
+			# the coordinates are fractions of the canvas width and height, starting from top left
 
 			def write_sis(file, label, indexes, color, fontsize):
 			# The newline character does not work in inkscape. The label must be fixed by hand
@@ -262,7 +306,7 @@ class PolarMap:
 					f.write(s)
 
 
-        # Save the image with all the labels
+		# Save the image with all the labels
 		if SAVE and not SIS_SCRIPT:
 			plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
