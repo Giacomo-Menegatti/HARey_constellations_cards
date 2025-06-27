@@ -5,6 +5,7 @@ from HARey_constellation_cards.sky_view import SkyView
 from HARey_constellation_cards.card_plot import CardPlot
 from HARey_constellation_cards.card_template import CardTemplate
 from HARey_constellation_cards.equatorial_map import EquatorialMap
+from HARey_constellation_cards.planisphere import Planisphere
 from HARey_constellation_cards.polar_map import PolarMap
 from HARey_constellation_cards.print_and_play import PrintAndPlay
 from HARey_constellation_cards.star_colormap import StarColorMap
@@ -16,7 +17,7 @@ from matplotlib.font_manager import FontProperties
 
 
 # HARey main Class
-class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintAndPlay, StarColorMap, Observer):
+class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintAndPlay, StarColorMap, Observer, Planisphere):
     """
     HARey main class. The one class to rule them all.
 
@@ -83,7 +84,6 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         print('Done!\n\n')
        
         #Initialize graphical parameters to default values
-        self.USE_HAREY_MARKERS = True
         self.limiting_magnitude = 6.5 # Maximum magnitude of plotted stars
         self.star_size = 250  # Scaling value to display the stars
 
@@ -93,20 +93,41 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
                     'grid' : 'yellow', 'asterisms': 'limegreen', 'helpers': 'coral', 
                     'starmap_border': 'xkcd:gold', 'star_labels': 'gold', 'constellation_labels' : 'cyan',
                     'ecliptic_label' : 'crimson', 'asterism_labels': 'lime', 'constellation_parts' : 'violet',
-                    'horizon_label' : 'white',
+                    'horizon_label' : 'white', 'mater':'xkcd:light blue',
                     
                     'cardback_1':  'xkcd:marine blue', 'cardback_2': 'xkcd:blood',
                     'accent_1': 'darkgoldenrod', 'accent_2': 'darkgoldenrod'}
         
+        self.default_plot_flags = {'CON_LINES':False, 'STAR_COLORS':False, 
+                                    'CON_NAMES':False,'CON_PARTS':False,
+                                    'STAR_NAMES':False,'ASTERISMS':False, 
+                                    'HELPERS':False, 'HAREY_MARKERS':True, 
+                                    'GRID':False, 'SIS_SCRIPT':False,
+                                    'SHOW':True, 'SAVE':False
+                                    }
+
+        self.flags = {}
+        
+        self.flags.update(self.default_plot_flags)
+        
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,
         # the font must be permanently installed on the system to be able to see it in Inkscape
-        self.fonts = {'labels': 'DejaVu Sans', 'cardback': 'DejaVu Sans'}
+        self.fonts = {'labels': FontProperties(family='DejaVu Sans'),
+                        'cardback': FontProperties(family='DejaVu Sans', weight='bold'),
+                        'calendar': FontProperties(family='DejaVu Sans', weight='bold'),}
         self.inkscape_font = 'DejaVu Sans'
 
         # Read the card template module and overwrite its values
         CardTemplate.set_card_template(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
-        
+
+    def set_flags(self, dict):
+        """"""  
+        self.flags.update(dict)
+    
+    def reset_flags(self):
+
+        self.flags.update(self.default_plot_flags)
 
     # Function to set the limiting magnitude
     def set_limiting_magnitude(self, limiting_magnitude=6.5):
@@ -119,26 +140,14 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
 
 
     # Function to set the fonts that will be used
-    def set_fonts(self, labels_font_file = None, cards_font_file= None):
+    def set_fonts(self, dict):
         """
         Set the fonts used in the plot labels and the cardback names.
 
         Arguments :
-        - labels_font_file : path to the font file to use for the labels in the plots.
-        - cards_font_file : path to the font file to use for the names on the card backs.        
+        - dict: the dictionary that will overwrite the default one, of the type {'labels':Fontproperties(...), 'cardback':..., 'calendar':...}        
         """
-        if not labels_font_file == None:
-
-            labels_font = FontProperties(fname=labels_font_file)
-            print(f'Using {labels_font.get_name()} for plot labels')
-            self.fonts['labels'] = labels_font
-            self.inkscape_font = labels_font.get_name()
-
-        if not cards_font_file == None:
-
-            cards_font = FontProperties(fname=cards_font_file)
-            print(f'Using {cards_font.get_name()} for card names')
-            self.fonts['cardback'] = cards_font
+        self.fonts.update(dict)
 
 
     # Function to set the colors palette used in the plots
@@ -146,24 +155,14 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         """Set the colors used by the HARey module. Take a dictionary as input {color_key: color}."""
         self.colors.update(dict)
 
-    # Functions to change the print options
-    def set_HARey_markers_off(self):
-        """Disable the USE_HAREY_MARKERS and plot the stars with simple circles."""
-        self.USE_HAREY_MARKERS = False
-    
-    def set_HARey_markers_on(self):
-        """Enable the USE_HAREY_MARKERS : the stars will be plotted with different markers for each magnitude."""
-        self.USE_HAREY_MARKERS = True
-
-
-    def plot_legend(self):
+    def plot_legend(self, USE_HAREY_MARKERS=True):
         """Plot the legend of the star markers and magnitudes."""
         fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors['sky'])
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors['sky'])
 
         for i in range(6):
-            marker = self.star_markers[i] if self.USE_HAREY_MARKERS else '.'
+            marker = self.star_markers[i] if USE_HAREY_MARKERS else '.'
             ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude), linewidths=0, color=self.colors['star'])
             ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
 

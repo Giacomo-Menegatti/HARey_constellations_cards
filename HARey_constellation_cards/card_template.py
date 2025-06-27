@@ -165,7 +165,7 @@ class CardTemplate:
 
 
     # Function to color the cardback and write the name
-    def plot_cardback(self, id, main_color=None, accent_color=None, SHOW=True, SAVE=False, save_name=None):
+    def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
         """
         Plot the card back and write the constellation name on it.
 
@@ -173,14 +173,13 @@ class CardTemplate:
         - id : id of the constellation
         - main_color : color of the card back (RGB tuple)
         - accent_color : color of the text and decorartions (RGB tuple)
-        - save_name : name of the file to save the plot. If specified, SAVE is set to True
-        - SHOW : if True, show the plot. If False, don't show the plot. Useful if many card are plotted at once
-        - SAVE : if True, save the plot. If save_name is not specified, the card will be saved as id_cardback.png
+        - save_name : name of the file to save the plot. If specified, self.flags['SAVE'] is set to True
+        
         
         """
         # If the save_name is not None, save automatically the plot
         if not save_name == None:
-            SAVE = True
+            self.flags['SAVE'] = True
 
         dpi = self.dpi 
                 
@@ -226,7 +225,7 @@ class CardTemplate:
         # Add a fancy box around the text
         #text.set_bbox(dict(boxstyle='round', fill=False, edgecolor='green', linewidth=1))
 
-        if SAVE:
+        if self.flags['SAVE']:
             if save_name == None:
                 save_name = f'{id}_cardback.png'
 
@@ -235,7 +234,7 @@ class CardTemplate:
             else:
                 plt.savefig(save_name, dpi = dpi, transparent=True)            
 
-        if SHOW:
+        if self.flags['SHOW']:
             plt.show()
         else:
             plt.close()

@@ -13,7 +13,7 @@ class PrintAndPlay:
     """
 
     # Function to plot a card set
-    def print_card_set(self, id, save_folder=None, BEST_AR=True, SIS_SCRIPT=False, CON_PARTS = True, STAR_NAMES = True, STAR_COLORS = False, bleed = 0.1):
+    def print_card_set(self, id, save_folder=None, BEST_AR=True, bleed = 0.1):
         """
         Print a set of memory cards for one constellation.
 
@@ -30,10 +30,6 @@ class PrintAndPlay:
 
         Flags:
         BEST_AR : if True, the constellation is rotated to the best aspect ratio to completely fill the card. Otherwise, the constellation is plotted north up.
-        SIS_SCRIPT : Create a SIS_SCRIPT to create the labels in InkScape to manually adjust their position. If it is enabled, the constellations are saved without labels.
-        CON_PARTS : Plot the constellation parts labels (e.g. 'belt' in Orion).
-        STAR_COLORS : Use the computed star colors for the stars. Otherwise, use the default color (white).
-        STAR_NAMES : Plot the star names labels (e.g. 'Betelgeuse' in Orion).
         """
         # Directory in which the cards are saved
         dir = save_folder if not save_folder == None else '.'
@@ -41,16 +37,27 @@ class PrintAndPlay:
         #Check if the directory already exists, if not make it
         if not os.path.exists(dir):
             os.mkdir(dir)
-            
+        
+        # Save the current flags (as after each call to the plot functions they are reset)
+        flags = {}
+
+        # Save the cards but do not show them
+        self.flags.update({'SAVE':True, 'SHOW':False})
+        flags.update(self.flags)
+
+
         # Create the two cardbacks
         self.bleed = bleed
-        self.plot_cardback(id, self.colors['cardback_1'], self.colors['accent_1'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_1.png')
-        self.plot_cardback(id, self.colors['cardback_2'], self.colors['accent_2'], SHOW=False, SAVE=True, save_name=f'{dir}/{id}_back_2.png')
+        self.flags.update(flags)
+        self.plot_cardback(id, self.colors['cardback_1'], self.colors['accent_1'],save_name=f'{dir}/{id}_back_1.png')
+        self.flags.update(flags)
+        self.plot_cardback(id, self.colors['cardback_2'], self.colors['accent_2'], save_name=f'{dir}/{id}_back_2.png')
         
         # Plot the constellations, one with CON_LINES and one without
-        self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=False, STAR_COLORS=STAR_COLORS, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_bare_3.png')
-        self.plot_card(id, BEST_AR=BEST_AR, SIS_SCRIPT=SIS_SCRIPT, CON_LINES=True, CON_PARTS = CON_PARTS, STAR_COLORS=STAR_COLORS,
-                                STAR_NAMES=STAR_NAMES, SHOW=False, SAVE=True, save_name=f'{dir}/{id}_lines_4.png')
+        self.flags.update(flags)
+        self.plot_card(id, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_bare_3.png')
+        self.flags.update(flags)
+        self.plot_card(id, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_lines_4.png')
     
         # reset the bleed after completing the cards
         self.bleed = 0

@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 from matplotlib.patches import Circle, PathPatch
 from matplotlib.textpath import TextPath
 from matplotlib.transforms import Affine2D
@@ -15,7 +16,8 @@ from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_ra
 class PolarMap:
 
 	def text_place(self, text, ax, xy, angle, font_size):
-		text_path = TextPath((0, 0), text, size=font_size)
+		'''Quick and dirty fix to align the rotated text correctly'''
+		text_path = TextPath((0, 0), text, size=font_size, prop=self.fonts['calendar'])
 		bb = text_path.get_extents()
 		text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
 		x, y = xy
@@ -25,9 +27,7 @@ class PolarMap:
 		patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
 		ax.add_patch(patch)
 
-	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, CON_LINES=False, STAR_COLORS=False, GRID=True, SHOW=True, SAVE=False, 
-                    CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, 
-                    font_sizes=(5,6,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False):
+	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,6,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False, MARK_CENTER=False):
 		'''Plot a stereographic map of the stars near the poles.
 			The parameters are:
 			- pole : the pole around which the plot is done, 'N' for north and 'S' for south
@@ -36,28 +36,14 @@ class PolarMap:
 			- font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
 			- star_size : the size of the stars in the plot
 			- save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
-
-			The other flags are: 
-			GRID : Plot the grid in the map view			
-			CON_LINES : Plot the constellation lines 
-			HELPERS : Plot the H.A.Rey helper lines
-			STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
-
-			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. Automatically saves the plot
-			CON_NAMES : Plot the constellation names 
-			CON_PARTS : Plot the constellation diagram parts 
-			STAR_NAMES : Plot the star names 
-			ASTERISMS : Plot the asterisms and their labels  
-
-			SHOW : Show the plot or not 
-			SAVE : SAVE : Save the plot. If the save name is specified, is True by default         
+        
 		'''
 		# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-		if not save_name == None or SIS_SCRIPT:
-			SAVE = True
+		if not save_name == None or self.flags['SIS_SCRIPT']:
+			self.flags['SAVE'] = True
 
 		# Default file name
-		if SAVE and save_name==None:
+		if self.flags['SAVE'] and save_name==None:
 			pole_name = 'North' if pole == 'N' else 'South' if pole == 'S' else ''
 			save_name = f'{pole_name}_polar_map.png'
 
@@ -72,7 +58,7 @@ class PolarMap:
 			
 		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 		# If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-		star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
+		star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
 		# Create figure and circular patch
 		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
@@ -106,7 +92,7 @@ class PolarMap:
 
 
 		# Plot constellation lines
-		if CON_LINES:
+		if self.flags['CON_LINES']:
 			for line in [line for id in self.constellation_ids for line in self.constellations[id]['lines']]:
 				# Divide the line in individual segments
 				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
@@ -116,21 +102,29 @@ class PolarMap:
 						plot_line.set_clip_path(map)	
 
 		#Plot asterisms
-		if ASTERISMS:
+		if self.flags['ASTERISMS']:
 			for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
-				plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
-				plot_line.set_clip_path(map)
+				# Divide the line in individual segments
+				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
+					#If the segment is completely outside the circle, do not plot it
+					if not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2):
+						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
+						plot_line.set_clip_path(map)
 
 		#Plot helpers
-		if HELPERS:
+		if self.flags['HELPERS']:
 			for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]:  
-				plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
-				plot_line.set_clip_path(map)		
+				# Divide the line in individual segments
+				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
+					#If the segment is completely outside the circle, do not plot it
+					if not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2):
+						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
+						plot_line.set_clip_path(map)		
 
 		# Plot the stars after the lines 
 		# Stars that are not in a constellation shape are represented with a dot
 		bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-		color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
+		color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 
 		# Plot bkg stars
 		ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
@@ -146,14 +140,14 @@ class PolarMap:
 			ax.set_clip_path(map)
 
 			# If star_colors is True, plot the stars with their true color
-			color = stars[mask]['color'] if STAR_COLORS else self.colors['star']
+			color = stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 			# Plot the star with the custom markers
 			ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
 
 
 		# Plot the grid
-		if GRID: 
-			inner_grid_r = scale * stereo_radius(2*10)
+		if self.flags['GRID']: 
+			inner_grid_r = scale*azimuthal_radius(2*10) if mode=='azimuth' else scale*stereo_radius(20)
 			line = np.array((inner_grid_r, map_radius))
 			theta = np.pi/12
 
@@ -200,8 +194,9 @@ class PolarMap:
 				month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
 				self.text_place(month_name, ax, (r_months*np.sin(a), r_months*np.cos(a)), -a, font_size=figsize*0.03)
 
+		if MARK_CENTER:
 			# Add a marker at the center of the plot
-			ax.plot(0,0, 'x', color=colors['grid'], markersize=3, lw=0)
+			ax.plot(0,0, '+', color=colors['grid'], markersize=3, lw=0)
 
 		# Clip everything and fix plot limits
 		for col in ax.collections:
@@ -212,7 +207,7 @@ class PolarMap:
 		ax.set_ylim(-figsize,figsize)
 		ax.set_axis_off()
 
-		if SIS_SCRIPT:
+		if self.flags['SIS_SCRIPT']:
 			# Save the image before adding the labels
 			plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)  
 
@@ -225,27 +220,27 @@ class PolarMap:
 				ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = labels_font) 
 
 		#Plot labels
-		if CON_NAMES:
+		if self.flags['CON_NAMES']:
 			for id in constellation_ids:
 				plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')
 					
 		#Plot minor labels
-		if CON_PARTS:
+		if self.flags['CON_PARTS']:
 			for id in [id for id in constellations.keys() if id.startswith('.')]:
 					plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
 
 		#Plot asterisms labels  
-		if ASTERISMS :           
+		if self.flags['ASTERISMS'] :           
 			for id in self.asterisms.keys():
 				plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='l', color=colors['asterism_labels'], ha='center',va='center')
 
 		# Plot named stars
-		if STAR_NAMES:
+		if self.flags['STAR_NAMES']:
 			for star in self.named_stars:
 				# The star index is a string
 				plot_label(ax, label = self.names[star], indexes = int(star), fontsize='s', color=colors['star_labels'], ha='center',va='bottom')
 
-		if SIS_SCRIPT:
+		if self.flags['SIS_SCRIPT']:
 			# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
 			# To make the position consistent with different settings of Inkscape, 
 			# the coordinates are fractions of the canvas width and height, starting from top left
@@ -271,24 +266,24 @@ class PolarMap:
 
 			with open(f'{dir}/{file_name}', 'w') as f:
 			#Plot constellation labels
-				if CON_NAMES:
+				if self.flags['CON_NAMES']:
 					f.write('# Constellation names \n')
 					for id in constellation_ids:
 						write_sis(f, self.names[id], constellations[id]['stars'], color=colors['constellation_labels'], fontsize = 'l')      
 
 				# Plot constellation parts labels
-				if CON_PARTS:
+				if self.flags['CON_PARTS']:
 					f.write('\n# Constellation parts labels\n')
 					for id in [id for id in constellations.keys() if id.startswith('.')]:
 						write_sis(f, self.names[id], constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'])
 
 				#Plot asterisms labels
-				if ASTERISMS :            
+				if self.flags['ASTERISMS'] :            
 					for id in self.asterisms.keys():
 						write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='m', color=colors['asterism_labels'])            
 
 				# Plot named stars labels  
-				if STAR_NAMES: 
+				if self.flags['STAR_NAMES']: 
 					f.write('\n# Named stars labels\n')
 					for star in self.named_stars:
 						write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize = 'm')
@@ -307,10 +302,12 @@ class PolarMap:
 
 
 		# Save the image with all the labels
-		if SAVE and not SIS_SCRIPT:
+		if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
 			plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
-		if SHOW:
+		if self.flags['SHOW']:
 			plt.show()
 		else:
 			plt.close()
+
+		self.reset_flags()

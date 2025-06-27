@@ -157,34 +157,24 @@ class CardPlot:
 
 
 
-    def plot_card(self, id, CON_LINES=False, BEST_AR=False, STAR_COLORS=False,
-                           CON_PARTS = False, STAR_NAMES = False, SIS_SCRIPT = False, 
-                           SHOW=True, SAVE=False, save_name=None, star_size = None):
+    def plot_card(self, id, BEST_AR=False, save_name=None, star_size = None):
         """
         Plot the constellation card inside the card template.
 
         Arguments:
         id : Constellation ID (e.g. 'Ori' for Orion).
-        save_name : Name of the file to save the plot. If specified, sets SAVE to True.
+        save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
         star_size : Size of the stars in the plot. If None, the default size is used.
 
-        Flags:
-        CON_LINES : Plot the constellation lines. 
-        BEST_AR : Rotate the constellation to maximize the aspect ratio and fill the card. Otherwise, plot with north side UP.
-        STAR_COLORS : Use the computed star colors for the stars. Otherwise, use the default color (white).
-        CON_PARTS : Plot the constellation parts labels (e.g. 'belt' in Orion).
-        STAR_NAMES : Plot the star names labels (e.g. 'Betelgeuse' in Orion).
-        SIS_SCRIPT : Create a script to plot interactive labels in Inkscape, to manually adjust their positions. If enabled, the plot is shown with the labels, but the saved image has no labels.
-        SHOW : Show the plot. If False, the plot is not shown (useful when many cards are plotted at once).
-        SAVE : Save the plot. If the save_name is None, the default names ID_lines.png or ID_bare.png are used.
+        
         """        
         # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-        if not save_name == None or SIS_SCRIPT:
-            SAVE = True
+        if not save_name == None or self.flags['SIS_SCRIPT']:
+            self.flags['SAVE'] = True
 
         # Default file name
-        if SAVE and save_name==None:
-            save_name = f'{id}_{'lines' if CON_LINES else 'bare'}.png'
+        if self.flags['SAVE'] and save_name==None:
+            save_name = f'{id}_{'lines' if self.flags['CON_LINES'] else 'bare'}.png'
                 
         #Get the custom markers
         limiting_magnitude = self.limiting_magnitude
@@ -202,7 +192,7 @@ class CardPlot:
         north_marker = self.markers['north']
 
         # If HAREY, use the custom star markers, else use simple dots
-        star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
+        star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
         colors = self.colors
         label_font = self.fonts['labels']
 
@@ -253,7 +243,7 @@ class CardPlot:
         
         ax.add_patch(box)
 
-        if CON_LINES:
+        if self.flags['CON_LINES']:
             for constellation_id in constellation_ids:
                 #Plot the central constellation a little more evident than the others
                 alpha = 1 if constellation_id == id else 0.5
@@ -268,7 +258,7 @@ class CardPlot:
         
        # Stars that are not in a constellation shape are represented with a dot
         bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)        
-        color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
+        color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 
         # Plot bkg stars
         ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.6)
@@ -282,15 +272,15 @@ class CardPlot:
 
             # The stars that are part of the constellation are drawn a little more evident
             mask_constellation = np.logical_and(mask, stars.constellation == id)
-            color = stars[mask_constellation]['color'] if STAR_COLORS else self.colors['star']
+            color = stars[mask_constellation]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
             ax.scatter(stars_x[mask_constellation], stars_y[mask_constellation], marker=m, s=star_sizes[mask_constellation], color=color, linewidths=0, zorder=2)
             
             mask_others = np.logical_and(mask, stars.constellation != id)
-            color = stars[mask_others]['color'] if STAR_COLORS else self.colors['star']
+            color = stars[mask_others]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
             ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.6)
 
         #Plot the North indicator as last thing
-        if CON_LINES: 
+        if self.flags['CON_LINES']: 
             #The angle is between -90 and 90 and plotted near the edge of the card
             space = (0.7*self.pad + self.bleed)*self.dpi
 
@@ -316,7 +306,7 @@ class CardPlot:
         for col in ax.collections:
             col.set_clip_path(box)
 
-        if SIS_SCRIPT:  # Save the iamge bfore adding labels
+        if self.flags['SIS_SCRIPT']:  # Save the iamge bfore adding labels
             plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
             
         # Function to plot a label at the mean x and y positions
@@ -327,19 +317,19 @@ class CardPlot:
             ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=label_font,  ha = ha, va = va) 
 
 
-        if STAR_NAMES:
+        if self.flags['STAR_NAMES']:
             # Plot named stars
             for star in constellations[id]['stars']:
                 if str(star) in self.names:
                     plot_label(ax, self.names[str(star)], indexes = star, color=colors['star_labels'], fontsize=10, ha='center',va='top')
             
-        if CON_PARTS: 
+        if self.flags['CON_PARTS']: 
             # Plot constellation parts
             for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
                 plot_label(ax, self.names[key], indexes = constellations[key]['stars'], color=colors['constellation_parts'], fontsize=8, ha='center',va='center')
 
 
-        if SIS_SCRIPT:  
+        if self.flags['SIS_SCRIPT']:  
             # Create a script to plot interactive labels in Inkscape, to manually adjust their positions                
             # To make the position consistent with different settings of Inkscape, 
             # the coordinates are fractions of the card width and height, starting from top left
@@ -362,18 +352,18 @@ class CardPlot:
 
                 f.write('# Named stars labels\n')
                 # Plot star labels
-                if STAR_NAMES:
+                if self.flags['STAR_NAMES']:
                     for star in constellations[id]['stars']:
                         if str(star) in self.names:
                             write_sis(f, self.names[str(star)], star, color=colors['star_labels'], fontsize = 10)
                     
                 f.write('\n# Constellation parts labels\n')
                 # Plot constellation parts
-                if CON_PARTS:
+                if self.flags['CON_PARTS']:
                     for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
                         write_sis(f, self.names[key], constellations[key]['stars'], fontsize=8, color=colors['constellation_parts'])
 
-                if CON_LINES:
+                if self.flags['CON_LINES']:
                     f.write('\n# Ecliptic label\n')
                     # Add a label close to the ecliptic if it is inside the constellation
                     mask = ((ecliptic_x > -width) & (ecliptic_x < width) & (ecliptic_y > -height) & (ecliptic_y < height)).tolist()
@@ -385,10 +375,12 @@ class CardPlot:
                             f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
                         f.write(s)
 
-        if SAVE and not SIS_SCRIPT:            
+        if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:            
             plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
 
-        if SHOW:
+        if self.flags['SHOW']:
             plt.show()
         else:
             plt.close()
+
+        self.reset_flags()

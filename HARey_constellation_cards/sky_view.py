@@ -12,9 +12,7 @@ from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2rad
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
 class SkyView:
-    def plot_sky_view(self, observer,  FOV = 190, CON_LINES=False, STAR_COLORS=False, 
-                           CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False,  SIS_SCRIPT = False, 
-                           SHOW=True, SAVE=False, save_name=None, star_size = 50, figsize = 8, font_sizes=(5,6,7)):
+    def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 50, figsize = 8, font_sizes=(5,6,7)):
 
         '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
                 FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
@@ -25,28 +23,15 @@ class SkyView:
                 - star_size: the size of the stars in the plot.
                 - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
                 - save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
-                
-            The flags are: 
-                CON_LINES : Plot the constellation lines 
-                HELPERS : Plot the H.A.Rey helper lines
-                STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
-
-                SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. Automatically saves the plot
-                CON_NAMES : Plot the constellation names
-                ASTERISMS : Plot the asterisms and their labels
-                CON_PARTS : Plot the constellation diagram parts 
-                STAR_NAMES : Plot the star names   
-
-                SHOW : Show the plot.
-                SAVE : Save the plot. If the save name is specified, is True by default        
+                      
             '''
         
-        # If the save_name is not None or the SIS_SCRIPT is enabled, save automatically the plot
-        if not save_name == None or SIS_SCRIPT:
-            SAVE = True
+        # If the save_name is not None or the self.flags['SIS_SCRIPT'] is enabled, save automatically the plot
+        if not save_name == None or self.flags['SIS_SCRIPT']:
+            self.flags['SAVE'] = True
 
         # Default file name
-        if SAVE and save_name==None:
+        if self.flags['SAVE'] and save_name==None:
             save_name = 'Sky_view.png'
 
         
@@ -65,7 +50,7 @@ class SkyView:
         cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
         
         # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-        star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
+        star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
         font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 
@@ -100,19 +85,19 @@ class SkyView:
 
 
         # Plot constellation lines
-        if CON_LINES:
+        if self.flags['CON_LINES']:
             for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
                 plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=0.5, alpha=0.8)
                 plot_line.set_clip_path(map)
 
         #Plot asterisms
-        if ASTERISMS:
+        if self.flags['ASTERISMS']:
             for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
                 plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
                 plot_line.set_clip_path(map)
 
         #Plot helpers
-        if HELPERS:
+        if self.flags['HELPERS']:
             for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]:  
                 plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
                 plot_line.set_clip_path(map)
@@ -120,7 +105,7 @@ class SkyView:
         # Plot the stars after the lines 
         # Stars that are not in a constellation shape are represented with a dot
         bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-        color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
+        color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 
         # Plot bkg stars
         ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
@@ -135,7 +120,7 @@ class SkyView:
             ax.set_clip_path(map)
 
             # If star_colors is True, plot the stars with their true color
-            color = stars[mask]['color'] if STAR_COLORS else self.colors['star']
+            color = stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
             # Plot the star with the custom markers
             ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
         
@@ -161,7 +146,7 @@ class SkyView:
         ax.set_axis_off()
         ax.invert_xaxis()
 
-        if SIS_SCRIPT:
+        if self.flags['SIS_SCRIPT']:
             # Save the image before adding the labels
             plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)         
 
@@ -175,28 +160,28 @@ class SkyView:
                 ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
 
         #Plot labels
-        if CON_NAMES:
+        if self.flags['CON_NAMES']:
             for id in constellation_ids:
                 plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')
                     
         #Plot minor labels
-        if CON_PARTS:
+        if self.flags['CON_PARTS']:
             for id in [id for id in constellations.keys() if id.startswith('.')]:
                  plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
 
         #Plot asterisms labels  
-        if ASTERISMS :           
+        if self.flags['ASTERISMS'] :           
             for id in self.asterisms.keys():
                 plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='m', color=colors['asterism_labels'], ha='center',va='center')
 
         # Plot named stars
-        if STAR_NAMES:
+        if self.flags['STAR_NAMES']:
             for star in self.named_stars:
                 # The star index is a string
                 plot_label(ax, label = self.names[star], indexes = int(star), fontsize='m', color=colors['star_labels'], ha='center',va='bottom')
             
             
-        if SIS_SCRIPT:
+        if self.flags['SIS_SCRIPT']:
             # Create a script to plot interactive labels in Inkscape, to manually adjust their positions
             # To make the position consistent with different settings of Inkscape, text
             # the coordinates are fractions of the canvas width and height, starting from top left
@@ -222,24 +207,24 @@ class SkyView:
             with open(f'{dir}/{file_name}', 'w') as f:
 
                 #Plot constellation labels
-                if CON_NAMES:
+                if self.flags['CON_NAMES']:
                     f.write('# Constellation names \n')
                     for id in constellation_ids:
                         write_sis(f, self.names[id], constellations[id]['stars'], color=colors['constellation_labels'], fontsize = 'l')      
 
                 # Plot constellation parts labels
-                if CON_PARTS:
+                if self.flags['CON_PARTS']:
                     f.write('\n# Constellation parts labels\n')
                     for id in [id for id in constellations.keys() if id.startswith('.')]:
                         write_sis(f, self.names[id], constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'])
 
                 #Plot asterisms labels
-                if ASTERISMS :            
+                if self.flags['ASTERISMS'] :            
                     for id in self.asterisms.keys():
                         write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='m', color=colors['asterism_labels'])            
 
                 # Plot named stars labels  
-                if STAR_NAMES: 
+                if self.flags['STAR_NAMES']: 
                     f.write('\n# Named stars labels\n')
                     for star in self.named_stars:
                         write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize='m')
@@ -262,10 +247,12 @@ class SkyView:
                 f.write(s)                     
                 
         # Save the image with all the labels
-        if SAVE and not SIS_SCRIPT:
+        if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
             plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
-        if SHOW:
+        if self.flags['SHOW']:
             plt.show()
         else:
             plt.close()
+
+        self.reset_flags()

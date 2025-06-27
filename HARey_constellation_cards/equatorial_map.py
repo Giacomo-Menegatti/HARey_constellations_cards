@@ -16,8 +16,7 @@ class EquatorialMap:
 		deformations that are inevitably created when spherical surface is projected on a plane.
 	'''
 
-	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150,  STAR_COLORS= False, CON_LINES=False, GRID = True, SHOW=True, SAVE=False, 
-                     CON_NAMES = False, CON_PARTS = False, STAR_NAMES = False, ASTERISMS = False, HELPERS=False, SIS_SCRIPT=False, save_name = None, font_sizes=(2,3,4), star_size=50):
+	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150, save_name = None, font_sizes=(2,3,4), star_size=50):
 		'''Plot an equatorial Gall stereographic projection of the whole sky
 		    The parameters are:
 			max_dims : the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
@@ -26,27 +25,14 @@ class EquatorialMap:
 			save_name : the name of the file to save the plot
 			font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
 			star_size : the size of the stars in the plot
-
-			The other flags are: 
-			CON_LINES : Plot the constellation lines 
-			HELPERS : Plot the H.A.Rey helper lines
-			STAR_COLORS : Plot the stars true colors. Otherwise, use the same color for all.
-			
-			SIS_SCRIPT : Create an Inkscape script to adjust the labels manually. Automatically saves the plot.
-			CON_NAMES : Plot the constellation names 
-			CON_PARTS : Plot the constellation diagram parts 
-			STAR_NAMES : Plot the star names 
-			ASTERISMS : Plot the asterisms and their labels
-
-			SHOW : Show the plot.
-			SAVE : Save the plot. If the save name is specified, is True by default   
+ 
           '''	
-		# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-		if not save_name == None or SIS_SCRIPT:
-			SAVE = True
+		# If the save_name is not None or self.flags['SIS_SCRIPT'] is enabled, save automatically the plot
+		if not save_name == None or self.flags['SIS_SCRIPT']:
+			self.flags['SAVE'] = True
 
         # Default file name
-		if SAVE and save_name==None:
+		if self.flags['SAVE'] and save_name==None:
 			save_name = 'Equatorial_map.png'
 		
 		stars = self.stars
@@ -61,7 +47,7 @@ class EquatorialMap:
 		star_markers = self.star_markers
 
 		# If the HAREY ption is selected, use the custom star markers, else use simple dots
-		star_markers = self.star_markers if self.USE_HAREY_MARKERS else ['.']*len(self.star_markers)
+		star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
 		# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 		# i.e., a label around the origin is plotted near the mean value in the center of the plot
@@ -113,7 +99,7 @@ class EquatorialMap:
 			ecliptic.set_clip_path(box)
 
 			# Plot constellation lines
-			if CON_LINES:
+			if self.flags['CON_LINES']:
 				for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
 					# Divide the line in individual segments
 					for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
@@ -123,14 +109,14 @@ class EquatorialMap:
 							plot_line.set_clip_path(box)      
 
 			# Plot asterism
-			if ASTERISMS:
+			if self.flags['ASTERISMS']:
 				for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
 					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)):
 						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
 						plot_line.set_clip_path(box)
 
 			# Plot helpers
-			if HELPERS:
+			if self.flags['HELPERS']:
 				for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]: 
 					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)): 
 						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
@@ -139,7 +125,7 @@ class EquatorialMap:
 			 # Plot the stars after the lines 
 			# Stars that are not in a constellation shape are represented with a dot
 			bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-			color = stars[bkg_stars]['color'] if STAR_COLORS else self.colors['star']
+			color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 
 			# Plot bkg stars
 			ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
@@ -154,7 +140,7 @@ class EquatorialMap:
 				ax.set_clip_path(box)
 
 				# If star_colors is True, plot the stars with their true color
-				color = stars[mask]['color'] if STAR_COLORS else self.colors['star']
+				color = stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 				# Plot the star with the custom markers
 				ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
 				ax.set_clip_path(box)
@@ -167,22 +153,22 @@ class EquatorialMap:
 					labels_pos[id] = (label_x/scale, label_y/scale)
             
 			# Constellation labels
-			if CON_NAMES:
+			if self.flags['CON_NAMES']:
 				for id in constellation_ids:
 					compute_label_pos(id, indexes=constellations[id]['stars'])
 
 			# Minor labels
-			if CON_PARTS:
+			if self.flags['CON_PARTS']:
 				for id in [id for id in constellations.keys() if id.startswith('.')]:
 					compute_label_pos(id, indexes = constellations[id]['stars'])
 
 			# Asterisms labels  
-			if ASTERISMS :           
+			if self.flags['ASTERISMS'] :           
 				for id in self.asterisms.keys():
 					compute_label_pos(id, indexes = [star for line in self.asterisms[id]['lines'] for star in line])
 
 			# Named stars
-			if STAR_NAMES:
+			if self.flags['STAR_NAMES']:
 				for star in self.named_stars:
 					# The star index is a string
 					compute_label_pos(star, indexes = int(star))
@@ -223,7 +209,7 @@ class EquatorialMap:
 		width, height = map.shape[1], map.shape[0]
 
 		# Plot the grid
-		if GRID:
+		if self.flags['GRID']:
 			# Plot the RA grid
 			for ra in np.arange(25):
 				x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
@@ -250,7 +236,7 @@ class EquatorialMap:
 				ax.text(0, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=labels_font)
 				#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=labels_font)
 
-		if SIS_SCRIPT: # Save the image before adding the labels
+		if self.flags['SIS_SCRIPT']: # Save the image before adding the labels
 			plt.savefig(save_name, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
 		def plot_label(ax, label, xy, color, fontsize, ha='center', va = 'center'):
@@ -260,30 +246,30 @@ class EquatorialMap:
 			ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font=labels_font)
 
 		# Plot the labels
-		if CON_NAMES:
+		if self.flags['CON_NAMES']:
 			for id in constellation_ids:
 				if id in labels_pos.keys():
 					plot_label(ax, self.names[id], labels_pos[id], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')  
 					
         #Plot minor labels
-		if CON_PARTS:
+		if self.flags['CON_PARTS']:
 			for id in [id for id in constellations.keys() if id.startswith('.')]:
 				if id in labels_pos.keys():
 					plot_label(ax, self.names[id], labels_pos[id], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
 
         #Plot asterisms labels  
-		if ASTERISMS :      
+		if self.flags['ASTERISMS'] :      
 			for id in self.asterisms.keys():
 				if id in labels_pos.keys():
 					plot_label(ax, self.names[id], labels_pos[id], fontsize='m', color=colors['asterism_labels'], ha='center',va='center')
 
         # Plot named stars
-		if STAR_NAMES:
+		if self.flags['STAR_NAMES']:
 			for star in self.named_stars:
 				if star in labels_pos.keys():
 					plot_label(ax, self.names[star], labels_pos[star], fontsize='m', color=colors['star_labels'], ha='center',va='bottom')
 
-		if SIS_SCRIPT:
+		if self.flags['SIS_SCRIPT']:
 			# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
             # To make the position consistent with different settings of Inkscape, 
             # the coordinates are fractions of the canvas width and height, starting from top left
@@ -309,27 +295,27 @@ class EquatorialMap:
 			with open(f'{dir}/{file_name}', 'w') as f:
 
 				#Plot constellation labels
-				if CON_NAMES:
+				if self.flags['CON_NAMES']:
 					f.write('# Constellation names \n')
 					for id in constellation_ids:
 						if id in labels_pos.keys():
 							write_sis(f, self.names[id], labels_pos[id], color=colors['constellation_labels'], fontsize='l')      
 
 				# Plot constellation parts labels
-				if CON_PARTS:
+				if self.flags['CON_PARTS']:
 					f.write('\n# Constellation parts labels\n')
 					for id in [id for id in constellations.keys() if id.startswith('.')]:
 						if id in labels_pos.keys():
 							write_sis(f, self.names[id], labels_pos[id], color=colors['constellation_parts'], fontsize='s')
 
 				#Plot asterisms labels
-				if ASTERISMS :            
+				if self.flags['ASTERISMS'] :            
 					for id in self.asterisms.keys():
 						if id in labels_pos.keys():
 							write_sis(f, self.names[id], labels_pos[id], color=colors['asterism_labels'], fontsize='m')            
 
 				# Plot named stars labels  
-				if STAR_NAMES: 
+				if self.flags['STAR_NAMES']: 
 					f.write('\n# Named stars labels\n')
 					for star in self.named_stars:
 						if star in labels_pos.keys():
@@ -342,12 +328,14 @@ class EquatorialMap:
 					f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
 				f.write(s)
 
-		if SAVE and not SIS_SCRIPT:
+		if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
 			plt.savefig(save_name, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 		
-		if SHOW:
+		if self.flags['SHOW']:
 			plt.show()
 		else:
 			plt.close()
+
+		self.reset_flags()
 
 
