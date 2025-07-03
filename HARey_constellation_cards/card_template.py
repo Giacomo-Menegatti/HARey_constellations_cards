@@ -25,103 +25,80 @@ class CardTemplate:
         - cardback_file : path to the card back image. If None, the card will have no back image. the cardback must be a black and white image with transparency (RGBA) and the same dimensions as the card.
         - dpi : dpi of the card. Should be the same as the cardback image. 
         """
-        if format == 'tarot-round':
+        if format in ['tarot-round','tarot-square']:
             #card dimensions and corner radius (inches)
             self.height = 4.75
             self.width = 2.75
-            self.pad = 0.25
-            
-            # Style passed to the fancybbox patch
-            self.box_style = f'round, pad=0.0, rounding_size={0.2*dpi}'
+            self.pad = 0.25                  
 
             # Position and dimension of the text box (in inches)
             self.text_x = 0.4
             self.text_y = 3.6
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.8
-            self.text_box_style = "round, pad = 0.2, rounding_size=0.3"  
+              
+            self.max_font_scale = 3
             
-            # Default cardback style
-            self.default_cardback_file = 'cardbacks/tarot_round.png'   
+            # Tarot round specific data
+            if format == 'tarot-round':
+                # Style passed to the fancybbox patch
+                self.box_style = f'round, pad=0.0, rounding_size={0.2*dpi}'                 
+                self.text_box_style = "round, pad = 0.2, rounding_size=0.3" 
+                # Default cardback style
+                self.default_cardback_file = 'cardbacks/tarot_round.png' 
+                
+            # Tarot square specific data
+            else: 
+                self.box_style = 'square, pad=0.0'       
+                self.text_box_style = "round, pad = 0.2, rounding_size=0.05"
+                self.default_cardback_file = 'cardbacks/tarot_square.png'
 
-        elif format == 'tarot-square':
-            self.height = 4.75
-            self.width = 2.75
-            self.pad = 0.25        
-
-            self.box_style = 'square, pad=0.0'       
-            
-            self.text_x = 0.4
-            self.text_y = 3.6
-            self.box_width = self.width-2*self.text_x
-            self.box_height = 0.8
-            self.text_box_style = "round, pad = 0.2, rounding_size=0.05"           
-
-            self.default_cardback_file = 'cardbacks/tarot_square.png'
-
-        elif format == 'jumbo-round':
+        elif format in ['jumbo-round','jumbo-square']:
             # Jumbo format 3.5x5.5 inches
             self.height = 5.5
             self.width = 3.5
             self.pad = 0.35
 
-            self.box_style = f'round, pad=0.0, rounding_size={0.25*dpi}'
-
             self.text_x = 0.4
             self.text_y = 4.1
             self.box_width = self.width-2*self.text_x
-            self.box_height = 1.0
-            self.text_box_style = "round, pad = 0.25, rounding_size=0.4"           
+            self.box_height = 1.0                
+            self.max_font_scale = 4      
 
-            self.default_cardback_file = 'cardbacks/jumbo_round.png'
+            if format == 'jumbo-round':
 
-        elif format == 'jumbo-square':
-            # Jumbo format 3.5x5.5 inches
-            self.height = 5.5
-            self.width = 3.5
-            self.pad = 0.35
+                self.box_style = f'round, pad=0.0, rounding_size={0.25*dpi}'
+                self.text_box_style = "round, pad = 0.25, rounding_size=0.4" 
+                self.default_cardback_file = 'cardbacks/jumbo_round.png'
 
-            self.box_style = f'square, pad=0.0'
+            else:
 
-            self.text_x = 0.4
-            self.text_y = 4.1
-            self.box_width = self.width-2*self.text_x
-            self.box_height = 1.0
-            self.text_box_style = "round, pad = 0.25, rounding_size=0.05"           
+                self.box_style = f'square, pad=0.0'
+                self.text_box_style = "round, pad = 0.25, rounding_size=0.05" 
+                self.default_cardback_file = 'cardbacks/jumbo_square.png'
 
-            self.default_cardback_file = 'cardbacks/jumbo_square.png'
+        elif format in ['poker-round','poker-square']:
 
-        elif format == 'poker-round':
             # Poker card format, 2.5x3.5 inches
             self.height = 3.5
             self.width = 2.5
             self.pad = 0.15
 
-            self.box_style = f'round, pad=0.0, rounding_size={0.15*dpi}'
-
             self.text_x = 0.4
             self.text_y = 2.7
             self.box_width = self.width-2*self.text_x
             self.box_height = 0.55
-            self.text_box_style = "round, pad = 0.1, rounding_size=0.2"           
+            self.max_font_scale = 2.5
 
-            self.default_cardback_file = 'cardbacks/poker_round.png'
+            if format == 'poker-round':
+                self.box_style = f'round, pad=0.0, rounding_size={0.15*dpi}'
+                self.text_box_style = "round, pad = 0.1, rounding_size=0.2"
+                self.default_cardback_file = 'cardbacks/poker_round.png'
 
-        elif format == 'poker-square':
-            # Poker card format, 2.5x3.5 inches
-            self.height = 3.5
-            self.width = 2.5
-            self.pad = 0.15
-
-            self.box_style = f'square, pad=0.0'
-
-            self.text_x = 0.4
-            self.text_y = 2.7
-            self.box_width = self.width-2*self.text_x
-            self.box_height = 0.55
-            self.text_box_style = "round, pad = 0.1, rounding_size=0.05"           
-
-            self.default_cardback_file = 'cardbacks/poker_square.png'
+            else:
+                self.box_style = f'square, pad=0.0'
+                self.text_box_style = "round, pad = 0.1, rounding_size=0.05"       
+                self.default_cardback_file = 'cardbacks/poker_square.png'
 
         elif format == 'circle':
             # Circular plot for the quiz game
@@ -219,7 +196,7 @@ class CardTemplate:
 
 
         # get the ratio to completely fill the box (constraining width or height)
-        s =  min(min(r.width/t.width, r.height/t.height), 3) # maximum scale factor 3 (bigger are ugly)
+        s =  min(min(r.width/t.width, r.height/t.height), self.max_font_scale) # maximum scale factor (bigger fonts are ugly)
         text.set_fontsize(text.get_fontsize()*s) 
 
         # Add a fancy box around the text

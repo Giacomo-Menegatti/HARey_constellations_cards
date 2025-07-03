@@ -27,13 +27,13 @@ class PolarMap:
 		patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
 		ax.add_patch(patch)
 
-	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,6,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False, MARK_CENTER=False):
+	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False, MARK_CENTER=False):
 		'''Plot a stereographic map of the stars near the poles.
 			The parameters are:
 			- pole : the pole around which the plot is done, 'N' for north and 'S' for south
 			- FOV : the total field of view (in degrees)
 			- figsize : the diameter of the figure (in inches)
-			- font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
+			- font_sizes : the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterism)
 			- star_size : the size of the stars in the plot
 			- save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
         
@@ -54,14 +54,22 @@ class PolarMap:
 		constellations = self.constellations
 		constellation_ids = self.constellation_ids
 
-		star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
+		# Scale the star sizes and the text labels based on the card area
+		scale = (figsize/8)
+		font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
+
+		marker_size = star_size * scale**2
+		star_sizes = marker_size * mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
+		line_w = marker_size * 0.01
 			
-		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
+		
 		# If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
 		star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
 		# Create figure and circular patch
-		fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
+		fig = plt.figure(figsize=(figsize, figsize), dpi=self.dpi)
+		ax = fig.add_subplot(111, aspect='equal')
+		fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 		
 		map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
 
@@ -79,7 +87,7 @@ class PolarMap:
 		# Draw the ecliptic
 		(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
 		ecliptic_x, ecliptic_y = azimuthal_polar(c*ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(c*ecliptic_ra, c*ecliptic_dec)	
-		ecliptic, = ax.plot(scale*ecliptic_x, scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=0.4, alpha=0.7)
+		ecliptic, = ax.plot(scale*ecliptic_x, scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=line_w, alpha=0.8)
 		ecliptic.set_clip_path(map)
 
 		# Compute the star positions
@@ -98,7 +106,7 @@ class PolarMap:
 				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
 					#If the segment is completely outside the circle, do not plot it
 					if not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2):    
-						plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['star'], linewidth=0.5, alpha=0.8)
+						plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['star'], linewidth=line_w)
 						plot_line.set_clip_path(map)	
 
 		#Plot asterisms
@@ -108,7 +116,7 @@ class PolarMap:
 				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
 					#If the segment is completely outside the circle, do not plot it
 					if not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2):
-						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
+						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['asterisms'], linestyle='solid', linewidth=line_w)
 						plot_line.set_clip_path(map)
 
 		#Plot helpers
@@ -118,7 +126,7 @@ class PolarMap:
 				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
 					#If the segment is completely outside the circle, do not plot it
 					if not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2):
-						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
+						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['helpers'], linestyle='dashed', linewidth=0.7*line_w)
 						plot_line.set_clip_path(map)		
 
 		# Plot the stars after the lines 
@@ -152,7 +160,7 @@ class PolarMap:
 			theta = np.pi/12
 
 			for ra in np.arange(1,25):
-				ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.4, alpha=0.8)
+				ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.8*line_w)
 				ax.text(0.97*map_radius*np.cos(ra*theta), 0.97*map_radius*np.sin(ra*theta), s=f'{ra} h', font = labels_font,
 						color=self.colors['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
 
@@ -160,7 +168,7 @@ class PolarMap:
 
 				radius = azimuthal_radius(2*fov) if mode == 'azimuth' else stereo_radius(2*fov)
 
-				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.4, alpha=0.8)
+				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.8*line_w)
 				ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 				ax.add_patch(grid_circle)
 
@@ -280,13 +288,13 @@ class PolarMap:
 				#Plot asterisms labels
 				if self.flags['ASTERISMS'] :            
 					for id in self.asterisms.keys():
-						write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='m', color=colors['asterism_labels'])            
+						write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='l', color=colors['asterism_labels'])            
 
 				# Plot named stars labels  
 				if self.flags['STAR_NAMES']: 
 					f.write('\n# Named stars labels\n')
 					for star in self.named_stars:
-						write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize = 'm')
+						write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize = 's')
 
 				# Plot ecliptic label (always present)
 				f.write('\n# Ecliptic label\n')
@@ -296,14 +304,14 @@ class PolarMap:
 				if np.any(mask)>0:	# if there is at least one point visible
 					index = np.argmin(ecliptic_y[mask])
 					label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
-					s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['m']}pt'," \
-						f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
+					s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+						f'text_anchor="middle", font_family="{self.inkscape_font}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
 					f.write(s)
 
 
 		# Save the image with all the labels
 		if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
-			plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
+			plt.savefig(save_name, transparent=True, dpi=self.dpi, pad_inches=0)
 
 		if self.flags['SHOW']:
 			plt.show()

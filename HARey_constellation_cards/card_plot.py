@@ -157,15 +157,15 @@ class CardPlot:
 
 
 
-    def plot_card(self, id, BEST_AR=False, save_name=None, star_size = None):
+    def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
         """
         Plot the constellation card inside the card template.
 
         Arguments:
         id : Constellation ID (e.g. 'Ori' for Orion).
         save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
-        star_size : Size of the stars in the plot. If None, the default size is used.
-
+        star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
+        font_size : Size of the labels in the plot. It is relative to the card area.
         
         """        
         # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
@@ -182,8 +182,12 @@ class CardPlot:
         constellations = self.constellations
         constellation_ids = self.constellation_ids
 
+        # Scale the star sizes and the text labels based on the card area
+        scale = self.width*self.height/(2.75*4.75) # Scale w.r.t the standard card (tarot)
+        marker_size = star_size*scale
+        font_size = round(np.sqrt(scale)*font_size)
+
         # set marker sizes and line widths
-        marker_size = self.star_size if star_size == None else star_size
         star_sizes = marker_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
         line_w = marker_size * 0.0055
 
@@ -218,7 +222,7 @@ class CardPlot:
 
         fig = plt.figure(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
 
-        # Convert the measures to pixels
+        # Convert the measures to pixels and center aound zero
         height = self.height*self.dpi/2 + self.bleed*self.dpi
         width = self.width*self.dpi/2 + self.bleed*self.dpi
 
@@ -261,7 +265,7 @@ class CardPlot:
         color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.6)
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.5)
 
         # Plot a blank circle around the stars to make them more evident
         for i, m in enumerate(star_markers):
@@ -321,12 +325,12 @@ class CardPlot:
             # Plot named stars
             for star in constellations[id]['stars']:
                 if str(star) in self.names:
-                    plot_label(ax, self.names[str(star)], indexes = star, color=colors['star_labels'], fontsize=10, ha='center',va='top')
+                    plot_label(ax, self.names[str(star)], indexes = star, color=colors['star_labels'], fontsize=font_size, ha='center',va='top')
             
         if self.flags['CON_PARTS']: 
             # Plot constellation parts
             for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
-                plot_label(ax, self.names[key], indexes = constellations[key]['stars'], color=colors['constellation_parts'], fontsize=8, ha='center',va='center')
+                plot_label(ax, self.names[key], indexes = constellations[key]['stars'], color=colors['constellation_parts'], fontsize=font_size, ha='center',va='center')
 
 
         if self.flags['SIS_SCRIPT']:  
@@ -361,7 +365,7 @@ class CardPlot:
                 # Plot constellation parts
                 if self.flags['CON_PARTS']:
                     for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
-                        write_sis(f, self.names[key], constellations[key]['stars'], fontsize=8, color=colors['constellation_parts'])
+                        write_sis(f, self.names[key], constellations[key]['stars'], fontsize=font_size, color=colors['constellation_parts'])
 
                 if self.flags['CON_LINES']:
                     f.write('\n# Ecliptic label\n')
@@ -371,7 +375,7 @@ class CardPlot:
                     if np.any(mask):
                         label_x = np.mean(ecliptic_x[mask])/(2*width) + 0.5
                         label_y = - np.mean(ecliptic_y[mask])/(2*height) + 0.5
-                        s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='10pt'," \
+                        s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_size}pt'," \
                             f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
                         f.write(s)
 

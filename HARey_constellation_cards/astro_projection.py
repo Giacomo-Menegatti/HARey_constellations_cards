@@ -309,7 +309,7 @@ def local2equator(phi, theta, lat, pole='N', mode='azimuth'):
 ############ STAR SIZE FROM MAGNITUDE ##########
 
 def mag2size(mag, lim_mag):
-    """Compute the star size from its magnitude. It uses the scaling law used by Skyfield."""
-    # Brigthness scaling (works for brighter stars, but dim ones are all too small and difficult to distinguish)
+    """Compute the star size from its magnitude."""
+    # Brightness scaling (works for brighter stars, but dim ones are all too small and difficult to distinguish)
     # return 10**(0.4*mag)
-    return (1 - mag/lim_mag )**2
+    return (1 - mag/lim_mag )**1.5

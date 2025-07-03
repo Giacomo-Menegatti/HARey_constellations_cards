@@ -186,7 +186,7 @@ class Planisphere:
 
 
     def create_planisphere(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth', 
-                           SOLID_FILL=False, MARK_CENTER=True, star_size=50):
+                           SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50):
         """Create a planisphere set"""
 
         # Directory in which the cards are saved
@@ -205,11 +205,12 @@ class Planisphere:
 
         self.flags.update(flags)
         name = 'North' if lat >= 0 else 'South'
-        self.polar_map(pole, FOV, figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode, ADD_CALENDAR=True, star_size=star_size)
+        self.polar_map(pole, FOV, figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
+                        ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
     
 
     def create_planisphere_2sided(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth',
-                                   SOLID_FILL=False, MARK_CENTER=True, star_size=50):
+                                   SOLID_FILL=False, MARK_CENTER=True, star_size=50, font_sizes=(5,7)):
         """Create a planisphere set"""
         
                 # Directory in which the cards are saved
@@ -229,6 +230,6 @@ class Planisphere:
         self.flags.update(flags)
 
         self.flags.update(flags)
-        self.polar_map('N', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size)
+        self.polar_map('N', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
         self.flags.update(flags)
-        self.polar_map('S', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size)
+        self.polar_map('S', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)

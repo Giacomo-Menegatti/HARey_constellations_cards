@@ -16,7 +16,7 @@ class EquatorialMap:
 		deformations that are inevitably created when spherical surface is projected on a plane.
 	'''
 
-	def equatorial_map(self, max_dims = (10,8), overlap = 40, dec_FOV=150, save_name = None, font_sizes=(2,3,4), star_size=50):
+	def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name = None, font_sizes=(7,10), star_size=20):
 		'''Plot an equatorial Gall stereographic projection of the whole sky
 		    The parameters are:
 			max_dims : the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
@@ -35,30 +35,40 @@ class EquatorialMap:
 		if self.flags['SAVE'] and save_name==None:
 			save_name = 'Equatorial_map.png'
 		
+		# Compute the scaling based on the max dimensions
+		width, height = Gall_dims(360 + overlap, dec_FOV)
+		x_scale = max_dims[0]/width
+		y_scale = max_dims[1]/height		
+
+		# Keep the minimum scaling to fill the figure
+		scale = min(x_scale, y_scale)
+		map_width, map_height = scale*width, scale*height
+
+		text_scale = map_width/11 # Scale the text depending on the width of the plot, w.r.t the default 11 in (A4 size)
+
+		
 		stars = self.stars
 		colors = self.colors
 		labels_font = self.fonts['labels']
 		limiting_magnitude = self.limiting_magnitude
 		constellations = self.constellations
 		constellation_ids = self.constellation_ids
-		star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
 
-		font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
+		marker_size = star_size * scale**2
+		star_sizes = marker_size * mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
+		line_w = marker_size * 0.0075
+
+		font_sizes = {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
+
 		star_markers = self.star_markers
-
-		# If the HAREY ption is selected, use the custom star markers, else use simple dots
+		# If the HAREY option is selected, use the custom star markers, else use simple dots
 		star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
 		# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 		# i.e., a label around the origin is plotted near the mean value in the center of the plot
 		labels_pos = {}
 
-		# Compute the scaling based on the max dimensions
-		width, height = Gall_dims(360 + overlap, dec_FOV)
-		x_scale = max_dims[0]/width
-		y_scale = max_dims[1]/height
-		# Keep the minimum scaling to fill the figure
-		scale = min(x_scale, y_scale)
+
 		
 
 		def plot_within_borders(self, borders, FOV, scale):
@@ -95,7 +105,7 @@ class EquatorialMap:
 
 			# Plot the ecliptic inside the plot borders
 			mask = (ecliptic_x >= left_border) & (ecliptic_x <= right_border)
-			ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=colors['ecliptic'], linestyle='dotted', linewidth=0.7, alpha=0.9)
+			ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=colors['ecliptic'], linestyle='dotted', linewidth=line_w)
 			ecliptic.set_clip_path(box)
 
 			# Plot constellation lines
@@ -105,21 +115,21 @@ class EquatorialMap:
 					for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
 						#If the segment is outside the borders, do not plot the lines. This ensures that there are no lines going around the whole plot
 						if not (np.any(stars_x[segment]<left_border) and np.any(stars_x[segment]>right_border)):
-							plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['constellations'], linewidth=0.5, alpha=0.8)	
+							plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['constellations'], linewidth=line_w)	
 							plot_line.set_clip_path(box)      
 
 			# Plot asterism
 			if self.flags['ASTERISMS']:
 				for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
 					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)):
-						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
+						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=line_w)
 						plot_line.set_clip_path(box)
 
 			# Plot helpers
 			if self.flags['HELPERS']:
 				for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]: 
 					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)): 
-						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
+						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7*line_w)
 						plot_line.set_clip_path(box)
 
 			 # Plot the stars after the lines 
@@ -179,7 +189,7 @@ class EquatorialMap:
 
 			#Instead of showing the plot, save the partial map as image
 			with io.BytesIO() as buff:
-				fig.savefig(buff, format='png', dpi=self.dpi, bbox_inches='tight', pad_inches=0)
+				fig.savefig(buff, format='png', dpi=self.dpi, pad_inches=0)
 				buff.seek(0)
 				image = plt.imread(buff)
 				
@@ -202,7 +212,9 @@ class EquatorialMap:
 
 		# Join the images and plot it
 		map = np.concatenate((border, center, border), axis=1)
-		fig,ax = plt.subplots(dpi=self.dpi)
+
+		fig,ax = plt.subplots(figsize=(map_width, map_height), dpi=self.dpi)
+		fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
 		ax.imshow(map)
 		ax.set_axis_off()
 
@@ -213,11 +225,11 @@ class EquatorialMap:
 			# Plot the RA grid
 			for ra in np.arange(25):
 				x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
-				ax.axvline(x, height, 0, color=colors['grid'], linestyle='dotted', linewidth=0.4, alpha=0.5)
+				ax.axvline(x, height, 0, color=colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 				ax.text(x, height, s=f'{ra} h', color=colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 
 			# Plot the 0 dec line
-			ax.axhline(height/2, 0, width, color=colors['grid'], linestyle='solid', linewidth=0.5, alpha=0.5)
+			ax.axhline(height/2, 0, width, color=colors['grid'], linestyle='solid', linewidth=0.8*line_w)
 			ax.text(0, height/2, s=f'  {0}° N  ', color=colors['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 			#ax.text(width, height/2, s=f'  {0}° N  ', color=colors['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 
@@ -226,13 +238,13 @@ class EquatorialMap:
 			for dec in np.arange(10, 75, 10):
 				# Plot the north grid lines
 				y_n = height/2 - Gall_vertical(dec)*y_scale	
-				ax.axhline(y_n, 0, width, color=colors['grid'], linestyle='dotted', linewidth=0.5, alpha=0.5)
+				ax.axhline(y_n, 0, width, color=colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 				ax.text(0, y_n, s=f'  {dec}° N  ', color=colors['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 				#ax.text(width, y_n, s=f'  {dec}° N  ', color=colors['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 
 				# Plot the south grid lines
 				y_s = height/2 + Gall_vertical(dec)*y_scale
-				ax.axhline(y_s, 0, width, color=colors['grid'], linestyle='dotted', linewidth=0.5, alpha=0.5)
+				ax.axhline(y_s, 0, width, color=colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 				ax.text(0, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=labels_font)
 				#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=labels_font)
 
@@ -261,13 +273,13 @@ class EquatorialMap:
 		if self.flags['ASTERISMS'] :      
 			for id in self.asterisms.keys():
 				if id in labels_pos.keys():
-					plot_label(ax, self.names[id], labels_pos[id], fontsize='m', color=colors['asterism_labels'], ha='center',va='center')
+					plot_label(ax, self.names[id], labels_pos[id], fontsize='l', color=colors['asterism_labels'], ha='center',va='center')
 
         # Plot named stars
 		if self.flags['STAR_NAMES']:
 			for star in self.named_stars:
 				if star in labels_pos.keys():
-					plot_label(ax, self.names[star], labels_pos[star], fontsize='m', color=colors['star_labels'], ha='center',va='bottom')
+					plot_label(ax, self.names[star], labels_pos[star], fontsize='s', color=colors['star_labels'], ha='center',va='bottom')
 
 		if self.flags['SIS_SCRIPT']:
 			# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
@@ -281,8 +293,8 @@ class EquatorialMap:
 				label_x =  (Gall_horizontal(375) - xy[0])/(Gall_horizontal(375) - Gall_horizontal(-15))
 				label_y = 0.5 - xy[1]/(2*Gall_vertical(dec_FOV/2))		
 				# Write the SIS line
-				s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes[fontsize]}pt', "\
-					f" text_anchor='middle', font_family='{self.fonts['cardback']}', fill='{to_hex(color)}')\n"
+				s = f'text("{label}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[fontsize]}pt", '\
+					f' text_anchor="middle", font_family="{self.fonts['labels']}", fill="{to_hex(color)}")\n'
 				file.write(s)
 
 			dir = 'inkscape_scripts'    # Folder of the scripts
@@ -312,24 +324,24 @@ class EquatorialMap:
 				if self.flags['ASTERISMS'] :            
 					for id in self.asterisms.keys():
 						if id in labels_pos.keys():
-							write_sis(f, self.names[id], labels_pos[id], color=colors['asterism_labels'], fontsize='m')            
+							write_sis(f, self.names[id], labels_pos[id], color=colors['asterism_labels'], fontsize='l')            
 
 				# Plot named stars labels  
 				if self.flags['STAR_NAMES']: 
 					f.write('\n# Named stars labels\n')
 					for star in self.named_stars:
 						if star in labels_pos.keys():
-							write_sis(f, self.names[star], labels_pos[star], color=colors['star_labels'], fontsize='m')       
+							write_sis(f, self.names[star], labels_pos[star], color=colors['star_labels'], fontsize='s')       
 
                 # Plot ecliptic label (always present)
 				f.write('\n# Ecliptic label\n')
 				# Write the label at the center of the plot
-				s = f"text('{self.names['ecl']}', (0.5*canvas.width, 0.5*canvas.height), font_size='{font_sizes['m']}pt'," \
+				s = f"text('{self.names['ecl']}', (0.5*canvas.width, 0.5*canvas.height), font_size='{font_sizes['s']}pt'," \
 					f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
 				f.write(s)
 
 		if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
-			plt.savefig(save_name, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
+			plt.savefig(save_name, dpi=self.dpi, pad_inches=0)
 		
 		if self.flags['SHOW']:
 			plt.show()

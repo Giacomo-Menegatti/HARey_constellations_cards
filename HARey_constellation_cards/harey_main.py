@@ -84,8 +84,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         print('Done!\n\n')
        
         #Initialize graphical parameters to default values
-        self.limiting_magnitude = 6.5 # Maximum magnitude of plotted stars
-        self.star_size = 250  # Scaling value to display the stars
+        self.limiting_magnitude = 6.0 # Maximum magnitude of plotted stars
 
         # Colors used in the plots
         self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
@@ -109,6 +108,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         self.flags = {}
         
         self.flags.update(self.default_plot_flags)
+        self.dpi = 300
         
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,
@@ -119,14 +119,19 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         self.inkscape_font = 'DejaVu Sans'
 
         # Read the card template module and overwrite its values
-        CardTemplate.set_card_template(self, format='tarot-round', dpi=300, cardback_file='cardbacks/tarot_round.png')
+        CardTemplate.set_card_template(self, format='tarot-round', dpi=self.dpi, cardback_file='cardbacks/tarot_round.png')
 
     def set_flags(self, dict):
         """"""  
         self.flags.update(dict)
+
+    def set_default_flags(self, dict):
+        """"""  
+        self.default_plot_flags.update(dict)
+        self.flags.update(dict)
     
     def reset_flags(self):
-
+        
         self.flags.update(self.default_plot_flags)
 
     # Function to set the limiting magnitude

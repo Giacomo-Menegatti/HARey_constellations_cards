@@ -12,7 +12,7 @@ from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2rad
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
 class SkyView:
-    def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 50, figsize = 8, font_sizes=(5,6,7)):
+    def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 100, figsize = 8, font_sizes=(5,7)):
 
         '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
                 FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
@@ -43,18 +43,25 @@ class SkyView:
         limiting_magnitude = self.limiting_magnitude
         constellations = self.constellations
         constellation_ids = self.constellation_ids
-        star_sizes = star_size*mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
+
+        # Scale the star sizes and the text labels based on the plot area
+        scale = (figsize/8)
+        font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
+
+        marker_size = star_size * scale**2
+        star_sizes = marker_size * mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
+        line_w = marker_size * 0.0075
+
+        # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
+        star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
         #Get the custom markers        
         empty_marker = self.markers['empty']
         cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
-        
-        # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-        star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
-        font_sizes = {k:v for k,v in zip(('s', 'm', 'l'), font_sizes)}
 
         fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
+        fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
         # Max star radius (the radius of the FOV edge)
         max_radius = stereo_radius(FOV)
         r_scale = inner_radius/max_radius
@@ -71,7 +78,7 @@ class SkyView:
         ecliptic_radec = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
         ecliptic_alt, ecliptic_az = radec2altaz(*ecliptic_radec, observer)
         ecliptic_x, ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)
-        ecliptic, = ax.plot(r_scale*ecliptic_x, r_scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=0.4, alpha=0.7)
+        ecliptic, = ax.plot(r_scale*ecliptic_x, r_scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=line_w)
         ecliptic.set_clip_path(map)
 
         # Compute the Alt-Az coordinates of the stars
@@ -87,19 +94,19 @@ class SkyView:
         # Plot constellation lines
         if self.flags['CON_LINES']:
             for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
-                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=0.5, alpha=0.8)
+                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=line_w)
                 plot_line.set_clip_path(map)
 
         #Plot asterisms
         if self.flags['ASTERISMS']:
             for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
-                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=0.9)
+                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=line_w)
                 plot_line.set_clip_path(map)
 
         #Plot helpers
         if self.flags['HELPERS']:
             for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]:  
-                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7)
+                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7*line_w)
                 plot_line.set_clip_path(map)
 
         # Plot the stars after the lines 
@@ -172,13 +179,13 @@ class SkyView:
         #Plot asterisms labels  
         if self.flags['ASTERISMS'] :           
             for id in self.asterisms.keys():
-                plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='m', color=colors['asterism_labels'], ha='center',va='center')
+                plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='l', color=colors['asterism_labels'], ha='center',va='center')
 
         # Plot named stars
         if self.flags['STAR_NAMES']:
             for star in self.named_stars:
                 # The star index is a string
-                plot_label(ax, label = self.names[star], indexes = int(star), fontsize='m', color=colors['star_labels'], ha='center',va='bottom')
+                plot_label(ax, label = self.names[star], indexes = int(star), fontsize='s', color=colors['star_labels'], ha='center',va='bottom')
             
             
         if self.flags['SIS_SCRIPT']:
@@ -221,13 +228,13 @@ class SkyView:
                 #Plot asterisms labels
                 if self.flags['ASTERISMS'] :            
                     for id in self.asterisms.keys():
-                        write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='m', color=colors['asterism_labels'])            
+                        write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='l', color=colors['asterism_labels'])            
 
                 # Plot named stars labels  
                 if self.flags['STAR_NAMES']: 
                     f.write('\n# Named stars labels\n')
                     for star in self.named_stars:
-                        write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize='m')
+                        write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize='s')
 
                 # Plot ecliptic label (always present)
                 f.write('\n# Ecliptic label\n')
@@ -235,15 +242,15 @@ class SkyView:
                 mask = (ecliptic_y**2 + ecliptic_x**2 < inner_radius**2)
                 index = np.argmin(ecliptic_y[mask])
                 label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
-                s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['m']}pt'," \
-                    f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
+                s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                    f'text_anchor="middle", font_family="{self.inkscape_font}", fill="{to_hex(colors["ecliptic_label"])}")\n'
                 f.write(s)
 
                 # Plot horizon label (always present)
-                f.write('\n# Horizon label\n')
+                f.write("\n# Horizon label\n")
                 label_x, label_y = 0.5, 0.5 + stereo_radius(178)*r_scale/(2*map_radius)
-                s = f"text('{self.names['hor']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['m']}pt'," \
-                    f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['horizon_label'])}')\n"
+                s = f'text("{self.names["hor"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                    f'text_anchor="middle", font_family="{self.inkscape_font}", fill="{to_hex(colors["horizon_label"])}")\n'
                 f.write(s)                     
                 
         # Save the image with all the labels
