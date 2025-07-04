@@ -346,7 +346,7 @@ class CardPlot:
                 # Relative position of the labels w.r.t the image, from top left
                 label_x, label_y = 0.5 + label_x/(2*width), 0.5 - label_y/(2*height)
                 s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{fontsize}pt', " \
-                    f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(color)}')\n"
+                    f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
                 file.write(s)         
 
             dir = 'inkscape_scripts'    # Folder of the scripts
@@ -376,7 +376,7 @@ class CardPlot:
                         label_x = np.mean(ecliptic_x[mask])/(2*width) + 0.5
                         label_y = - np.mean(ecliptic_y[mask])/(2*height) + 0.5
                         s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_size}pt'," \
-                            f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
+                            f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(colors['ecliptic_label'])}')\n"
                         f.write(s)
 
         if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:            

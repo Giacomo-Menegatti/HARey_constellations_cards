@@ -75,6 +75,7 @@ class PolarMap:
 
 		# Restrict the plotting are a bit to avoid clipping the circle near the borders
 		scale = 0.85*figsize/map_radius if ADD_CALENDAR else 0.99*figsize/map_radius
+		
 		map_radius = scale*map_radius
 
 		# Draw the circle patch
@@ -260,9 +261,9 @@ class PolarMap:
 				label_y = np.mean(stars_y[indexes])
 				if (label_x**2+label_y**2) < map_radius**2:
 					# Relative position of the labels w.r.t the image, from top left
-					label_x, label_y = 0.5 - label_x/(2*map_radius), 0.5 - label_y/(2*map_radius)
-					s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), "\
-							f"font_size='{font_sizes[fontsize]}pt', text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(color)}')\n"
+					label_x, label_y = 0.5 + label_x/(2*0.99*figsize), 0.5 - label_y/(2*0.99*figsize)
+					s = f'text("{label}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), '\
+						f'font_size="{font_sizes[fontsize]}pt", text_anchor="middle", font_family="{labels_font.get_name()}", fill="{to_hex(color)}")\n'
 					file.write(s)
 
 			dir = 'inkscape_scripts'    # Folder of the scripts
@@ -305,7 +306,7 @@ class PolarMap:
 					index = np.argmin(ecliptic_y[mask])
 					label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
 					s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-						f'text_anchor="middle", font_family="{self.inkscape_font}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
+						f'text_anchor="middle", font_family="{labels_font.get_name()}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
 					f.write(s)
 
 

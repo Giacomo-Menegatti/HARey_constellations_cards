@@ -202,7 +202,7 @@ class SkyView:
                     # Relative position of the labels w.r.t the image, from top left
                     label_x, label_y = 0.5 - label_x/(2*map_radius), 0.5 - label_y/(2*map_radius)
                     s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), "\
-                            f"font_size='{font_sizes[fontsize]}pt', text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(color)}')\n"
+                            f"font_size='{font_sizes[fontsize]}pt', text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
                     file.write(s)
 
             dir = 'inkscape_scripts'    # Folder of the scripts
@@ -243,14 +243,14 @@ class SkyView:
                 index = np.argmin(ecliptic_y[mask])
                 label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
                 s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                    f'text_anchor="middle", font_family="{self.inkscape_font}", fill="{to_hex(colors["ecliptic_label"])}")\n'
+                    f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(colors["ecliptic_label"])}")\n'
                 f.write(s)
 
                 # Plot horizon label (always present)
                 f.write("\n# Horizon label\n")
                 label_x, label_y = 0.5, 0.5 + stereo_radius(178)*r_scale/(2*map_radius)
                 s = f'text("{self.names["hor"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                    f'text_anchor="middle", font_family="{self.inkscape_font}", fill="{to_hex(colors["horizon_label"])}")\n'
+                    f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(colors["horizon_label"])}")\n'
                 f.write(s)                     
                 
         # Save the image with all the labels

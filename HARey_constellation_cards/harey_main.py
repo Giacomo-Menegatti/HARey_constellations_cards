@@ -115,8 +115,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         # the font must be permanently installed on the system to be able to see it in Inkscape
         self.fonts = {'labels': FontProperties(family='DejaVu Sans'),
                         'cardback': FontProperties(family='DejaVu Sans', weight='bold'),
-                        'calendar': FontProperties(family='DejaVu Sans', weight='bold'),}
-        self.inkscape_font = 'DejaVu Sans'
+                        'calendar': FontProperties(family='DejaVu Sans', weight='bold')}
 
         # Read the card template module and overwrite its values
         CardTemplate.set_card_template(self, format='tarot-round', dpi=self.dpi, cardback_file='cardbacks/tarot_round.png')

@@ -91,21 +91,21 @@ class EquatorialMap:
 			ecliptic_x, ecliptic_y = scale * ecliptic_x, scale * ecliptic_y
 
 			# Create figure and axes
-			fig = plt.figure(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
-			ax = plt.axes((0,0,1,1)) #axes over whole figure
+			fig,ax = plt.subplots(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
+			fig.subplots_adjust(0,0,1,1)
+			
 			ax.set_xlim(left_border, right_border)
 			ax.set_ylim(-height/2, height/2)
 			ax.set_aspect('equal')
 			ax.set_axis_off()
 			ax.invert_xaxis()
-			fig.add_axes(ax)
 
 			box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=colors['sky'], edgecolor=None, linewidth=0)
 			ax.add_patch(box)
 
 			# Plot the ecliptic inside the plot borders
 			mask = (ecliptic_x >= left_border) & (ecliptic_x <= right_border)
-			ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=colors['ecliptic'], linestyle='dotted', linewidth=line_w)
+			ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=colors['ecliptic'], linestyle='dotted', linewidth=1.4*line_w)
 			ecliptic.set_clip_path(box)
 
 			# Plot constellation lines
@@ -129,7 +129,7 @@ class EquatorialMap:
 			if self.flags['HELPERS']:
 				for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]: 
 					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)): 
-						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7*line_w)
+						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.9*line_w)
 						plot_line.set_clip_path(box)
 
 			 # Plot the stars after the lines 
@@ -294,7 +294,7 @@ class EquatorialMap:
 				label_y = 0.5 - xy[1]/(2*Gall_vertical(dec_FOV/2))		
 				# Write the SIS line
 				s = f'text("{label}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[fontsize]}pt", '\
-					f' text_anchor="middle", font_family="{self.fonts['labels']}", fill="{to_hex(color)}")\n'
+					f' text_anchor="middle", font_family="{labels_font.get_name()}", fill="{to_hex(color)}")\n'
 				file.write(s)
 
 			dir = 'inkscape_scripts'    # Folder of the scripts
@@ -337,7 +337,7 @@ class EquatorialMap:
 				f.write('\n# Ecliptic label\n')
 				# Write the label at the center of the plot
 				s = f"text('{self.names['ecl']}', (0.5*canvas.width, 0.5*canvas.height), font_size='{font_sizes['s']}pt'," \
-					f"text_anchor='middle', font_family='{self.inkscape_font}', fill='{to_hex(colors['ecliptic_label'])}')\n"
+					f"text_anchor='middle', font_family='{labels_font.get_name()}', fill='{to_hex(colors['ecliptic_label'])}')\n"
 				f.write(s)
 
 		if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
