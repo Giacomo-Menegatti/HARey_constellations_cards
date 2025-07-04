@@ -1,6 +1,14 @@
+""" Planisphere class for creating astrolabes and planispheres.
+
+It contains the following methods:
+- plot_mater: Plots the planisphere mater (the local sky dome projected on the equatorial plane).
+- create_planisphere: Creates a one-sided planisphere set with the mater and polar map.
+- create_planisphere_2sided: Creates a two-sided planisphere set with the maters and polar maps for both hemispheres.
+"""
+
+
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from matplotlib.text import TextPath
 from matplotlib.path import Path
 from matplotlib.transforms import Affine2D
@@ -10,21 +18,41 @@ import os
 from HARey_constellation_cards.astro_projection import stereo_polar, local2equator, azimuthal_polar
 
 class Planisphere:
+    """ Class for creating planispheres and astrolabes. """
+
 
     def text_place(self, text, ax, xy, angle, font_size):
+        """ Hot fix to place rotated text because matplotlib text rotation is misaligned"""
 
+        # Create a TextPath object with the text
         text_path = TextPath((0, 0), text, size=font_size, prop=self.fonts['calendar'])
         bb = text_path.get_extents()
+        # Center the text path
         text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
         x, y = xy
-        # Rotate and move the path to its position
 
+        # Rotate and move the path to its position
         trans = (Affine2D().rotate(angle).translate(x, y))
         patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
+        # Add the text patch to the working axis
         ax.add_patch(patch)
 
 
     def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', face='front', SOLID_FILL=True, MARK_CENTER=True):
+        """ Class to plot the mater (the local sky dome projected on the equatorial plane).
+        
+        Args: 
+            lat (str): Latitude of the observer (in degrees), e.g. '45.0 N' or '30.0 S'.
+            FOV (float): Field of view of the projection in degrees (default is 210).
+            figsize (float): Size of the figure in inches (default is 8).
+            save_name (str): Name of the file to save the plot. If not None, overrides the flag SAVE.
+
+            mode (str): Projection mode, either 'azimuth' or 'stereo' (default is 'azimuth').
+            face (str): Face of the mater to plot, either 'front' or 'back' (for 2-sided planispheres)
+
+            SOLID_FILL (bool): If True, fills the mater with a solid color instead of a hatch pattern (default is True).
+            MARK_CENTER (bool): If True, marks the center of the mater with a cross
+        """
 
         # If the save_name is not None save automatically the plot
         if not save_name == None:
@@ -34,6 +62,9 @@ class Planisphere:
         if self.flags['SAVE'] and save_name==None:
             pole = 'N' if lat > 0 else 'S'
             save_name = f'mater_{lat}{pole}.png'
+
+        # Convert latitude string to float
+        lat = float(lat[:-1])*(-1 if lat[-1]=='S' else 1)
 
         if lat == 0:
             # The equator breaks the projection, so instead of 0 a very small value is used
@@ -122,10 +153,12 @@ class Planisphere:
         clip_circle = Circle((0,0), int_r, facecolor='none', edgecolor='k')
 
         fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=300)
+        fig.subplots_adjust()
         ax.add_patch(mask)
         ax.add_patch(clip_circle)
         mask.set_clip_path(clip_circle)
 
+        # Plot east and west meridians
         for m_x, m_y in zip(M_x, M_y):
             meridian, = ax.plot(scale*m_x, scale*m_y, color='k', lw=0.6, ls=':')
             meridian.set_clip_path(clip_circle)
@@ -135,6 +168,7 @@ class Planisphere:
             line, = ax.plot((0,0), (scale*n_y, scale*s_y), color='k', lw=0.6, ls=':')
             line.set_clip_path(clip_circle)
         else:
+            # For the back face, the north-south meridian is split in two lines to avoid having to deal with projection singularity
             s = 1 if pole=='N' else -1
             line, = ax.plot((0,0), (scale*n_y, s*int_r), color='k', lw=0.6, ls=':')
             line.set_clip_path(clip_circle)
@@ -145,17 +179,19 @@ class Planisphere:
         ax.text(scale*e_x, scale*e_y, 'E', rotation=e_angle, ha='center', va='bottom', rotation_mode='anchor', fontsize=10, weight='bold')
         ax.text(scale*w_x, scale*w_y, 'W', rotation=w_angle, ha='center', va='bottom', rotation_mode='anchor', fontsize=10, weight='bold')
 
-        # Do not display the markers is outside the map
+        # Do not display the markers if outside the map
         if np.abs(scale*n_y) <= int_r:
             ax.text(0, scale*n_y, 'N', rotation=n_angle, ha='center', va='bottom', rotation_mode='anchor', fontsize=10, weight='bold')
         
         if np.abs(scale*s_y) <= int_r:
             ax.text(0, scale*s_y, 'S', rotation=s_angle, ha='center', va='bottom', rotation_mode='anchor', fontsize=10, weight='bold')
 
+        # Create the hour and calendar rings
         spacing = (ext_r-int_r)/3
         for i in range(1,4):
             ax.add_patch(Circle((0,0), int_r + i*spacing, facecolor='none', edgecolor='k', lw=0.8))
 
+        # Fill the hour ring
         hour_r = int_r + spacing/2
         circle_r = int_r + spacing
 
@@ -187,7 +223,24 @@ class Planisphere:
 
     def create_planisphere(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth', 
                            SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50):
-        """Create a planisphere set"""
+        """Create a one-sided planisphere set by plotting the mater and the polar map.
+        
+        Args:
+            lat (str): Latitude of the observer (in degrees), e.g. '45.0 N' or '30.0 S'.
+            FOV (float): Field of view of the projection in degrees (default is 200).
+            save_folder (str): Directory where the planisphere cards will be saved. If None, saves in the current directory.
+            figsize (float): Size of the figure in inches (default is 8).
+            mode (str): Projection mode, either 'azimuth' or 'stereo' (default is 'azimuth').
+
+            SOLID_FILL (bool): If True, fills the mater with a solid color instead of a hatch pattern (default is False).
+            MARK_CENTER (bool): If True, marks the center of the mater and the polar map with a cross (default is True).
+
+            font_sizes (tuple): font sizes to use in the polar map
+            star_size (int): Size of the stars in the polar map (default is 50).        
+        """
+
+        # Convert latitude string to float
+        lat = float(lat[:-1])*(-1 if lat[-1]=='S' else 1)
 
         # Directory in which the cards are saved
         dir = save_folder if not save_folder == None else '.'
@@ -200,10 +253,13 @@ class Planisphere:
         flags = {}
         flags.update(self.flags)
 
+        # Plot and save the mater
         pole = 'N' if lat >= 0 else 'S'        
         self.plot_mater(lat, FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}{pole}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL)        
 
+
         self.flags.update(flags)
+        # Plot and save the polar map
         name = 'North' if lat >= 0 else 'South'
         self.polar_map(pole, FOV, figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
                         ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
@@ -211,7 +267,21 @@ class Planisphere:
 
     def create_planisphere_2sided(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth',
                                    SOLID_FILL=False, MARK_CENTER=True, star_size=50, font_sizes=(5,7)):
-        """Create a planisphere set"""
+        """Create a 2-sided planisphere set, with two maters (front and back) and two polar maps (north and south).
+        
+        Args: 
+            lat (str): Latitude of the observer (in degrees), e.g. '45.0 N' or '30.0 S'.
+            FOV (float): Field of view of the projection in degrees (default is 200).
+            save_folder (str): Directory where the planisphere cards will be saved. If None, saves in the current directory.
+            figsize (float): Size of the figure in inches (default is 8).
+            mode (str): Projection mode, either 'azimuth' or 'stereo' (default is 'azimuth').
+
+            SOLID_FILL (bool): If True, fills the mater with a solid color instead of a hatch pattern (default is False).
+            MARK_CENTER (bool): If True, marks the center of the mater and the polar map with a cross (default is True).
+
+            font_sizes (tuple): font sizes to use in the polar map
+            star_size (int): Size of the stars in the polar map (default is 50).        
+        """
         
                 # Directory in which the cards are saved
         dir = save_folder if not save_folder == None else '.'
@@ -224,11 +294,15 @@ class Planisphere:
         flags = {}
         flags.update(self.flags)
 
+        # Plot and save the front mater
         self.plot_mater(lat, FOV, figsize=figsize, mode=mode, face='front', SOLID_FILL=SOLID_FILL, MARK_CENTER=MARK_CENTER)
         self.flags.update(flags)
+
+        # Plot and save the back mater
         self.plot_mater(lat, FOV, figsize=figsize, mode=mode, face='back', SOLID_FILL=SOLID_FILL, MARK_CENTER=MARK_CENTER)
         self.flags.update(flags)
 
+        # Plot and save the polar maps
         self.flags.update(flags)
         self.polar_map('N', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
         self.flags.update(flags)
