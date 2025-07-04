@@ -3,8 +3,11 @@ This module contains functions and utilities for astronomical computations.
 
 It includes:
     # Coordinate conversions
+    - sph2cart: to convert spherical coordinates (longitude, latitude) to cartesian coordinates
+    - cart2sph: to convert cartesian coordinates to spherical coordinates
     - radec2altaz: to convert equatorial coordinates (RA, Dec) to alt-az coordinates
     - ecliptic2radec: to convert ecliptic coordinates to equatorial coordinates
+    - local2equator: to convert local alt-az coordinates to equatorial coordinates
     - date2julian: to convert a date to Julian date
 
     # Observer object to create the view of the sky at the given time and place
@@ -13,9 +16,12 @@ It includes:
     - Observer.at_time: to set the time of observation in local time'
     
     # Stereographic projection around a point
-    - stereographic_projection: to project the coordinates on a plane around a generic center
-    - stereographic_polar: to project the coordinates around a pole
-    - stereo_radius: to calculate the radius of the stereographic projection
+    - stereo_polar: to project the coordinates around a pole
+    - stereo_centered: to project the coordinates around a given point
+    - stereo_radius: to calculate the radius of the stereographic projection for a given field of view
+
+    # Azimuthal projection
+
 
     # Equatorial Gall projection
     - Gall_projection: to project the sphere onto the equatorial cylinder
@@ -202,13 +208,34 @@ def is_visible(lat_str, limit_stars, horizon_limit = 5):
 # All the projections are rotated to have y-positive toward north, x-positive towards west
 
 def stereo_polar(phi, theta):
+    """ Project a point using a stereographic projection centered on the pole.
+    
+    Args: 
+        phi (float): Longitude of the point to project in degrees
+        theta (float): Latitude of the point to project in degrees
+
+    Returns:
+        tuple: The projected coordinates (x,y) of the point on the plane, with direction (west,north)
+    
+    """
     theta, phi = np.deg2rad(theta), np.deg2rad(phi)
     r = np.tan(np.pi/4-theta/2)
     x, y = r*np.cos(phi), r*np.sin(phi)
     return -y, -x
 
 def stereo_centered(phi, theta, zenith_phi, zenith_theta):
+    """ Project a point using a stereographic projection centered on a generic point.
+    
+    Args: 
+        phi (float): Longitude of the point to project in degrees
+        theta (float): Latitude of the point to project in degrees
+        zenith_phi (float): Longitude of the zenith (center) point in degrees
+        zenith_theta (float): Latitude of the zenith (center) point in degrees
 
+    Returns:
+        tuple: The projected coordinates (x,y) of the point on the plane, with direction (west,north)
+    
+    """
     theta, phi = np.deg2rad(theta), np.deg2rad(phi)
     zenith_theta, zenith_phi = np.deg2rad(zenith_theta), np.deg2rad(zenith_phi)
 
@@ -221,6 +248,7 @@ def stereo_centered(phi, theta, zenith_phi, zenith_theta):
     return (-y/(z+1), -x/(z+1))
 
 def stereo_radius(FOV):
+    """ Calculate the radius of the stereographic projection for a given field of view (in degrees)."""
     fov = np.deg2rad(FOV)
     return np.tan(fov/4)
 
@@ -228,7 +256,7 @@ def stereo_radius(FOV):
 
 def azimuthal_polar(phi, theta):
     """ 
-    Project a point using an azimuthal projection.
+    Project a point using an azimuthal projection, centered at the pole.
 
     Args:
         phi (float): Longitude of the point to project in degrees
@@ -246,7 +274,7 @@ def azimuthal_polar(phi, theta):
     return -y, -x
 
 def azimuthal_radius(FOV):
-
+    """ Calculate the radius of the azimuthal projection for a given field of view (in degrees)."""
     return np.deg2rad(FOV)/2
 
 ### EQUATORIAL GALL PROJECTION
@@ -286,9 +314,22 @@ def Gall_horizontal(ra):
 ### LOCAL TO EQUATORIAL PROJECTION ####
  
 def local2equator(phi, theta, lat, pole='N', mode='azimuth'):
-    """"""
+    """ Convert local coordinates of azimuth and altitude to equatorial coordinates.
+    
+    Args:
+        phi (float): Azimuth of the point in degrees
+        theta (float): Altitude of the point in degrees
+        pole (str): Pole of the projection, 'N' for north pole, 'S' for south pole. Default is 'N'.
+        mode (str): Projection mode, 'azimuth' for azimuthal projection, 'stereo' for stereographic projection. Default is 'azimuth'.
+    """
+
     theta, phi = np.deg2rad(theta), np.deg2rad(phi)
     lat = np.deg2rad(lat)
+
+    # The projection is alwasy done around the north pole.
+    # If the pole is south, the latitude is inverted
+
+    lat = lat if pole == 'N' else -lat if pole == 'S' else 0  
 
     # Rotate the spherical coordinates
     x,y,z = sph2cart(phi, theta)
@@ -296,20 +337,29 @@ def local2equator(phi, theta, lat, pole='N', mode='azimuth'):
 
     if mode == 'azimuth':
         theta, phi = cart2sph(X)
-        azimuth_radius = np.pi/2-theta if pole == 'N' else np.pi/2+theta if pole=='S' else 0
+        azimuth_radius = np.pi/2-theta
             
         x, y = azimuth_radius*np.cos(phi), azimuth_radius*np.sin(phi)
 
     elif mode == 'stereo':    
         x,y,z = X
-        x, y = x/(z+1), y/(z+1)
+        x, y = x/(z+1), y/(z+1) 
         
     return -y, -x
 
 ############ STAR SIZE FROM MAGNITUDE ##########
 
 def mag2size(mag, lim_mag):
-    """Compute the star size from its magnitude."""
+    """Compute the star size from its magnitude. lim_mag is the magnitude of the brightest star not visible in the plot"""
+
     # Brightness scaling (works for brighter stars, but dim ones are all too small and difficult to distinguish)
     # return 10**(0.4*mag)
+
+    # Size scaling (based on the Airy disk formula)
+    # return (1 - mag/lim_mag )
+
+    # Skyfield scaling (based on the Airy disk formula, but with a power law)
+    # return (1 - mag/lim_mag )**2
+
+    # Custom scaling (intermediate between the previous two, works well in the plots)
     return (1 - mag/lim_mag )**1.5
