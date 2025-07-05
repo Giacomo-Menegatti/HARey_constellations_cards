@@ -156,7 +156,7 @@ class Observer():
 # IS VISIBLE FUNCTION
 
 
-def is_visible(lat_str, limit_stars, horizon_limit = 5):
+def is_visible(lat_str, stars_dec, horizon_limit = 5):
     """
     Compute the visibility of a constellation from a given latitude.
 
@@ -164,39 +164,47 @@ def is_visible(lat_str, limit_stars, horizon_limit = 5):
 
     Args:
         lat_str (str): Latitude of the observer in degrees (i.e. '45 N' or '45 S')
-        limit_stars (list): Right Ascensions of the northernmost and southernmost star of the constellation
+        stars_dec (numpy array): Declination of the stars in the constellations
         horizon_limit (float): The portion of the sky above the horizon that is too disturbed (i.e. obscured by ground obstacles, heavily polluted by light) to be visible
 
     Returns:
         str: 'not visible', 'visible', 'partly visible', 'circumpolar'
+
+    Constellations are classifed as:
+        - 'circumpolar': the constellation is always visible during the year
+        - 'visible': the constellation is fully visible above the horizon limit during part of the year
+        - 'mostly visible': the constellation is mostly visible, but some stars are closer to the horizon than the limit
+        - 'partly visible': part of the constellation is always below the horizon, but part is above the horizon limit
+        - 'hardly visible': the constellation is in part below the horizon, and never above the limit
+        - 'never visible': the constellation is always below the horizon during the whole year 
+        
     """
     # Convert the latitude string to degrees
     lat = float(lat_str[:-1]) if lat_str[-1]=='N' else -float(lat_str[:-1])
-    # northern and southern visibility border (assuming perfect visibility)
-    north_bound, south_bound = min(lat+90-horizon_limit, 90), max(lat-90+horizon_limit, -90)
-    # circumpolar bound
-    circ_bound = 90 - lat if lat >= 0 else -90 - lat
+    # northern and southern circumpolar border (assuming perfect visibility)
+    circ_north, circ_south = 90 - lat, -90 + lat
     
     # Northernmost and southernmost stars (declination)
-    northmost = max(limit_stars)
-    southmost = min(limit_stars)
+    northmost = max(stars_dec)
+    southmost = min(stars_dec)
 
-    # if the constellation is outside the borders, it's not visible
-    if southmost >= north_bound or northmost <= south_bound:
-        return 'not visible'
-    # check if it is inside the circumpolar region
-    elif (lat >= 0 and southmost >= circ_bound) or (northmost <= circ_bound and lat < 0):
-        return 'circumpolar'
-    # check if it is inside the border
-    elif (lat >= 0 and southmost >= south_bound) or (northmost <= north_bound and lat < 0):
+    if (lat > 0 and southmost >= circ_south + horizon_limit) or (lat <0 and northmost <= circ_north - horizon_limit):
         return 'visible'
-    # check if at least part of it is inside the border
-    elif northmost >= south_bound or southmost <= north_bound:
-        # Check if it is inside the visible horizon limit
-        if northmost >= south_bound + horizon_limit or southmost <= north_bound - horizon_limit:
-            return 'partly visible'
-        else:
-            return 'hardly visible'
+
+    elif (lat > 0 and southmost >= circ_south) or (lat <0 and northmost <= circ_north):
+        return 'mostly visible'
+    
+    elif (lat > 0 and southmost >= circ_north) or (lat < 0 and northmost <= circ_south):
+        return 'circumpolar'
+    
+    elif (lat > 0 and northmost <= circ_south) or (lat < 0 and southmost >= circ_north):
+        return 'never visible'
+    
+    elif (lat > 0 and northmost <= circ_south + horizon_limit) or (lat < 0 and southmost >= circ_north-horizon_limit):
+        return 'hardly visible'
+    
+    elif (lat > 0 and southmost <= circ_south) or (lat < 0 and northmost >= circ_north):
+        return 'partly visible'
     
     
 

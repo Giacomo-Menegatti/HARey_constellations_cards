@@ -239,8 +239,6 @@ class Planisphere:
             star_size (int): Size of the stars in the polar map (default is 50).        
         """
 
-        # Convert latitude string to float
-        lat = float(lat[:-1])*(-1 if lat[-1]=='S' else 1)
 
         # Directory in which the cards are saved
         dir = save_folder if not save_folder == None else '.'
@@ -253,14 +251,15 @@ class Planisphere:
         flags = {}
         flags.update(self.flags)
 
-        # Plot and save the mater
-        pole = 'N' if lat >= 0 else 'S'        
-        self.plot_mater(lat, FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}{pole}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL)        
+        # Plot and save the mater       
+        self.plot_mater(lat, FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL)        
 
 
         self.flags.update(flags)
         # Plot and save the polar map
-        name = 'North' if lat >= 0 else 'South'
+
+        pole = lat[-1]
+        name = 'North' if pole == 'N' else 'South'
         self.polar_map(pole, FOV, figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
                         ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
     
