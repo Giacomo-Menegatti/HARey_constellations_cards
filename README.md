@@ -14,8 +14,8 @@ This project is my personal homage to his book _Find the Constellations_, which 
 
 
 <p align="center">
-<img src="https://images-na.ssl-images-amazon.com/images/I/716tfSmegfL._AC_UL210_SR210,210_.jpg", height=250  >
-<img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/stars.jpg", height=250 >
+<img src="https://images-na.ssl-images-amazon.com/images/I/716tfSmegfL._AC_UL210_SR210,210_.jpg", height=350  >
+<img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/stars.jpg", height=350 >
 </p>
 
 Thus was born this project: an attempt to create a deck of flashcards that borrowed from H.A.Rey's beautiful drawings: after all, _imitation is the sincerest form of flattering_. 
