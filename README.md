@@ -25,7 +25,7 @@ And what skills I lack in drawing, I hopefully make up in python coding.
 In no part of this work I made use of copyright protected material. The constellations diagrams data are found in the Stellarium github repository, while the star markers and the cardback images were made by me in [InkScape](https://inkscape.org). The fonts used are free for personal use.
 
 ## The HAReyMain module
-The __HAReyMain__ module contains the code to display the night sky with H.A.Rey's style. It can make star charts for a given time and place, or maps of the whole sky, or create planispheres. 
+The __HAReyMain__ module contains the code to display the night sky with H.A.Rey's style. It can make star charts for a given time and place, or maps of the whole sky, or create planispheres.
 It focuses on creating constellation cards because I felt it a useful way to learn and remember images, like the _countries of the world_ flashcards.  
 
 This project is based on the Stellarium [modern_rey](https://github.com/Stellarium/stellarium/tree/master/skycultures/modern_rey) sky culture. [Stellarium](https://stellarium.org/it) is an open source planetarium software that shows the stars as they appear to the naked eye or to a telescope. The sky cultures are different diagrams of the constellations than the modern IAU ones, drawn by past cultures around the world. My project starts from the _index.json_ containing the constellations shapes and the Hipparcos star catalogue. It also uses the free vector graphic software [Inkscape](https://inkscape.org/) for creaning up the images
@@ -33,7 +33,7 @@ This project is based on the Stellarium [modern_rey](https://github.com/Stellari
 For a complete example and a (pedantic) explanation, see the __Constellations_memory_demo.ipynb__ notebook. For a detailed explanation into astrolabes and planispheres and how to ready them, read the __Astrolabes.ipynb__ notebook.
 
 ## Constellation Flashcards
-The `HAReyMain` creates flash cards with the method `plot_card()`. Card sizes are handled by the *card_template.py* module, and three different formats are supported: __poker__ (2.5x3.5 in), __tarot__ (2.75x4.75 in) and __jumbo__ (3.5x5.5 in). 
+The `HAReyMain` creates flash cards with the method `plot_card()`. Card sizes are handled by the *card_template.py* module, and three different formats are supported: __poker__ (2.5x3.5 in), __tarot__ (2.75x4.75 in) and __jumbo__ (3.5x5.5 in). Constellations can be drawn with markers similar to HARey's or simple circles, realistic star colors or not. For an example of every option, look at the notebooks.
 <p align="center">
   <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_bare.png" width="256">
   <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Ori_lines_colors.png" width="256">
