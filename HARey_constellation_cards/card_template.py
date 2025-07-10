@@ -145,7 +145,7 @@ class CardTemplate:
     def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
         """
         Plot the card back and write the constellation name on it.
-
+        
         Arguments :
         - id : id of the constellation
         - main_color : color of the card back (RGB tuple)

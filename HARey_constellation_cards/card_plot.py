@@ -160,14 +160,14 @@ class CardPlot:
     def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
         """
         Plot the constellation card inside the card template.
-
+        
         Arguments:
         id : Constellation ID (e.g. 'Ori' for Orion).
         save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
         star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
         font_size : Size of the labels in the plot. It is relative to the card area.
-        
-        """        
+        """ 
+
         # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
         if not save_name == None or self.flags['SIS_SCRIPT']:
             self.flags['SAVE'] = True
@@ -284,7 +284,7 @@ class CardPlot:
             ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.6)
 
         #Plot the North indicator as last thing
-        if self.flags['CON_LINES']: 
+        if BEST_AR: 
             #The angle is between -90 and 90 and plotted near the edge of the card
             space = (0.7*self.pad + self.bleed)*self.dpi
 

@@ -121,16 +121,16 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         CardTemplate.set_card_template(self, format='tarot-round', dpi=self.dpi, cardback_file='cardbacks/tarot_round.png')
 
     def set_flags(self, dict):
-        """"""  
+        """ Set the plot flags. They are temporary and are reset after the plot. """  
         self.flags.update(dict)
 
     def set_default_flags(self, dict):
-        """"""  
+        """ Set the default plot flags. """  
         self.default_plot_flags.update(dict)
         self.flags.update(dict)
     
     def reset_flags(self):
-        
+        """ Reset the plot flags to their default values """
         self.flags.update(self.default_plot_flags)
 
     # Function to set the limiting magnitude
