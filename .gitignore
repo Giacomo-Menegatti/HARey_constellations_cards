@@ -16,5 +16,6 @@ __pycache__/
 
 # Ignore the local color trials
 prova_colore.ipynb
+Stampa.ipynb
 colors/
 cardback_colors/
