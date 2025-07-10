@@ -6,7 +6,7 @@ inkscape_scripts/
 
 
 # Ignore the local PNG files
-
+*.png
 
 # Ignore the prototype SVG files
 cardback.svg
