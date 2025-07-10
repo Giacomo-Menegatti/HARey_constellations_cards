@@ -54,7 +54,7 @@ The `HAReyMain` creates flash cards with the method `plot_card()`. Card sizes ar
 `sky_view` plots the sky visible by an observer at a given time and place
 
 <p align="center">
-  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Sky_view.png" width="256">
+  <img src="https://github.com/Giacomo-Menegatti/HARey_constellations_cards/blob/main/images/Sky_view.png" width="500">
   
 </p>
 
