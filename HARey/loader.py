@@ -18,9 +18,10 @@ Contains :
 
 ########################################### Loading Stars and constellations ####################################
 
-def load_stars(filename):
-    '''Read the Hipparcos data on stars position and magnitude and return all of it in a dataframe. 
-    If data on the constellations are present, add them too.'''
+def load_hipparcos_stars(filename):
+    '''Read the stars coordinates and colors from the whole HIPPARCOS catalogue. This function is not used anymore, 
+    but could be useful if someone wants to load the original catalogue.
+    '''
 
     stars_df = pd.read_csv(filename, sep='|',  usecols=[1,3,4,5,37], header = None, na_values=['     ', '       ', '        ','      ', '            '])
     stars_df.columns = ('hip','ra', 'dec', 'magnitude', 'B-V')
@@ -34,6 +35,13 @@ def load_stars(filename):
     # Drop the stars with no magnitude and no color info
     stars_df = stars_df.dropna(subset='magnitude')
     stars_df = stars_df.dropna(subset='B-V')
+
+    return stars_df
+
+def load_stars(filename):
+    '''Read the stars coordinates and colors indexes from the reduced HIP catalogue.'''
+
+    stars_df = pd.read_csv(filename, index_col=0)
 
     return stars_df
 
@@ -133,4 +141,8 @@ def load_markers(markers_folder='markers'):
 
     return markers, star_markers
 
+########################### RETURN IMAGES PATH ######################
+
+def image_path(filename=None):
+    return filename
         
