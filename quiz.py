@@ -31,7 +31,7 @@ folder = 'quiz_cards'
 folder = path + '/' + folder
 
 # Constellation names
-names = load_names(f'{path}/names.csv', language=LANGUAGE)
+names = load_names(language=LANGUAGE)
 
 
 # If the path does not exist, create the new folder
@@ -45,8 +45,11 @@ if not os.path.exists(folder):
     # Fill it with the constellations (this may take a while)
     for ID in to_print[0:NUMBER_OF_CONSTELLATIONS]:
 
-        harey.plot_card(ID, CON_LINES=True, save_name=f'{folder}/{ID}_lines.png', STAR_COLORS=True, SHOW=False)
-        harey.plot_card(ID, save_name=f'{folder}/{ID}_bare.png', STAR_COLORS=True, SHOW=False)
+        harey.set_flags({'CON_LINES':True, 'STAR_COLORS':True, 'SHOW':False})
+        harey.plot_card(ID, save_name=f'{folder}/{ID}_lines.png')
+        
+        harey.set_flags({'STAR_COLORS':True, 'SHOW':False})
+        harey.plot_card(ID, save_name=f'{folder}/{ID}_bare.png')
         print(f'Creating cards for {names[ID]} ({ID})')
 
 

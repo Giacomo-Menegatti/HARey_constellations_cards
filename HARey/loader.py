@@ -56,7 +56,7 @@ def load_hipparcos_stars(filename):
 ###### LOAD THE REDUCED HIPPARCOS CATALOGUE ######################à
 
 def load_stars(filename=None):
-    '''Read the stars coordinates and colors indexes from the reduced HIP catalogue.'''
+    """Read the stars coordinates and colors indexes from the reduced HIP catalogue."""
 
     filename = get_file(filename=filename, default='datafiles/hip_redux.dat')       
 
@@ -124,7 +124,7 @@ def load_constellations(index_file = None):
 
 ##### Load Names #######################################################
 
-def load_names(names_file, language='IAU-EN'):
+def load_names(names_file=None, language='IAU-EN'):
     """ Load the object translated names. To add more translations, edit the names.csv file and add it to the github repo. """
     
     # get the names file. The default is datafiles/names.csv inside the HARey package
