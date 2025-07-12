@@ -5,6 +5,8 @@ import json
 from svgpathtools import svg2paths
 from svgpath2mpl import parse_path
 
+from importlib.resources import files, as_file
+
 """
 This module deals with loading the stars positions and the constellations information.
 
@@ -46,12 +48,17 @@ def load_stars(filename):
     return stars_df
 
 # Function to read the constellations from the index.json file and the translations from the language.csv file
-def load_constellations(constellation_file):
+def load_constellations(constellation_file = None):
     '''Load the constellations from a STellarium SkyCultures file. This contains the constellation lines,
        the helper rays and asterisms, and the brighter stars that have their own names.
     '''
-    with open(constellation_file) as json_file:
-        data = json.load(json_file)
+    if constellation_file:
+        with open(constellation_file) as json_file:
+            data = json.load(json_file)
+
+    else: 
+        with files('HARey.datafiles').joinpath('index.json').open('r') as json_file:
+            data = json.load(json_file)
 
     constellations = {}
     #names = []
