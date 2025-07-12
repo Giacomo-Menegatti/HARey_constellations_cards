@@ -15,8 +15,21 @@ Contains :
 - load_constellations: read the constellations from the Stellarium file and returns constellation names, ids of the constellations,
     asterisms, helper lines and the stars names
 
-- load_markers: read the svg files containing the markers and convert them to be used by matplotlib     
+- load_markers: read the svg files containing the markers and convert them to be used by matplotlib   
 """
+
+
+
+def get_file(filename=None, default=''):
+    """ Function to handle reading data inside the package. 
+    If filenames is not specified, returns the path of the default file inside the package.
+    """
+    # If the filename is specified, return it directly
+    if filename:
+        return filename
+    # If is not specified, get the file from the package folder
+    else:
+        return str(files('HARey').joinpath(default))
 
 ########################################### Loading Stars and constellations ####################################
 
@@ -40,25 +53,26 @@ def load_hipparcos_stars(filename):
 
     return stars_df
 
-def load_stars(filename):
+###### LOAD THE REDUCED HIPPARCOS CATALOGUE ######################à
+
+def load_stars(filename=None):
     '''Read the stars coordinates and colors indexes from the reduced HIP catalogue.'''
 
-    stars_df = pd.read_csv(filename, index_col=0)
+    filename = get_file(filename=filename, default='datafiles/hip_redux.dat')       
 
-    return stars_df
+    return pd.read_csv(filename, index_col=0)
 
 # Function to read the constellations from the index.json file and the translations from the language.csv file
-def load_constellations(constellation_file = None):
-    '''Load the constellations from a STellarium SkyCultures file. This contains the constellation lines,
+
+def load_constellations(index_file = None):
+    '''Load the constellations from a Stellarium SkyCultures file. This contains the constellation lines,
        the helper rays and asterisms, and the brighter stars that have their own names.
     '''
-    if constellation_file:
-        with open(constellation_file) as json_file:
-            data = json.load(json_file)
+    # Get the constellation file. The default one is datafiles/index.json inside the HARey package
+    file_name = get_file(index_file, default='datafiles/index.json')
 
-    else: 
-        with files('HARey.datafiles').joinpath('index.json').open('r') as json_file:
-            data = json.load(json_file)
+    with open(file_name, 'r') as json_file:
+        data = json.load(json_file)
 
     constellations = {}
     #names = []
@@ -73,7 +87,6 @@ def load_constellations(constellation_file = None):
         stars = np.unique(np.concatenate(constellation['lines'])).tolist()
         
         constellations[id] = {'lines':constellation['lines'], 'stars':stars}
-
         
         # This is used only to create the name file for the first time
         #names.append({'ID':id, 'NAME':constellation['common_name']['english']})
@@ -109,20 +122,31 @@ def load_constellations(constellation_file = None):
 
     return constellations, main_ids, asterisms, helpers, named_stars
 
+##### Load Names #######################################################
+
 def load_names(names_file, language='IAU-EN'):
-    ''' Load the object names. The IAU-EN language contains the IAU standard names. To add more languages, edit the names.csv file'''
+    """ Load the object translated names. To add more translations, edit the names.csv file and add it to the github repo. """
+    
+    # get the names file. The default is datafiles/names.csv inside the HARey package
+    names_file = get_file(names_file, default='datafiles/names.csv')
+
     names = pd.read_csv(names_file)
+    # Fill the empty spaces with an empty string     
     names = names.fillna('')
+    # Read the names and keep the newline char
     names = dict(zip(names['ID'], [name.replace('\\n', '\n') for name in names[language]]))
+
     return names
 
 ############################# Load Markers #############################à
 
-def load_markers(markers_folder='markers'):
+def load_markers(markers_folder=None):
     '''Load the custom svg markers and convert them to be used by matplotlib'''
 
+    folder_path = get_file(markers_folder, default='markers')
+
     #Load empty marker (background of all other markers)
-    _, attributes = svg2paths(f'{markers_folder}/empty.svg')
+    _, attributes = svg2paths(f'{folder_path}/empty.svg')
     empty_marker = parse_path(attributes[0]['d'])
     empty_marker.vertices -= (empty_marker.vertices.max(axis=0) - empty_marker.vertices.min(axis=0))/2
 
@@ -131,14 +155,14 @@ def load_markers(markers_folder='markers'):
 
     # Cardinal direction markers
     for direction in ['north', 'east', 'south', 'west']:
-        _, attributes = svg2paths(f'{markers_folder}/{direction}.svg')
+        _, attributes = svg2paths(f'{folder_path}/{direction}.svg')
         marker = parse_path(attributes[0]['d'])
         marker.vertices -= (marker.vertices.max(axis=0) - marker.vertices.min(axis=0))/2
         markers[direction]=marker
 
     # HARey star markers
     for i in range(5):
-        _, attributes = svg2paths(f'{markers_folder}/star_marker_{i}.svg')
+        _, attributes = svg2paths(f'{folder_path}/star_marker_{i}.svg')
         star_marker = parse_path(attributes[0]['d'])
         star_marker.vertices -= star_marker.vertices.mean(axis=0)
         star_markers.append(star_marker)
@@ -147,9 +171,3 @@ def load_markers(markers_folder='markers'):
     star_markers.append('.')
 
     return markers, star_markers
-
-########################### RETURN IMAGES PATH ######################
-
-def image_path(filename=None):
-    return filename
-        

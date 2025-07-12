@@ -2,8 +2,8 @@ import tkinter as tk
 from PIL import ImageTk, Image
 import os
 import random
-from HARey_constellation_cards.harey_main import HAReyMain
-from HARey_constellation_cards.loader import load_names
+from HARey.harey_main import HAReyMain
+from HARey.loader import load_names
 
 # QUIZ SETTINGS
 LANGUAGE = 'IAU-EN'                 #Names of the constellations

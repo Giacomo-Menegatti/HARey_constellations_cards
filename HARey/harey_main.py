@@ -1,15 +1,15 @@
 """HARey main module. This module inherits from all the others."""
 
-from HARey_constellation_cards.loader import load_stars, load_constellations, load_markers, load_names
-from HARey_constellation_cards.sky_view import SkyView
-from HARey_constellation_cards.card_plot import CardPlot
-from HARey_constellation_cards.card_template import CardTemplate
-from HARey_constellation_cards.equatorial_map import EquatorialMap
-from HARey_constellation_cards.planisphere import Planisphere
-from HARey_constellation_cards.polar_map import PolarMap
-from HARey_constellation_cards.print_and_play import PrintAndPlay
-from HARey_constellation_cards.star_colormap import StarColorMap
-from HARey_constellation_cards.astro_projection import Observer, mag2size
+from HARey.loader import load_stars, load_constellations, load_markers, load_names, get_file
+from HARey.sky_view import SkyView
+from HARey.card_plot import CardPlot
+from HARey.card_template import CardTemplate
+from HARey.equatorial_map import EquatorialMap
+from HARey.planisphere import Planisphere
+from HARey.polar_map import PolarMap
+from HARey.print_and_play import PrintAndPlay
+from HARey.star_colormap import StarColorMap
+from HARey.astro_projection import Observer, mag2size
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,14 +34,14 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
 
     """
 
-    def __init__(self,hip_file = 'hip_main.dat',constellations_file = 'index.json',
-                 names_file = 'names.csv',language = 'IAU-EN', star_colors = 'stellarium'):
+    def __init__(self,hip_file = None, index_file = None,
+                 names_file = None, language = 'IAU-EN', star_colors = 'stellarium'):
         """
         Initialize the HARey class. This function loads the stars, constellations, markers and language automatically.
         
         Arguments : 
         - hip_file : path to the HIPPARCOS catalogue file.
-        - constellations_file : path to the json conatining the constellation figures data. It can be swapped with another Stellarium skyculture file.
+        - index_file : path to the json conatining the constellation figures data. It can be swapped with another Stellarium skyculture file.
         - names_file : path to the names.csv file. It contains the names of the stars and constellations in different languages.
         - language : language to choose in the names.csv file. More languages will be added in the future.
         - star_colors : color map to use for the star colors, either 'stellarium' or 'helland'. They are similar, helland is a bit redder.
@@ -55,7 +55,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
         self.constellations, self.constellation_ids, self.asterisms, self.helpers,\
-            self.named_stars =load_constellations(constellations_file)
+            self.named_stars =load_constellations(index_file)
 
         print('Done!\nLoading star coordinates....    ', end=' ')
         # Load the stars positions and magnitude
@@ -75,7 +75,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
 
         print('Done!\nLoading custom markers....      ', end=' ')
         # Load the custom markers
-        self.markers, self.star_markers = load_markers(markers_folder='markers')
+        self.markers, self.star_markers = load_markers()
 
         print('Done!\nLoading the object names....      ', end=' ')
         # Load the names from the names.csv file
@@ -118,7 +118,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
                         'calendar': FontProperties(family='DejaVu Sans', weight='bold')}
 
         # Read the card template module and overwrite its values
-        CardTemplate.set_card_template(self, format='tarot-round', dpi=self.dpi, cardback_file='cardbacks/tarot_round.png')
+        CardTemplate.set_card_template(self, format='tarot-round', dpi=self.dpi)
 
     def set_flags(self, dict):
         """ Set the plot flags. They are temporary and are reset after the plot. """  

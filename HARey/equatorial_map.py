@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import ecliptic2radec, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, mag2size
+from HARey.astro_projection import ecliptic2radec, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, mag2size
 
 
 class EquatorialMap:

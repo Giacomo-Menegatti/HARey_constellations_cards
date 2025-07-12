@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_rgba
 import numpy as np 
-import io
+
+from HARey.loader import get_file
 
 class CardTemplate:
     """
@@ -132,10 +133,9 @@ class CardTemplate:
 
         # Read the black_and_white template (imread converts it to RGBA)
         self.dpi = dpi
-        # If the cardback_file is not specified, use the default one for the card type
-        if cardback_file == None:
-            cardback_file = self.default_cardback_file
 
+
+        cardback_file = get_file(cardback_file, default=self.default_cardback_file)
         self.template = plt.imread(cardback_file)
           
         print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')    

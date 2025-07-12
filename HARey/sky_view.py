@@ -7,7 +7,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey_constellation_cards.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereo_polar, mag2size
+from HARey.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereo_polar, mag2size
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 

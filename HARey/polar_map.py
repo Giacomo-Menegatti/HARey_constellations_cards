@@ -11,7 +11,7 @@ from matplotlib.colors import to_hex
 from datetime import datetime
 from calendar import monthrange
 
-from HARey_constellation_cards.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius, mag2size
+from HARey.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius, mag2size
 
 class PolarMap:
 

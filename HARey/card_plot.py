@@ -13,7 +13,7 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 import os
 
-from HARey_constellation_cards.astro_projection import stereo_centered, ecliptic2radec, mag2size, stereo_radius
+from HARey.astro_projection import stereo_centered, ecliptic2radec, mag2size, stereo_radius
 
 
 class CardPlot:
@@ -339,15 +339,17 @@ class CardPlot:
             # the coordinates are fractions of the card width and height, starting from top left
 
             def write_sis(file, label, indexes, color, fontsize):
-                # The newline character does not work in inkscape. The label must be fixed by hand
-                label = label.replace('\n', ' ')
-                label_x = np.mean(stars_x[indexes])
-                label_y = np.mean(stars_y[indexes])
-                # Relative position of the labels w.r.t the image, from top left
-                label_x, label_y = 0.5 + label_x/(2*width), 0.5 - label_y/(2*height)
-                s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{fontsize}pt', " \
-                    f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
-                file.write(s)         
+                # The newline character does not work in inkscape. The label is divided in two
+                labels = label.split('\n')
+            
+                for label in labels:
+                    label_x = np.mean(stars_x[indexes])
+                    label_y = np.mean(stars_y[indexes])
+                    # Relative position of the labels w.r.t the image, from top left
+                    label_x, label_y = 0.5 + label_x/(2*width), 0.5 - label_y/(2*height)
+                    s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{fontsize}pt', " \
+                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
+                    file.write(s)         
 
             dir = 'inkscape_scripts'    # Folder of the scripts
             if not os.path.exists(dir):

@@ -15,7 +15,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.patches import Circle, PathPatch
 import os
 
-from HARey_constellation_cards.astro_projection import stereo_polar, local2equator, azimuthal_polar
+from HARey.astro_projection import stereo_polar, local2equator, azimuthal_polar
 
 class Planisphere:
     """ Class for creating planispheres and astrolabes. """
