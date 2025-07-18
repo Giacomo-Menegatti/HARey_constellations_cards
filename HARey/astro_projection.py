@@ -156,7 +156,7 @@ class Observer():
 # IS VISIBLE FUNCTION
 
 
-def is_visible(lat_str, stars_dec, horizon_limit = 5):
+def is_visible(lat_str, stars_dec, LVZ = 5):
     """
     Compute the visibility of a constellation from a given latitude.
 
@@ -165,17 +165,17 @@ def is_visible(lat_str, stars_dec, horizon_limit = 5):
     Args:
         lat_str (str): Latitude of the observer in degrees (i.e. '45 N' or '45 S')
         stars_dec (numpy array): Declination of the stars in the constellations
-        horizon_limit (float): The portion of the sky above the horizon that is too disturbed (i.e. obscured by ground obstacles, heavily polluted by light) to be visible
+        LVZ (float): The Limited Visibility Zone in degrees. The LVZ is the part of the sky just above the horizon where ground covering or light pollution make it difficult to see the stars.
 
     Returns:
         str: 'not visible', 'visible', 'partly visible', 'circumpolar'
 
     Constellations are classifed as:
         - 'circumpolar': the constellation is always visible during the year
-        - 'visible': the constellation is fully visible above the horizon limit during part of the year
-        - 'mostly visible': the constellation is mostly visible, but some stars are closer to the horizon than the limit
-        - 'partly visible': part of the constellation is always below the horizon, but part is above the horizon limit
-        - 'hardly visible': the constellation is in part below the horizon, and never above the limit
+        - 'visible': the constellation is fully visible above the LVZ during part of the year
+        - 'mostly visible': the constellation is mostly visible but part of it falls into the LVZ
+        - 'partly visible': part of the constellation is below the horizon
+        - 'hardly visible': the constellation is partly below the horizon, and never above the LVZ
         - 'never visible': the constellation is always below the horizon during the whole year 
         
     """
@@ -188,22 +188,22 @@ def is_visible(lat_str, stars_dec, horizon_limit = 5):
     northmost = max(stars_dec)
     southmost = min(stars_dec)
 
-    if (lat > 0 and southmost >= circ_south + horizon_limit) or (lat <0 and northmost <= circ_north - horizon_limit):
+    if (lat >= 0 and southmost >= circ_north) or (lat < 0 and northmost <= circ_south):
+        return 'circumpolar'
+
+    elif (lat >= 0 and southmost >= circ_south + LVZ) or (lat <0 and northmost <= circ_north - LVZ):
         return 'visible'
 
-    elif (lat > 0 and southmost >= circ_south) or (lat <0 and northmost <= circ_north):
+    elif (lat >= 0 and southmost >= circ_south) or (lat <0 and northmost <= circ_north):
         return 'mostly visible'
-    
-    elif (lat > 0 and southmost >= circ_north) or (lat < 0 and northmost <= circ_south):
-        return 'circumpolar'
-    
-    elif (lat > 0 and northmost <= circ_south) or (lat < 0 and southmost >= circ_north):
+        
+    elif (lat >= 0 and northmost <= circ_south) or (lat < 0 and southmost >= circ_north):
         return 'never visible'
     
-    elif (lat > 0 and northmost <= circ_south + horizon_limit) or (lat < 0 and southmost >= circ_north-horizon_limit):
+    elif (lat >= 0 and northmost <= circ_south + LVZ) or (lat < 0 and southmost >= circ_north-LVZ):
         return 'hardly visible'
     
-    elif (lat > 0 and southmost <= circ_south) or (lat < 0 and northmost >= circ_north):
+    elif (lat >= 0 and southmost <= circ_south) or (lat < 0 and northmost >= circ_north):
         return 'partly visible'
     
     

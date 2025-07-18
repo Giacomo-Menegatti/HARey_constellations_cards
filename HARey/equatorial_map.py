@@ -17,14 +17,15 @@ class EquatorialMap:
 	'''
 
 	def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name = None, font_sizes=(7,10), star_size=20):
-		'''Plot an equatorial Gall stereographic projection of the whole sky
-		    The parameters are:
-			max_dims : the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
-			overlap : the overlap at the edges of the map (in degrees)
-			dec_FOV : the vertical field of view (in degrees)
-			save_name : the name of the file to save the plot
-			font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
-			star_size : the size of the stars in the plot
+		'''Plot an equatorial Gall stereographic projection of the whole sky.
+
+		Arguments:
+			max_dims (float, float): the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
+			overlap (float): the overlap at the edges of the map (in degrees).
+			dec_FOV (float): the vertical field of view (in degrees).
+			save_name (str): the name of the file to save the plot. If the flag HAREY is set True, saves the plot with a default name.
+			font_sizes (float, float): the sizes of the labels, small (constellation_parts and stars) and large (constellation names and asterism)
+			star_size (float): the relative size of the stars in the plot. 
  
           '''	
 		# If the save_name is not None or self.flags['SIS_SCRIPT'] is enabled, save automatically the plot

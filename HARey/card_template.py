@@ -43,7 +43,7 @@ class CardTemplate:
             # Tarot round specific data
             if format == 'tarot-round':
                 # Style passed to the fancybbox patch
-                self.box_style = f'round, pad=0.0, rounding_size={0.2*dpi}'                 
+                self.box_style = f'round, pad=0.0, rounding_size=0.2'                 
                 self.text_box_style = "round, pad = 0.2, rounding_size=0.3" 
                 # Default cardback style
                 self.default_cardback_file = 'cardbacks/tarot_round.png' 
@@ -68,7 +68,7 @@ class CardTemplate:
 
             if format == 'jumbo-round':
 
-                self.box_style = f'round, pad=0.0, rounding_size={0.25*dpi}'
+                self.box_style = f'round, pad=0.0, rounding_size=0.25'
                 self.text_box_style = "round, pad = 0.25, rounding_size=0.4" 
                 self.default_cardback_file = 'cardbacks/jumbo_round.png'
 
@@ -92,7 +92,7 @@ class CardTemplate:
             self.max_font_scale = 2.5
 
             if format == 'poker-round':
-                self.box_style = f'round, pad=0.0, rounding_size={0.15*dpi}'
+                self.box_style = f'round, pad=0.0, rounding_size=0.15'
                 self.text_box_style = "round, pad = 0.1, rounding_size=0.2"
                 self.default_cardback_file = 'cardbacks/poker_round.png'
 
@@ -173,9 +173,8 @@ class CardTemplate:
         # Clip with the transparecny mask
         image[alpha_mask] = (1,1,1,0)        
 
-        fig = plt.figure(figsize = (image.shape[1]/dpi, image.shape[0]/dpi), dpi=dpi) #figure with correct aspect ratio
-        ax = plt.axes((0,0,1,1)) #axes over whole figure
-        fig.add_axes(ax)
+        fig,ax = plt.subplots(figsize = (image.shape[1]/dpi, image.shape[0]/dpi), dpi=dpi) #figure with correct aspect ratio
+        fig.subplots_adjust(0,0,1,1)
         ax.imshow(np.clip(image, 0, 1))
         ax.set_axis_off()
 

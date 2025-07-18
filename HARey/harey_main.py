@@ -9,7 +9,7 @@ from HARey.planisphere import Planisphere
 from HARey.polar_map import PolarMap
 from HARey.print_and_play import PrintAndPlay
 from HARey.star_colormap import StarColorMap
-from HARey.astro_projection import Observer, mag2size
+from HARey.astro_projection import Observer, is_visible, mag2size
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,9 +49,11 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
         StarColorMap.__init__(self, star_colors)
 
-        # Recast Oberver as a method of HARey
+        # Recast Oberver as a method of HAReyMain
         self.Observer = Observer
-                
+        # Recast is_visible as a function of HAReyMain
+        self.is_visible = is_visible        
+        
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
         self.constellations, self.constellation_ids, self.asterisms, self.helpers,\

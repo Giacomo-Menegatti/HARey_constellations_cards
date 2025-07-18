@@ -28,16 +28,18 @@ class PolarMap:
 		ax.add_patch(patch)
 
 	def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False, MARK_CENTER=False):
-		'''Plot a stereographic map of the stars near the poles.
-			The parameters are:
-			- pole : the pole around which the plot is done, 'N' for north and 'S' for south
-			- FOV : the total field of view (in degrees)
-			- figsize : the diameter of the figure (in inches)
-			- font_sizes : the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterism)
-			- star_size : the size of the stars in the plot
-			- save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
+		"""Plot a stereographic map of the stars near the poles.
+
+		Arguments:
+			pole ('N' or 'S'): the pole around which the sky is plotted
+			FOV (float): the total field of view (in degrees)
+			figsize (float): the diameter of the figure (in inches)
+			font_sizes (float, float): the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterism)
+			star_size (float): the relative size of the stars in the plot
+			save_name (str): the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
+			mode ('stereo' or 'azimuth') : the type of projection of the mao, either stereographic or azimutal
         
-		'''
+		"""
 		# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
 		if not save_name == None or self.flags['SIS_SCRIPT']:
 			self.flags['SAVE'] = True
@@ -161,7 +163,7 @@ class PolarMap:
 			theta = np.pi/12
 
 			for ra in np.arange(1,25):
-				ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.8*line_w)
+				ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 				ax.text(0.97*map_radius*np.cos(ra*theta), 0.97*map_radius*np.sin(ra*theta), s=f'{ra} h', font = labels_font,
 						color=self.colors['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
 
@@ -169,7 +171,7 @@ class PolarMap:
 
 				radius = azimuthal_radius(2*fov) if mode == 'azimuth' else stereo_radius(2*fov)
 
-				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.8*line_w)
+				grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, linestyle='dotted', linewidth=0.6*line_w)
 				ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=labels_font)
 				ax.add_patch(grid_circle)
 

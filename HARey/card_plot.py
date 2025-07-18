@@ -29,11 +29,11 @@ class CardPlot:
         """
         Project the constellation to a stereographic projection and find its borders.
 
-            Arguments: 
+        Arguments: 
             constellation_id : Constellation ID (e.g. 'And' for Andromeda).
             BEST_AR : Rotate the constellation to maximize the aspect ratio. Otherwise, plot with north side UP.
 
-            Returns:
+        Returns:
             stars_x, stars_y : Coordinates of the stars in the projected constellation.
             borders : Borders of the constellation.
             ecliptic_x, ecliptic_y : Coordinates of the ecliptic in the projection.
@@ -159,13 +159,13 @@ class CardPlot:
 
     def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
         """
-        Plot the constellation card inside the card template.
+        Plot the constellation card inside a card template.
         
         Arguments:
-        id : Constellation ID (e.g. 'Ori' for Orion).
-        save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
-        star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
-        font_size : Size of the labels in the plot. It is relative to the card area.
+            id : Constellation ID (e.g. 'Ori' for Orion).
+            save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
+            star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
+            font_size : Size of the labels in the plot. It is relative to the card area.
         """ 
 
         # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
@@ -220,24 +220,23 @@ class CardPlot:
 
 
 
-        fig = plt.figure(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
+        fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
+        fig.subplots_adjust(0,0,1,1)
 
         # Convert the measures to pixels and center aound zero
-        height = self.height*self.dpi/2 + self.bleed*self.dpi
-        width = self.width*self.dpi/2 + self.bleed*self.dpi
+        height = self.height/2 + self.bleed
+        width = self.width/2 + self.bleed
 
         # Scale the coordinates
         scale = height/y_span        
         stars_x, stars_y = stars_x*scale, stars_y*scale
         ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
-        ax = plt.axes((0,0,1,1)) #axes over whole figure
         ax.set_xlim(-width,width)
         ax.set_ylim(-height,height)
         ax.set_aspect('equal')
         ax.set_axis_off()
-        fig.add_axes(ax)
-
+        
         # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
         box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
 
