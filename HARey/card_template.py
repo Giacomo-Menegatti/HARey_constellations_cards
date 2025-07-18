@@ -1,4 +1,6 @@
-"""This module contains the class CardTemplate, which defines the card format and properties."""
+"""This module contains the class CardTemplate, which defines the card format and properties,
+and the plot_cardback function, which handles coloring the bw cardback image and adding text to it
+"""
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -18,13 +20,20 @@ class CardTemplate:
 
     # Function to read between the different cardbacks
     def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300):
-        """
-        Set the card template.
+        """Set the card template and the background image.
 
         Arguments :
-        - format : 'tarot-round', 'tarot-square', 'circle'. More templates will be added. Each templates specify the card dimensions and poition of the plot area and of the text box
-        - cardback_file : path to the card back image. If None, the card will have no back image. the cardback must be a black and white image with transparency (RGBA) and the same dimensions as the card.
-        - dpi : dpi of the card. Should be the same as the cardback image. 
+            - format (str): template of the card
+            - cardback_file (str): card back image file. If None, the card will have no back image or a default one, based on the format. The cardback must be a black and white image with transparency (RGBA) and the same dimensions as the card.
+            - dpi (int): dpi of the card. Should be the same as the cardback image. 
+
+        The formats accepted are:
+            - 'tarot-round' or 'tarot-square': tarot sized template, 2.75x4.75 in, with rounded or square corners
+            - 'poker-round' or 'poker-square': poker sized template, 2.5x3.5 in, with rounded or square corners
+            - 'jumbo-round' or 'jumbo-square': jumbo sized template, 3.5x5.5 in, with rounded or square corners
+            - 'circle': a circular template, with a 5 in diameter. Has no default template
+            - 'square': a square template, a 5x5 in. Has no default template
+
         """
         if format in ['tarot-round','tarot-square']:
             #card dimensions and corner radius (inches)
@@ -144,14 +153,13 @@ class CardTemplate:
     # Function to color the cardback and write the name
     def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
         """
-        Plot the card back and write the constellation name on it.
+        Plots the recolored card back image, and write the constellation name on it.
         
-        Arguments :
-        - id : id of the constellation
-        - main_color : color of the card back (RGB tuple)
-        - accent_color : color of the text and decorartions (RGB tuple)
-        - save_name : name of the file to save the plot. If specified, self.flags['SAVE'] is set to True
-        
+        Args :
+            - id (str): id of the constellation (e.g. 'And' for Andromeda)
+            - main_color (RGB tuple or python color): color of the card back 
+            - accent_color (RGB tuple or python color): color of the text and decorartions 
+            - save_name (str): name of the file to save the plot. If specified, self.flags['SAVE'] is set to True
         
         """
         # If the save_name is not None, save automatically the plot
@@ -173,7 +181,8 @@ class CardTemplate:
         # Clip with the transparecny mask
         image[alpha_mask] = (1,1,1,0)        
 
-        fig,ax = plt.subplots(figsize = (image.shape[1]/dpi, image.shape[0]/dpi), dpi=dpi) #figure with correct aspect ratio
+         #figure with correct aspect ratio
+        fig,ax = plt.subplots(figsize = (image.shape[1]/dpi, image.shape[0]/dpi), dpi=dpi)
         fig.subplots_adjust(0,0,1,1)
         ax.imshow(np.clip(image, 0, 1))
         ax.set_axis_off()

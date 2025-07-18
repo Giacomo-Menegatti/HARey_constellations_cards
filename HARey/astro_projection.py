@@ -79,6 +79,7 @@ def radec2altaz(ra_degrees, dec_degrees, observer):
         al (float): Altitude of the object in degrees
         Az (float): Azimuth of the object in degrees
     """
+
     # Universal time from Jan 1, 2000
     UT1 = date2julian(observer.datetime_utc) - 2451545.0
     # earth rotation angle 
@@ -95,7 +96,17 @@ def radec2altaz(ra_degrees, dec_degrees, observer):
 
 
 def ecliptic2radec(ecliptic_long, ecliptic_lat):
-    """Convert ecliptic coordinates to equatorial ones. All angles are given in degrees."""
+    """
+    Convert ecliptic coordinates to equatorial ones. 
+
+    Arguments:
+        - ecliptic_long (float): The ecliptic longitude of the object in degrees
+        - ecliptic_lat (float): The ecliptic latitude of the object in degrees  
+    Returns:
+        - ra (float): The right ascension of the object in degrees
+        - dec (float): The declination of the object in degrees    
+    """
+
     EPS = np.deg2rad(23.4)  #Earth inclination
     c_eps, s_eps = np.cos(EPS), np.sin(EPS)
     e_long = np.deg2rad(ecliptic_long)
@@ -119,7 +130,8 @@ class Observer():
         Args:
             lat (str): Latitude of the observer in degrees (i.e. '45 N' or '45 S')
             long (str): Longitude of the observer in degrees (i.e. '45 E' or '45 O')
-        """    
+        """ 
+
         lat_str, long_str = lat.strip(), long.strip()
         self.lat = np.deg2rad(float(lat_str[:-1]))*(-1 if lat_str[-1]=='S' else 1)
         self.long = np.deg2rad(float(long_str[:-1]))*(-1 if long_str[-1]=='O' else 1)
@@ -146,14 +158,15 @@ class Observer():
         self.datetime_utc = local_datetime.astimezone(pytz.utc)
 
     def __str__(self):
-        """Return the string representation of the observer object."""
+        """Return the string representation of the observer object.
+        """
         lat_str = f'{np.abs(np.rad2deg(self.lat)):.4f} {'N' if self.lat>0 else 'S'}'
         long_str = f'{np.abs(np.rad2deg(self.long)):.4f} {'E' if self.long>0 else 'O'}'
         date_str = self.datetime_utc.strftime('%d-%m-%Y  %H:%M')
         return f'Observer position \n {lat_str}, {long_str}, \n time of observation \n {date_str} UTC '
     
 
-# IS VISIBLE FUNCTION
+#  FUNCTION
 
 
 def is_visible(lat_str, stars_dec, LVZ = 5):
@@ -163,17 +176,17 @@ def is_visible(lat_str, stars_dec, LVZ = 5):
     This is the overall visibility, without considering the time of the year during which the observation is made.
 
     Args:
-        lat_str (str): Latitude of the observer in degrees (i.e. '45 N' or '45 S')
-        stars_dec (numpy array): Declination of the stars in the constellations
-        LVZ (float): The Limited Visibility Zone in degrees. The LVZ is the part of the sky just above the horizon where ground covering or light pollution make it difficult to see the stars.
+        - lat_str (str): Latitude of the observer in degrees (i.e. '45 N' or '45 S')
+        - stars_dec (numpy array): Declination of the stars in the constellations
+        - LVZ (float, default 5): The Limited Visibility Zone in degrees. The LVZ is the part of the sky just above the horizon where ground covering or light pollution make it difficult to see the stars.
 
     Returns:
-        str: 'not visible', 'visible', 'partly visible', 'circumpolar'
+        A string containing the constellation visibility
 
     Constellations are classifed as:
-        - 'circumpolar': the constellation is always visible during the year
+        - 'circumpolar': the constellation is always visible during the whole year
         - 'visible': the constellation is fully visible above the LVZ during part of the year
-        - 'mostly visible': the constellation is mostly visible but part of it falls into the LVZ
+        - 'mostly visible': the constellation is mostly visible but part of it is in the LVZ
         - 'partly visible': part of the constellation is below the horizon
         - 'hardly visible': the constellation is partly below the horizon, and never above the LVZ
         - 'never visible': the constellation is always below the horizon during the whole year 
@@ -216,7 +229,8 @@ def is_visible(lat_str, stars_dec, LVZ = 5):
 # All the projections are rotated to have y-positive toward north, x-positive towards west
 
 def stereo_polar(phi, theta):
-    """ Project a point using a stereographic projection centered on the pole.
+    """ Project a point using a stereographic projection centered on the pole. 
+    The stereographic projection projects the sphere on the equatorial plane as seen by an observer at the opposite pole.
     
     Args: 
         phi (float): Longitude of the point to project in degrees
@@ -228,7 +242,9 @@ def stereo_polar(phi, theta):
     """
     theta, phi = np.deg2rad(theta), np.deg2rad(phi)
     r = np.tan(np.pi/4-theta/2)
+    # x,y coordinates of the point on the plane (with direction south, east)
     x, y = r*np.cos(phi), r*np.sin(phi)
+    # Rotate the coordinates to have directions (west, north), as used by all the maps of the sky
     return -y, -x
 
 def stereo_centered(phi, theta, zenith_phi, zenith_theta):
@@ -256,7 +272,16 @@ def stereo_centered(phi, theta, zenith_phi, zenith_theta):
     return (-y/(z+1), -x/(z+1))
 
 def stereo_radius(FOV):
-    """ Calculate the radius of the stereographic projection for a given field of view (in degrees)."""
+    """ Calculate the radius of the stereographic projection for a given field of view, r=tan(FOV/4).
+    
+    Args:
+        - FOV (float): the Field Of View in degrees
+
+    Returns:
+        r (float): the radius of the stereographic projection
+
+    
+    """
     fov = np.deg2rad(FOV)
     return np.tan(fov/4)
 
@@ -265,7 +290,8 @@ def stereo_radius(FOV):
 def azimuthal_polar(phi, theta):
     """ 
     Project a point using an azimuthal projection, centered at the pole.
-
+    The azimuthal projection creates a representation of a spherical surface on a polar plane with coordinates (r,theta)=(90-theta,phi).
+    
     Args:
         phi (float): Longitude of the point to project in degrees
         theta (float): Latitude of the point to project in degrees
@@ -282,21 +308,29 @@ def azimuthal_polar(phi, theta):
     return -y, -x
 
 def azimuthal_radius(FOV):
-    """ Calculate the radius of the azimuthal projection for a given field of view (in degrees)."""
+    """ Calculate the radius of the azimuthal projection for a given field of view.
+    
+    Args: 
+        - FOV (degrees): the field of view in degrees
+    Returns:
+        - r (float): the radius of the projection
+    
+    """
     return np.deg2rad(FOV)/2
 
 ### EQUATORIAL GALL PROJECTION
 
 def Gall_projection(ra, dec):
     """
-    Compute the Gall stereographic projection. The projection is x = ra/(sqrt(2)), y = (1 + sqrt(2)/2)tan(dec/2).
+    Compute the Gall stereographic projection, which compromises between preserving shapes and limiting the enlargement close to the poles.
+    The projection is x = ra/(sqrt(2)), y = (1 + sqrt(2)/2)tan(dec/2).
 
     Args:
-        ra (float): Right Ascension of the point to project in degrees
-        dec (float): Declination of the point to project in degrees
+        - ra (float): Right Ascension of the point to project in degrees
+        - dec (float): Declination of the point to project in degrees
 
     Returns:
-        tuple: The projected coordinates (x,y) of the point on the Gall projection        
+        tuple: The projected coordinates (x,y) of the point on the plane      
     """
     ra, dec = np.deg2rad(ra), np.deg2rad(dec)
 
@@ -305,31 +339,50 @@ def Gall_projection(ra, dec):
 
 
 def Gall_dims(ra_FOV, dec_FOV):
-    """Compute the width and height of a Gall projection, with ra_FOV and dec_FOV in degrees."""
+    """Compute the width and height of a Gall projection.
+    Args:
+        - ra_FOV (float): the FOV in the RA direction in degrees (the map shows a ra_FOV section of the sky)
+        - dec_FOV (float): the FOV in the dec direction in degrees (the map will show the sky between -dec_FOV/2, dec_FOV/2).
+    """
     ra_FOV, dec_FOV = np.deg2rad(ra_FOV), np.deg2rad(dec_FOV)
     return ra_FOV/np.sqrt(2), 2 * (1 + np.sqrt(2)/2) * np.tan(dec_FOV/4)
 
 def Gall_vertical(dec):
-    """Compute the Gall projection for a given declination."""
+    """ Compute the Gall projection in the vertical direction.
+
+    Args:
+        - dec (float): the declination of the point to project in degrees    
+    """
     return (1 + np.sqrt(2)/2) * np.tan(np.deg2rad(dec/2))
 
 def Gall_horizontal(ra):
-    """Compute the Gall projection for a given right ascension."""
+    """ Compute the Gall projection in the horizontal direction.
+
+    Args:
+        - ra (float): the right ascension of the point to project in degrees    
+    """
     return np.deg2rad(ra)/np.sqrt(2)
 
 
 
 ### LOCAL TO EQUATORIAL PROJECTION ####
  
-def local2equator(phi, theta, lat, pole='N', mode='azimuth'):
-    """ Convert local coordinates of azimuth and altitude to equatorial coordinates.
+def local2polarmap(phi, theta, lat, pole='N', mode='azimuth'):
+    """ Convert local coordinates of azimuth and altitude to equatorial coordinates and projects them using either an azimuthal or a stereographic projection.
     
     Args:
-        phi (float): Azimuth of the point in degrees
-        theta (float): Altitude of the point in degrees
-        pole (str): Pole of the projection, 'N' for north pole, 'S' for south pole. Default is 'N'.
-        mode (str): Projection mode, 'azimuth' for azimuthal projection, 'stereo' for stereographic projection. Default is 'azimuth'.
+        - phi (float): Azimuth of the point in degrees
+        - theta (float): Altitude of the point in degrees
+        - pole ('N' or 'S'): Pole of the projection, 'N' for north pole, 'S' for south pole. Default is 'N'.
+        - mode ('azimuth' or 'stereo'): Projection mode, 'azimuth' for azimuthal projection, 'stereo' for stereographic projection. Default is 'azimuth'.
+    
+    Returns:
+        - tuple: the (x,y) coordinates on the projected plane (with directions west:north)
+    
     """
+
+
+
 
     theta, phi = np.deg2rad(theta), np.deg2rad(phi)
     lat = np.deg2rad(lat)
@@ -352,7 +405,8 @@ def local2equator(phi, theta, lat, pole='N', mode='azimuth'):
     elif mode == 'stereo':    
         x,y,z = X
         x, y = x/(z+1), y/(z+1) 
-        
+    
+    # x and y are in the south:east direction. Rotate the coordinates to have west:north
     return -y, -x
 
 ############ STAR SIZE FROM MAGNITUDE ##########

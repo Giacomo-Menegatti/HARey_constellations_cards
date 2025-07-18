@@ -30,14 +30,14 @@ class CardPlot:
         Project the constellation to a stereographic projection and find its borders.
 
         Arguments: 
-            constellation_id : Constellation ID (e.g. 'And' for Andromeda).
-            BEST_AR : Rotate the constellation to maximize the aspect ratio. Otherwise, plot with north side UP.
+            - constellation_id (str): Constellation ID (e.g. 'And' for Andromeda).
+            - BEST_AR (bool): Rotate the constellation to maximize the aspect ratio. Otherwise, plot with north side UP.
 
         Returns:
-            stars_x, stars_y : Coordinates of the stars in the projected constellation.
-            borders : Borders of the constellation.
-            ecliptic_x, ecliptic_y : Coordinates of the ecliptic in the projection.
-            north_angle : Angle of the north direction.
+            - (stars_x, stars_y) : Coordinates of the stars in the projected constellation.
+            - borders (tuple): Vertical and horizontal borders of the constellation.
+            - (ecliptic_x, ecliptic_y) (tuple) : Coordinates of the ecliptic in the projection.
+            - north_angle (float): Angle of the north direction, in radians
         """
         stars = self.stars
 
@@ -159,7 +159,7 @@ class CardPlot:
 
     def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
         """
-        Plot the constellation card inside a card template.
+        Plot the constellation card inside the card template.
         
         Arguments:
             id : Constellation ID (e.g. 'Ori' for Orion).

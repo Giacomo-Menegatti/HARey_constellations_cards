@@ -22,7 +22,7 @@ Contains :
 
 def get_file(filename=None, default=''):
     """ Function to handle reading data inside the package. 
-    If filenames is not specified, returns the path of the default file inside the package.
+    If the filename is not specified, returns the path of the default file inside the package.
     """
     # If the filename is specified, return it directly
     if filename:
@@ -36,6 +36,8 @@ def get_file(filename=None, default=''):
 def load_hipparcos_stars(filename):
     '''Read the stars coordinates and colors from the whole HIPPARCOS catalogue. This function is not used anymore, 
     but could be useful if someone wants to load the original catalogue.
+
+    Returns a pandas dataframe containing the HIPPARCOS number, Right Ascension, declination, magnitude and B-V index of the stars.
     '''
 
     stars_df = pd.read_csv(filename, sep='|',  usecols=[1,3,4,5,37], header = None, na_values=['     ', '       ', '        ','      ', '            '])
@@ -56,7 +58,10 @@ def load_hipparcos_stars(filename):
 ###### LOAD THE REDUCED HIPPARCOS CATALOGUE ######################à
 
 def load_stars(filename=None):
-    """Read the stars coordinates and colors indexes from the reduced HIP catalogue."""
+    """Read the stars coordinates and colors indexes from the reduced HIP catalogue.
+    
+    Returns a pandas dataframe containing HIP number, right ascension, declination, magnitude and B-V index of the stars.
+    """
 
     filename = get_file(filename=filename, default='datafiles/hip_redux.dat')       
 
@@ -67,6 +72,14 @@ def load_stars(filename=None):
 def load_constellations(index_file = None):
     '''Load the constellations from a Stellarium SkyCultures file. This contains the constellation lines,
        the helper rays and asterisms, and the brighter stars that have their own names.
+
+    Returns:
+        - A constellation dictionary containing the indexes of the stars that make a segment of the constellation, and a list of all stars
+        - A list containing the constellation ids
+        - An asterism dictionary containing the indexes of the stars of the asterism
+        - A helpers dictionary with the indexes of the stars of the helper
+        - A list of stars with a proper name
+    
     '''
     # Get the constellation file. The default one is datafiles/index.json inside the HARey package
     file_name = get_file(index_file, default='datafiles/index.json')
@@ -125,7 +138,11 @@ def load_constellations(index_file = None):
 ##### Load Names #######################################################
 
 def load_names(names_file=None, language='IAU-EN'):
-    """ Load the object translated names. To add more translations, edit the names.csv file and add it to the github repo. """
+    """ Load the object translated names and return a dictionary containing the ID and the full name of the object.
+    The name also contains newline characters to split the name if necessary.
+    
+    To add more translations, edit the names.csv file and add it to the github repo. 
+    """
     
     # get the names file. The default is datafiles/names.csv inside the HARey package
     names_file = get_file(names_file, default='datafiles/names.csv')
@@ -141,7 +158,11 @@ def load_names(names_file=None, language='IAU-EN'):
 ############################# Load Markers #############################à
 
 def load_markers(markers_folder=None):
-    '''Load the custom svg markers and convert them to be used by matplotlib'''
+    '''Load the custom svg markers and convert them to be used by matplotlib
+    Returns:
+        - A dictionary of markers containing the 'empty', 'north', 'east', 'south' and 'west' markers
+        - A list of markers for stars from magnitude 0 to 5
+    '''
 
     folder_path = get_file(markers_folder, default='markers')
 

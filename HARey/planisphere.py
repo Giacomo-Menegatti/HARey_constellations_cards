@@ -15,7 +15,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.patches import Circle, PathPatch
 import os
 
-from HARey.astro_projection import stereo_polar, local2equator, azimuthal_polar
+from HARey.astro_projection import stereo_polar, local2polarmap, azimuthal_polar
 
 class Planisphere:
     """ Class for creating planispheres and astrolabes. """
@@ -88,32 +88,32 @@ class Planisphere:
             _, circle_radius = azimuthal_polar(180, max_dec)
                 
         # Horizon (points done anticlockwise to make the cutout)
-        h_x, h_y = local2equator(np.linspace(360,0,1001), np.full(1001, 0), lat, mode=mode)
+        h_x, h_y = local2polarmap(np.linspace(360,0,1001), np.full(1001, 0), lat, mode=mode)
 
         # Meridians (east and west)
         M_x, M_y = [], []
         for phi in (90,-90):
-            m_x, m_y = local2equator(np.full(1001, phi), np.linspace(0,90,1001), lat, mode=mode)
+            m_x, m_y = local2polarmap(np.full(1001, phi), np.linspace(0,90,1001), lat, mode=mode)
             M_x.append(m_x)
             M_y.append(m_y)
 
         # East and west cardinal points and angles
         e_long = sign*90
-        e_x, e_y = local2equator(e_long,0,lat, mode=mode)
-        x,y = local2equator((e_long+1,e_long-1), (0,0), lat)
+        e_x, e_y = local2polarmap(e_long,0,lat, mode=mode)
+        x,y = local2polarmap((e_long+1,e_long-1), (0,0), lat)
         e_angle = np.rad2deg(np.arctan2(y[1]-y[0], x[1]-x[0]))
 
         w_long = -sign*90
-        w_x, w_y = local2equator(w_long,0,lat, mode=mode)
-        x,y = local2equator((w_long+1,w_long-1), (0,0), lat)
+        w_x, w_y = local2polarmap(w_long,0,lat, mode=mode)
+        x,y = local2polarmap((w_long+1,w_long-1), (0,0), lat)
         w_angle = np.rad2deg(np.arctan2(y[1]-y[0], x[1]-x[0]))
 
         # North cardinal point (from the north emisphere)
-        _, n_y = local2equator(180,0,lat, mode=mode)
+        _, n_y = local2polarmap(180,0,lat, mode=mode)
         n_angle = 180
         
         # South cardinal point
-        _, s_y = local2equator(0,0, lat, mode=mode)
+        _, s_y = local2polarmap(0,0, lat, mode=mode)
         s_y = max(s_y, -circle_radius)
         s_angle = 0
 
