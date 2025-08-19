@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+	from HARey.harey_main import HAReyMain
+
+
 import numpy as np
 import io
 import os
-import pandas as pd
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -11,10 +16,136 @@ from HARey.astro_projection import ecliptic2radec, Gall_projection, Gall_dims, G
 
 
 class EquatorialMap:
-	''' Plot a universal map of the sky. The plot is done with a stereographic projection at the 
-		north and south poles, and with a Gall stereographic projection at the equator, to minimize the 
-		deformations that are inevitably created when spherical surface is projected on a plane.
-	'''
+
+	if TYPE_CHECKING:
+		self: 'HAReyMain'  
+
+	def plot_within_borders(self, borders, FOV, scale):
+		'''Plot the sky near the equator between the borders (in degrees) and with vertical height [-FOV, FOV],
+			and return the image generated.
+			The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
+		'''
+
+		width, height = Gall_dims(borders[1]-borders[0], FOV)
+		width, height = width*scale, height*scale
+		left_border, right_border = scale*Gall_horizontal(borders[0]), scale*Gall_horizontal(borders[1])
+
+		#print(f'Image dimensions: {width:.2f}x{2*height:.2f} inches')
+		
+		# Project the stars positions and the ecliptic points
+		stars_x, stars_y = Gall_projection(self.stars['ra'], self.stars['dec'])
+		stars_x, stars_y = scale * stars_x, scale * stars_y
+
+		ecliptic_x , ecliptic_y = Gall_projection(ecliptic_ra, ecliptic_dec)
+		ecliptic_x, ecliptic_y = scale * ecliptic_x, scale * ecliptic_y
+
+		# Create figure and axes
+		fig,ax = plt.subplots(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
+		fig.subplots_adjust(0,0,1,1)
+		
+		ax.set_xlim(left_border, right_border)
+		ax.set_ylim(-height/2, height/2)
+		ax.set_aspect('equal')
+		ax.set_axis_off()
+		ax.invert_xaxis()
+
+		box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
+		ax.add_patch(box)
+
+		# Plot the ecliptic inside the plot borders
+		mask = (ecliptic_x >= left_border) & (ecliptic_x <= right_border)
+		ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=self.colors['ecliptic'], linestyle='dotted', linewidth=1.4*line_w)
+		ecliptic.set_clip_path(box)
+
+		# Plot constellation lines
+		if self.flags['CON_LINES']:
+			for line in [line for id in self.constellation_ids for line in self.constellations[id]['lines']]:
+				# Divide the line in individual segments
+				for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
+					#If the segment is outside the borders, do not plot the lines. This ensures that there are no lines going around the whole plot
+					if not (np.any(stars_x[segment]<left_border) and np.any(stars_x[segment]>right_border)):
+						plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['constellations'], linewidth=line_w)	
+						plot_line.set_clip_path(box)      
+
+		# Plot asterism
+		if self.flags['ASTERISMS']:
+			for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
+				if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)):
+					plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['asterisms'], linestyle='solid', linewidth=line_w)
+					plot_line.set_clip_path(box)
+
+		# Plot helpers
+		if self.flags['HELPERS']:
+			for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]: 
+				if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)): 
+					plot_line, = ax.plot(stars_x[line], stars_y[line], color=self.colors['helpers'], linestyle='dashed', linewidth=0.9*line_w)
+					plot_line.set_clip_path(box)
+
+			# Plot the stars after the lines 
+		# Stars that are not in a constellation shape are represented with a dot
+		bkg_stars = np.logical_and(self.stars.constellation == 'none', self.stars.magnitude <= self.limiting_magnitude)
+		color = self.stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+
+		# Plot bkg stars
+		ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)  # type: ignore
+
+		# Plot the stars that are part of a constellation shape
+		for i, m in enumerate(star_markers):
+			
+			mask = np.logical_and(self.stars.mag_class == i, self.stars.constellation != 'none')    
+
+			# Plot a blank circle before the star to end the lines before reaching the star
+			ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=self.colors['sky'], linewidths=0, zorder=2) # type: ignore 
+			ax.set_clip_path(box)
+
+			# If star_colors is True, plot the stars with their true color
+			color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+			# Plot the star with the custom markers
+			ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2) # type: ignore
+			ax.set_clip_path(box)
+
+		# Compute the labels positions
+		def compute_label_pos(id, indexes):
+			label_x = np.mean(stars_x[indexes])
+			label_y = np.mean(stars_y[indexes])
+			if (label_x > left_border and label_x < right_border and label_y > -height/2 and label_y < height/2):
+				labels_pos[id] = (label_x/scale, label_y/scale)
+		
+		# Constellation labels
+		if self.flags['CON_NAMES']:
+			for id in self.constellation_ids:
+				compute_label_pos(id, indexes=self.constellations[id]['stars'])
+
+		# Minor labels
+		if self.flags['CON_PARTS']:
+			for id in [id for id in self.constellations.keys() if id.startswith('.')]:
+				compute_label_pos(id, indexes = self.constellations[id]['stars'])
+
+		# Asterisms labels  
+		if self.flags['ASTERISMS'] :           
+			for id in self.asterisms.keys():
+				compute_label_pos(id, indexes = [star for line in self.asterisms[id]['lines'] for star in line])
+
+		# Named stars
+		if self.flags['STAR_NAMES']:
+			for star in self.named_stars:
+				# The star index is a string
+				compute_label_pos(star, indexes = int(star))
+		
+		#Restrict everything to the bounding box
+		for col in ax.collections:
+			col.set_clip_path(box)
+
+		#Instead of showing the plot, save the partial map as image
+		with io.BytesIO() as buff:
+			fig.savefig(buff, format='png', dpi=self.dpi, pad_inches=0)
+			buff.seek(0)
+			image = plt.imread(buff)
+			
+		plt.close()
+		return image
+
+
 
 	def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name = None, font_sizes=(7,10), star_size=20):
 		'''Plot an equatorial Gall stereographic projection of the whole sky.
@@ -47,21 +178,13 @@ class EquatorialMap:
 
 		text_scale = map_width/11 # Scale the text depending on the width of the plot, w.r.t the default 11 in (A4 size)
 
-		
-		stars = self.stars
-		colors = self.colors
-		labels_font = self.fonts['labels']
-		limiting_magnitude = self.limiting_magnitude
-		constellations = self.constellations
-		constellation_ids = self.constellation_ids
 
 		marker_size = star_size * scale**2
-		star_sizes = marker_size * mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
+		star_sizes = marker_size * mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
 		line_w = marker_size * 0.0075
 
 		font_sizes = {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
 
-		star_markers = self.star_markers
 		# If the HAREY option is selected, use the custom star markers, else use simple dots
 		star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
 
@@ -69,147 +192,20 @@ class EquatorialMap:
 		# i.e., a label around the origin is plotted near the mean value in the center of the plot
 		labels_pos = {}
 
-
 		
-
-		def plot_within_borders(self, borders, FOV, scale):
-			'''Plot the sky near the equator between the borders (in degrees) and with vertical height [-FOV, FOV],
-				and return the image generated.
-				The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
-			'''
-
-			width, height = Gall_dims(borders[1]-borders[0], FOV)
-			width, height = width*scale, height*scale
-			left_border, right_border = scale*Gall_horizontal(borders[0]), scale*Gall_horizontal(borders[1])
-
-			#print(f'Image dimensions: {width:.2f}x{2*height:.2f} inches')
-			
-			# Project the stars positions and the ecliptic points
-			stars_x, stars_y = Gall_projection(stars['ra'], stars['dec'])
-			stars_x, stars_y = scale * stars_x, scale * stars_y
-
-			ecliptic_x , ecliptic_y = Gall_projection(ecliptic_ra, ecliptic_dec)
-			ecliptic_x, ecliptic_y = scale * ecliptic_x, scale * ecliptic_y
-
-			# Create figure and axes
-			fig,ax = plt.subplots(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
-			fig.subplots_adjust(0,0,1,1)
-			
-			ax.set_xlim(left_border, right_border)
-			ax.set_ylim(-height/2, height/2)
-			ax.set_aspect('equal')
-			ax.set_axis_off()
-			ax.invert_xaxis()
-
-			box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=colors['sky'], edgecolor=None, linewidth=0)
-			ax.add_patch(box)
-
-			# Plot the ecliptic inside the plot borders
-			mask = (ecliptic_x >= left_border) & (ecliptic_x <= right_border)
-			ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=colors['ecliptic'], linestyle='dotted', linewidth=1.4*line_w)
-			ecliptic.set_clip_path(box)
-
-			# Plot constellation lines
-			if self.flags['CON_LINES']:
-				for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
-					# Divide the line in individual segments
-					for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-						#If the segment is outside the borders, do not plot the lines. This ensures that there are no lines going around the whole plot
-						if not (np.any(stars_x[segment]<left_border) and np.any(stars_x[segment]>right_border)):
-							plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=colors['constellations'], linewidth=line_w)	
-							plot_line.set_clip_path(box)      
-
-			# Plot asterism
-			if self.flags['ASTERISMS']:
-				for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
-					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)):
-						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=line_w)
-						plot_line.set_clip_path(box)
-
-			# Plot helpers
-			if self.flags['HELPERS']:
-				for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]: 
-					if not (np.any(stars_x[line]<left_border) and np.any(stars_x[line]>right_border)): 
-						plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.9*line_w)
-						plot_line.set_clip_path(box)
-
-			 # Plot the stars after the lines 
-			# Stars that are not in a constellation shape are represented with a dot
-			bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-			color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-
-			# Plot bkg stars
-			ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
-
-			# Plot the stars that are part of a constellation shape
-			for i, m in enumerate(star_markers):
-				
-				mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')    
-
-				# Plot a blank circle before the star to end the lines before reaching the star
-				ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
-				ax.set_clip_path(box)
-
-				# If star_colors is True, plot the stars with their true color
-				color = stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-				# Plot the star with the custom markers
-				ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
-				ax.set_clip_path(box)
-
-			# Compute the labels positions
-			def compute_label_pos(id, indexes):
-				label_x = np.mean(stars_x[indexes])
-				label_y = np.mean(stars_y[indexes])
-				if (label_x > left_border and label_x < right_border and label_y > -height/2 and label_y < height/2):
-					labels_pos[id] = (label_x/scale, label_y/scale)
-            
-			# Constellation labels
-			if self.flags['CON_NAMES']:
-				for id in constellation_ids:
-					compute_label_pos(id, indexes=constellations[id]['stars'])
-
-			# Minor labels
-			if self.flags['CON_PARTS']:
-				for id in [id for id in constellations.keys() if id.startswith('.')]:
-					compute_label_pos(id, indexes = constellations[id]['stars'])
-
-			# Asterisms labels  
-			if self.flags['ASTERISMS'] :           
-				for id in self.asterisms.keys():
-					compute_label_pos(id, indexes = [star for line in self.asterisms[id]['lines'] for star in line])
-
-			# Named stars
-			if self.flags['STAR_NAMES']:
-				for star in self.named_stars:
-					# The star index is a string
-					compute_label_pos(star, indexes = int(star))
-			
-			#Restrict everything to the bounding box
-			for col in ax.collections:
-				col.set_clip_path(box)
-
-			#Instead of showing the plot, save the partial map as image
-			with io.BytesIO() as buff:
-				fig.savefig(buff, format='png', dpi=self.dpi, pad_inches=0)
-				buff.seek(0)
-				image = plt.imread(buff)
-				
-			plt.close()
-			return image
-
 		# Plotting the whole sky has some lines that go around the plot. To avoid this, the stars are plotted locally
 		# in two parts, a big central section and a border that is copied on both sides
 
-		(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
+		(self.ecliptic_ra, self.ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
 		half_overlap = overlap/2
 
-		stars['ra'] = stars['ra']%360	# Angle coordinates from 0 to 360
-		ecliptic_ra = ecliptic_ra%360
-		center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale)
+		self.stars['ra'] = self.stars['ra']%360	# Angle coordinates from 0 to 360
+		self.ecliptic_ra = self.ecliptic_ra%360
+		center = self.plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale)
 
 		stars['ra'] = (stars['ra']+180)%360 -180 # Angles from -180 to 180
-		ecliptic_ra = (ecliptic_ra+180)%360 -180
-		border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale)
+		self.ecliptic_ra = (self.ecliptic_ra+180)%360 -180
+		border = self.plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale)
 
 		# Join the images and plot it
 		map = np.concatenate((border, center, border), axis=1)
@@ -350,5 +346,7 @@ class EquatorialMap:
 			plt.close()
 
 		self.reset_flags()
+	
+
 
 

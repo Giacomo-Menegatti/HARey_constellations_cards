@@ -4,8 +4,11 @@ CARD PLOT.
 This module contains the class CardPlot, which is used to plot the constellation cards.
 """
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from HARey.harey_main import HAReyMain
+
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 from matplotlib.transforms import Affine2D
@@ -13,149 +16,14 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 import os
 
-from HARey.astro_projection import stereo_centered, ecliptic2radec, mag2size, stereo_radius
+from HARey.astro_projection import mag2size
+from HARey.local_projection import LocalProjection
 
 
-class CardPlot:
-    """
-    Class to plot the constellation cards.
+class CardPlot(LocalProjection):
 
-    CONTAINS:
-    - project_constellation: Project the constellation to a stereographic projection, rotate it and find its borders.
-    - plot_card: Plot the constellation card using the card template.
-    """
-
-    def project_constellation(self, constellation_id, BEST_AR=False):
-        """
-        Project the constellation to a stereographic projection and find its borders.
-
-        Arguments: 
-            - constellation_id (str): Constellation ID (e.g. 'And' for Andromeda).
-            - BEST_AR (bool): Rotate the constellation to maximize the aspect ratio. Otherwise, plot with north side UP.
-
-        Returns:
-            - (stars_x, stars_y) : Coordinates of the stars in the projected constellation.
-            - borders (tuple): Vertical and horizontal borders of the constellation.
-            - (ecliptic_x, ecliptic_y) (tuple) : Coordinates of the ecliptic in the projection.
-            - north_angle (float): Angle of the north direction, in radians
-        """
-        stars = self.stars
-
-        #Take the stars of the constellation shape
-        local_stars_mask = (stars['constellation']==constellation_id)
-        local_stars = stars[local_stars_mask]
-
-        # Take one star (the brightest) as the center of the projection
-        brightest_star = local_stars.iloc[np.argmin(local_stars['magnitude'])]
-        # Perform the stereographic projection
-        stars_x, stars_y = stereo_centered(stars['ra'], stars['dec'], brightest_star['ra'], brightest_star['dec'])
-
-        # Convert the values to  Pandas series by adding the index
-        stars_x = pd.Series(data = stars_x, index=stars.index)
-        stars_y = pd.Series(data = stars_y, index=stars.index)
-
-        #Project the ecliptic
-        (ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
-        ecliptic_x, ecliptic_y = stereo_centered(ecliptic_ra, ecliptic_dec, brightest_star['ra'], brightest_star['dec'])
-
-        # Project the north pole. This is done because the north pole is not infinitely distant on the sphere, so 
-        # just choosing up as north direction creates mistakes for constellations near the pole.
-        north_x, north_y = stereo_centered(0, 90, brightest_star['ra'], brightest_star['dec'])
-
-        # Center the constellation
-        local_stars_x = stars_x[local_stars_mask]
-        local_stars_y = stars_y[local_stars_mask]
-
-        center_x = (np.max(local_stars_x) + np.min(local_stars_x))/2
-        center_y = (np.max(local_stars_y) + np.min(local_stars_y))/2
-        
-        stars_x = stars_x - center_x
-        stars_y = stars_y - center_y
-
-        ecliptic_x = ecliptic_x - center_x
-        ecliptic_y = ecliptic_y - center_y
-
-        #Recompute the north direction relative to the center and not the projection point
-        north_x = north_x - center_x 
-        north_y = north_y - center_y
-
-        # Angle between the vertical and the pole (relative to the center of the constellation)
-        north_angle = np.atan2(north_x, north_y)
-        
-        # original aspect ratio
-        ar_0 = (np.max(local_stars_x)-np.min(local_stars_x)) / (np.max(local_stars_y)-np.min(local_stars_y))
-
-        # Rotate the stars to put the North indicator UP
-        rot_angle = north_angle
-
-        def rotate(x, y, alpha):
-            xR = np.cos(alpha) * x - np.sin(alpha) * y
-            yR = np.sin(alpha) * x + np.cos(alpha) * y
-            return xR, yR
-
-        if BEST_AR:
-
-            # Rotate the stars to get different aspect ratios
-            ar = []
-
-            # Start rotating from the north direction, left or right, by 5 degrees
-            angles = np.deg2rad(np.arange(85,-85,-5)) + north_angle
-            for alpha in angles:  
-
-                stars_xR, stars_yR = rotate(local_stars_x, local_stars_y, alpha)                                
-
-                #Calculate the new aspect ratios (x/y)
-                ar.append( (np.max(stars_xR) - np.min(stars_xR)) / (np.max(stars_yR) - np.min(stars_yR)) )    
-            
-            rot_angle = angles[np.argmin(ar)]   #Choose the angle with the smallest AR (x-spread over y-spread)
-            
-            best_ar = np.min(ar)
-            
-            '''Line used only for debugging'''
-            #print(f'Original aspect ratio {ar_0},\n best aspect ratio {best_ar} with angle {np.rad2deg(rot_angle)}')
-
-            
-
-        #Rotate the stars and the ecliptic points (default to put north up)
-
-        stars_x, stars_y = rotate(stars_x, stars_y, rot_angle)
-
-        ecliptic_x, ecliptic_y = rotate(ecliptic_x, ecliptic_y, rot_angle) 
-
-        north_x, north_y = rotate(north_x, north_y, rot_angle) 
-        
-        if BEST_AR:
-            # Compute again the center (it may have changed a lot, and so the north direction)
-            
-            local_stars_x = stars_x[local_stars_mask]
-            local_stars_y = stars_y[local_stars_mask]
-
-            center_x = (np.max(local_stars_x) + np.min(local_stars_x))/2
-            center_y = (np.max(local_stars_y) + np.min(local_stars_y))/2
-            
-            stars_x = stars_x - center_x
-            stars_y = stars_y - center_y
-
-            ecliptic_x = ecliptic_x - center_x
-            ecliptic_y = ecliptic_y - center_y
-
-            north_x = north_x - center_x
-            north_y = north_y - center_y
-            
-        #recompute the north direction (if BEST_AR=False, it's just zero)
-        north_angle = np.atan2(north_x, north_y) 
-            
-        # Get the constellation borders
-        local_stars_x = stars_x[local_stars_mask]
-        local_stars_y = stars_y[local_stars_mask]
-        borders_x, borders_y = np.max(local_stars_x), np.max(local_stars_y)
-        # If the constellation is small, enlarge the borders to make the surroundings visible (use a fov of 10 degrees)
-        min_distance = stereo_radius(10)
-        borders = (max(borders_x, min_distance), max(borders_y, min_distance))
-        
-        return (stars_x, stars_y), borders, (ecliptic_x, ecliptic_y), north_angle 
-
-
+    if TYPE_CHECKING:
+        self : 'HAReyMain'
 
     def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
         """
@@ -163,27 +31,40 @@ class CardPlot:
         
         Arguments:
             id : Constellation ID (e.g. 'Ori' for Orion).
-            save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
+            save_name : Name of the file to save the plot. If specified, sets flags['SAVE'] to True.
             star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
             font_size : Size of the labels in the plot. It is relative to the card area.
         """ 
-
-        # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-        if not save_name == None or self.flags['SIS_SCRIPT']:
-            self.flags['SAVE'] = True
-
-        # Default file name
-        if self.flags['SAVE'] and save_name==None:
-            save_name = f'{id}_{'lines' if self.flags['CON_LINES'] else 'bare'}.png'
-                
-        #Get the custom markers
+        # I put all the inherited variables here to avoid having errors show up everywhere
         limiting_magnitude = self.limiting_magnitude
         stars = self.stars
         constellations = self.constellations
         constellation_ids = self.constellation_ids
+        flags = self.flags
+        markers = self.markers
+        star_markers = self.star_markers
+        colors = self.colors
+        AR_plot = self.AR_plot
+        AR_card = self.AR_card
+        width, height = self.width, self.height
+        pad, bleed = self.pad, self.bleed
+        box_style = self.box_style
+        fonts = self.fonts
+        dpi = self.dpi
+        names = self.names
+
+        # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
+        if not save_name == None or flags['SIS_SCRIPT']:
+            flags['SAVE'] = True
+
+        # Default file name
+        if flags['SAVE'] and save_name==None:
+            save_name = f'{id}_{'lines' if flags['CON_LINES'] else 'bare'}.png'
+                
+        
 
         # Scale the star sizes and the text labels based on the card area
-        scale = self.width*self.height/(2.75*4.75) # Scale w.r.t the standard card (tarot)
+        scale = width*height/(2.75*4.75) # Scale w.r.t the standard card (tarot)
         marker_size = star_size*scale
         font_size = round(np.sqrt(scale)*font_size)
 
@@ -192,40 +73,38 @@ class CardPlot:
         line_w = marker_size * 0.0055
 
         #Get the custom markers
-        empty_marker = self.markers['empty']
-        north_marker = self.markers['north']
+        empty_marker = markers['empty']
+        north_marker = markers['north']
 
         # If HAREY, use the custom star markers, else use simple dots
-        star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
-        colors = self.colors
-        label_font = self.fonts['labels']
+        star_markers = star_markers if flags['HAREY_MARKERS'] else ['.']*len(star_markers)
+        label_font = fonts['labels']
 
-        (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = self.project_constellation(id, BEST_AR=BEST_AR)
+        (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = self.project_local(id, BEST_AR=BEST_AR)
 
         # Fix the plot aspect ratio to fit inside the card plot area
-        AR_plot = self.AR_plot
-        AR_card = self.AR_card
+        AR_plot = AR_plot
+        AR_card = AR_card
         
         #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
-        #Also, if self.bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
+        #Also, if bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
 
         if (x_span/y_span < AR_plot):
             # If the card is thinner than the plot area, add pad around y and enlarge the x span to fit the whole card
-            y_span = (1 + 2 * (self.pad + self.bleed) /self.height) * y_span
+            y_span = (1 + 2 * (pad + bleed) /height) * y_span
             x_span = y_span*AR_card
         else:
             # If the card is thicker, add pad around x and enlarge the y span to fit the whole card
-            x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
+            x_span = (1 + 2 * (pad + bleed) /width) * x_span
             y_span = x_span/AR_card
 
 
-
-        fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
+        fig,ax = plt.subplots(figsize = (width + 2*bleed, height + 2*bleed), dpi=dpi) #figure with correct aspect ratio
         fig.subplots_adjust(0,0,1,1)
 
         # Convert the measures to pixels and center aound zero
-        height = self.height/2 + self.bleed
-        width = self.width/2 + self.bleed
+        height = height/2 + bleed
+        width = width/2 + bleed
 
         # Scale the coordinates
         scale = height/y_span        
@@ -238,7 +117,7 @@ class CardPlot:
         ax.set_axis_off()
         
         # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
-        box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
+        box_style = 'square, pad=0.0' if bleed > 0.0 else box_style
 
         # Apply the card template as a mask to round the corners
         box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
@@ -246,46 +125,46 @@ class CardPlot:
         
         ax.add_patch(box)
 
-        if self.flags['CON_LINES']:
+        if flags['CON_LINES']:
             for constellation_id in constellation_ids:
                 #Plot the central constellation a little more evident than the others
                 alpha = 1 if constellation_id == id else 0.5
                 for line in constellations[constellation_id]['lines']:
                     con_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth = line_w, alpha=alpha)  
-                    con_line.set_clip_path(box)   # Clip the constellation lines outside of the card
+                    con_line.set_clip_path(box)   # type: ignore # Clip the constellation lines outside of the card
 
             #Draw ecliptic            
             ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=colors['ecliptic'], linestyle='dotted', linewidth=1.2* line_w)
-            ecliptic.set_clip_path(box)
+            ecliptic.set_clip_path(box)  # type: ignore
 
         
        # Stars that are not in a constellation shape are represented with a dot
         bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)        
-        color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+        color = stars[bkg_stars]['color'] if flags['STAR_COLORS'] else colors['star']
 
         # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2, alpha=0.5)
+        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker=".", linewidths=0, zorder=2, alpha=0.5)  # type: ignore
 
         # Plot a blank circle around the stars to make them more evident
         for i, m in enumerate(star_markers):
             # Get the stars that are part of a constellation shape
             mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')            
 
-            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
+            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)  # type: ignore
 
             # The stars that are part of the constellation are drawn a little more evident
             mask_constellation = np.logical_and(mask, stars.constellation == id)
-            color = stars[mask_constellation]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-            ax.scatter(stars_x[mask_constellation], stars_y[mask_constellation], marker=m, s=star_sizes[mask_constellation], color=color, linewidths=0, zorder=2)
+            color = stars[mask_constellation]['color'] if flags['STAR_COLORS'] else colors['star']
+            ax.scatter(stars_x[mask_constellation], stars_y[mask_constellation], marker=m, s=star_sizes[mask_constellation], color=color, linewidths=0, zorder=2)   # type: ignore
             
             mask_others = np.logical_and(mask, stars.constellation != id)
-            color = stars[mask_others]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.6)
+            color = stars[mask_others]['color'] if flags['STAR_COLORS'] else colors['star']
+            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m, s=star_sizes[mask_others], color=color, linewidths=0, zorder=2, alpha=0.6) # type: ignore
 
         #Plot the North indicator as last thing
         if BEST_AR: 
             #The angle is between -90 and 90 and plotted near the edge of the card
-            space = (0.7*self.pad + self.bleed)*self.dpi
+            space = (0.7*pad + bleed)*dpi
 
             plot_width, plot_height = width-space, height -space
             # Angle of the intersection of the horizontal and vertical edge
@@ -309,8 +188,8 @@ class CardPlot:
         for col in ax.collections:
             col.set_clip_path(box)
 
-        if self.flags['SIS_SCRIPT']:  # Save the iamge bfore adding labels
-            plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
+        if flags['SIS_SCRIPT']:  # Save the iamge bfore adding labels
+            plt.savefig(save_name, dpi = dpi, transparent=True, bbox_inches='tight', pad_inches=0)
             
         # Function to plot a label at the mean x and y positions
         def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
@@ -320,19 +199,19 @@ class CardPlot:
             ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=label_font,  ha = ha, va = va) 
 
 
-        if self.flags['STAR_NAMES']:
+        if flags['STAR_NAMES']:
             # Plot named stars
             for star in constellations[id]['stars']:
-                if str(star) in self.names:
-                    plot_label(ax, self.names[str(star)], indexes = star, color=colors['star_labels'], fontsize=font_size, ha='center',va='top')
+                if str(star) in names:
+                    plot_label(ax, names[str(star)], indexes = star, color=colors['star_labels'], fontsize=font_size, ha='center',va='top')
             
-        if self.flags['CON_PARTS']: 
+        if flags['CON_PARTS']: 
             # Plot constellation parts
             for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
-                plot_label(ax, self.names[key], indexes = constellations[key]['stars'], color=colors['constellation_parts'], fontsize=font_size, ha='center',va='center')
+                plot_label(ax, names[key], indexes = constellations[key]['stars'], color=colors['constellation_parts'], fontsize=font_size, ha='center',va='center')
 
 
-        if self.flags['SIS_SCRIPT']:  
+        if flags['SIS_SCRIPT']:  
             # Create a script to plot interactive labels in Inkscape, to manually adjust their positions                
             # To make the position consistent with different settings of Inkscape, 
             # the coordinates are fractions of the card width and height, starting from top left
@@ -347,7 +226,7 @@ class CardPlot:
                     # Relative position of the labels w.r.t the image, from top left
                     label_x, label_y = 0.5 + label_x/(2*width), 0.5 - label_y/(2*height)
                     s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{fontsize}pt', " \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
+                        f"text_anchor='middle', font_family='{fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
                     file.write(s)         
 
             dir = 'inkscape_scripts'    # Folder of the scripts
@@ -357,18 +236,18 @@ class CardPlot:
 
                 f.write('# Named stars labels\n')
                 # Plot star labels
-                if self.flags['STAR_NAMES']:
+                if flags['STAR_NAMES']:
                     for star in constellations[id]['stars']:
-                        if str(star) in self.names:
-                            write_sis(f, self.names[str(star)], star, color=colors['star_labels'], fontsize = 10)
+                        if str(star) in names:
+                            write_sis(f, names[str(star)], star, color=colors['star_labels'], fontsize = 10)
                     
                 f.write('\n# Constellation parts labels\n')
                 # Plot constellation parts
-                if self.flags['CON_PARTS']:
+                if flags['CON_PARTS']:
                     for key in [key for key in constellations.keys() if key.startswith(f'.{id}')]:
-                        write_sis(f, self.names[key], constellations[key]['stars'], fontsize=font_size, color=colors['constellation_parts'])
+                        write_sis(f, names[key], constellations[key]['stars'], fontsize=font_size, color=colors['constellation_parts'])
 
-                if self.flags['CON_LINES']:
+                if flags['CON_LINES']:
                     f.write('\n# Ecliptic label\n')
                     # Add a label close to the ecliptic if it is inside the constellation
                     mask = ((ecliptic_x > -width) & (ecliptic_x < width) & (ecliptic_y > -height) & (ecliptic_y < height)).tolist()
@@ -376,14 +255,14 @@ class CardPlot:
                     if np.any(mask):
                         label_x = np.mean(ecliptic_x[mask])/(2*width) + 0.5
                         label_y = - np.mean(ecliptic_y[mask])/(2*height) + 0.5
-                        s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_size}pt'," \
-                            f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(colors['ecliptic_label'])}')\n"
+                        s = f"text('{names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_size}pt'," \
+                            f"text_anchor='middle', font_family='{fonts['labels'].get_name()}', fill='{to_hex(colors['ecliptic_label'])}')\n"
                         f.write(s)
 
-        if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:            
-            plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
+        if flags['SAVE'] and not flags['SIS_SCRIPT']:            
+            plt.savefig(save_name, dpi = dpi, transparent=True, bbox_inches='tight', pad_inches=0)
 
-        if self.flags['SHOW']:
+        if flags['SHOW']:
             plt.show()
         else:
             plt.close()

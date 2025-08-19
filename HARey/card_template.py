@@ -2,6 +2,7 @@
 and the plot_cardback function, which handles coloring the bw cardback image and adding text to it
 """
 
+from sys import flags
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_rgba
@@ -162,14 +163,21 @@ class CardTemplate:
             - save_name (str): name of the file to save the plot. If specified, self.flags['SAVE'] is set to True
         
         """
+
+        flags = self.flags
+        colors = self.colors
+        names = self.names
+        fonts = self.fonts
+
+
         # If the save_name is not None, save automatically the plot
         if not save_name == None:
-            self.flags['SAVE'] = True
+            flags['SAVE'] = True
 
         dpi = self.dpi 
                 
-        main_color = self.colors['cardback_1'] if main_color == None else main_color
-        accent_color = self.colors['accent_1'] if accent_color == None else accent_color
+        main_color = colors['cardback_1'] if main_color == None else main_color
+        accent_color = colors['accent_1'] if accent_color == None else accent_color
 
         # Alpha mask
         alpha_mask = self.template[:,:,3]==0
@@ -194,10 +202,10 @@ class CardTemplate:
 
         r = text_box.get_window_extent()        
 
-        name = self.names[id]  
+        name = names[id]  
         text_x, text_y = (self.text_x+self.box_width/2)*dpi, (self.text_y+self.box_height/2)*dpi
 
-        text = ax.text(text_x, text_y, color=accent_color, s=name, ha='center', va='center', font=self.fonts['cardback'], 
+        text = ax.text(text_x, text_y, color=accent_color, s=name, ha='center', va='center', font=fonts['cardback'], 
                         bbox = dict(boxstyle=self.text_box_style, fill=False, edgecolor=accent_color, linewidth=1.5))
         
         t = text.get_window_extent()
@@ -210,7 +218,7 @@ class CardTemplate:
         # Add a fancy box around the text
         #text.set_bbox(dict(boxstyle='round', fill=False, edgecolor='green', linewidth=1))
 
-        if self.flags['SAVE']:
+        if flags['SAVE']:
             if save_name == None:
                 save_name = f'{id}_cardback.png'
 
@@ -219,7 +227,7 @@ class CardTemplate:
             else:
                 plt.savefig(save_name, dpi = dpi, transparent=True)            
 
-        if self.flags['SHOW']:
+        if flags['SHOW']:
             plt.show()
         else:
             plt.close()

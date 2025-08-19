@@ -1,6 +1,6 @@
 """HARey main module. This module inherits from all the others."""
 
-from HARey.loader import load_stars, load_constellations, load_markers, load_names, get_file
+from HARey.loader import load_stars, load_constellations, load_markers, load_names
 from HARey.sky_view import SkyView
 from HARey.card_plot import CardPlot
 from HARey.card_template import CardTemplate
@@ -46,6 +46,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         - language : language to choose in the names.csv file. More languages will be added in the future.
         - star_colors : color map to use for the star colors, either 'stellarium' or 'helland'. They are similar, helland is a bit redder.
         """
+        self.a = 1
         # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
         StarColorMap.__init__(self, star_colors)
 
@@ -53,7 +54,8 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         self.Observer = Observer
         # Recast is_visible as a function of HAReyMain
         self.is_visible = is_visible        
-        
+        self.a = 1
+
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
         self.constellations, self.constellation_ids, self.asterisms, self.helpers,\

@@ -43,11 +43,13 @@ Rz = lambda theta: np.array([[np.cos(theta), -np.sin(theta), 0],[np.sin(theta), 
 Ry = lambda phi: np.array(([[np.cos(phi), 0, np.sin(phi)],[0,1,0], [-np.sin(phi), 0, np.cos(phi)]]))
 
 def sph2cart(long, lat, r=1):
+    """ Convert spherical coordinates in RADIANS to (x,y,z) cartesian vector"""
     return r*np.cos(lat)*np.cos(long), r*np.cos(lat)*np.sin(long), r*np.sin(lat)
 
 def cart2sph(v):
+    """ Convert (x,y,z) cartesian vector to spherical coordinates (long, lat) in RADIANS"""
     x, y, z = v[0], v[1], v[2]
-    return (np.arcsin(z/np.sqrt(x**2+y**2+z**2)), np.arctan2(y,x))
+    return (np.arctan2(y,x), np.arcsin(z/np.sqrt(x**2+y**2+z**2)))
 
 def date2julian(date):
     """
@@ -378,12 +380,7 @@ def local2polarmap(phi, theta, lat, pole='N', mode='azimuth'):
     
     Returns:
         - tuple: the (x,y) coordinates on the projected plane (with directions west:north)
-    
-    """
-
-
-
-
+   """
     theta, phi = np.deg2rad(theta), np.deg2rad(phi)
     lat = np.deg2rad(lat)
 
@@ -397,7 +394,7 @@ def local2polarmap(phi, theta, lat, pole='N', mode='azimuth'):
     X = np.dot(Ry(np.pi/2-lat), np.array((x,y,z)))
 
     if mode == 'azimuth':
-        theta, phi = cart2sph(X)
+        phi, theta = cart2sph(X)
         azimuth_radius = np.pi/2-theta
             
         x, y = azimuth_radius*np.cos(phi), azimuth_radius*np.sin(phi)
@@ -408,6 +405,8 @@ def local2polarmap(phi, theta, lat, pole='N', mode='azimuth'):
     
     # x and y are in the south:east direction. Rotate the coordinates to have west:north
     return -y, -x
+
+
 
 ############ STAR SIZE FROM MAGNITUDE ##########
 
