@@ -1,8 +1,3 @@
-"""
-CARD PLOT.
-
-This module contains the class CardPlot, which is used to plot the constellation cards.
-"""
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
@@ -14,10 +9,9 @@ import os
 from HARey.astro_projection import mag2size, project_region
 from HARey.plot_map import plot_map
 
-
-def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
+def asterism_plot(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
     """
-    Plot the constellation card inside the card template.
+    Plot the asterism or the helper ray.
     
     Arguments:
         id : Constellation ID (e.g. 'Ori' for Orion).
@@ -26,13 +20,30 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
         font_size : Size of the labels in the plot. It is relative to the card area.
     """ 
 
+    # Check if the id is of an asterism or a helper ray (which starts with HR)
+    ASTERISM = not id.startswith('HR')
+
+    if ASTERISM:
+        # Get the stars of the asterism and the respective constellations
+        asterism_stars = [HIP for lines in self.asterisms[id]['lines'] for HIP in lines]
+        cons_list = self.stars.loc[asterism_stars, 'constellation'].to_list()
+        cons_list = np.unique(cons_list)
+    
+    else: 
+         # Get the stars of the helper ray and the respective constellations
+        helper_stars = [HIP for lines in self.helpers[id]['lines'] for HIP in lines]
+        cons_list = self.stars.loc[helper_stars, 'constellation'].to_list()
+        cons_list = np.unique(cons_list)
+    
+    print(cons_list)
+
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
     if not save_name == None or self.flags['SIS_SCRIPT']:
         self.flags['SAVE'] = True
 
     # Default file name
     if self.flags['SAVE'] and save_name==None:
-        save_name = f'{id}_{'lines' if self.flags['CON_LINES'] else 'bare'}.png'
+        save_name = f'{id}_{'asterism' if ASTERISM else 'helper'}.png'
             
     # Scale the star sizes and the text labels based on the card area
     scale = self.width*self.height/(2.75*4.75) # Scale w.r.t the standard card (tarot)
@@ -49,7 +60,7 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
 
     label_font = self.fonts['labels']
 
-    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, id, BEST_AR=BEST_AR)
+    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, cons_list, BEST_AR=BEST_AR)
 
     
     #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding

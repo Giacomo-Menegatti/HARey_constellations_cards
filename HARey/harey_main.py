@@ -1,14 +1,17 @@
 """HARey main module. This module inherits from all the others."""
 
 from HARey.loader import load_stars, load_constellations, load_markers, load_names
-from HARey.sky_view import SkyView
-from HARey.card_plot import CardPlot
-from HARey.card_template import CardTemplate
-from HARey.equatorial_map import EquatorialMap
-from HARey.planisphere import Planisphere
-from HARey.polar_map import PolarMap
-from HARey.print_and_play import PrintAndPlay
 from HARey.star_colormap import StarColorMap
+
+from HARey.card_template import set_card_template, plot_cardback
+from HARey.planisphere import plot_mater, create_planisphere, create_planisphere_2sided
+from HARey.sky_view import plot_sky_view
+from HARey.polar_map import polar_map
+from HARey.equatorial_map import equatorial_map
+from HARey.card_plot import plot_card
+from HARey.asterism_plot import asterism_plot
+from HARey.print_and_play import print_card_set, print_and_play
+
 from HARey.astro_projection import Observer, is_visible, mag2size
 
 import matplotlib.pyplot as plt
@@ -17,7 +20,7 @@ from matplotlib.font_manager import FontProperties
 
 
 # HARey main Class
-class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintAndPlay, StarColorMap, Observer, Planisphere):
+class HAReyMain(StarColorMap):
     """
     HARey main class. The one class to rule them all.
 
@@ -34,6 +37,38 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
 
     """
 
+    # Recast planisphere methods as methods of HAReyMain
+    plot_mater = plot_mater
+    create_planisphere = create_planisphere
+    create_planisphere_2sided = create_planisphere_2sided
+
+    # Recast Oberver as an object of HAReyMain
+    Observer = Observer
+
+    # Recast card_template methods as methods of HAReyMain
+    set_card_template = set_card_template
+    plot_cardback = plot_cardback
+
+    # Recast card_plot methods as methods of HAReyMain
+    plot_card = plot_card
+
+    # Recast asterism_plot methods as methods of HAReyMain
+    asterism_plot = asterism_plot
+
+    # Recast sky_view methods as methods of HAReyMain
+    plot_sky_view = plot_sky_view
+
+    # Recast polar_map methods as methods of HAReyMain
+    polar_map = polar_map
+
+    # Recast equtorial_map methods as methods of HAReyMain
+    equatorial_map = equatorial_map 
+
+    # Recast print_and_play methods as methods of HAReyMain
+    print_card_set = print_card_set
+    print_and_play = print_and_play
+
+
     def __init__(self,hip_file = None, index_file = None,
                  names_file = None, language = 'IAU-EN', star_colors = 'stellarium'):
         """
@@ -46,19 +81,16 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         - language : language to choose in the names.csv file. More languages will be added in the future.
         - star_colors : color map to use for the star colors, either 'stellarium' or 'helland'. They are similar, helland is a bit redder.
         """
-        self.a = 1
+
         # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
         StarColorMap.__init__(self, star_colors)
 
-        # Recast Oberver as a method of HAReyMain
-        self.Observer = Observer
-        # Recast is_visible as a function of HAReyMain
-        self.is_visible = is_visible        
-        self.a = 1
+        # Recast is_visible as a function of HAReyMain (inside the class, so self is not by default the first argument)
+        self.is_visible = is_visible  
 
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
-        self.constellations, self.constellation_ids, self.asterisms, self.helpers,\
+        self.cons, self.con_ids, self.asterisms, self.helpers,\
             self.named_stars =load_constellations(index_file)
 
         print('Done!\nLoading star coordinates....    ', end=' ')
@@ -74,12 +106,12 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
 
         # Add to the stars array the constellation of which they are part
         self.stars['constellation'] = 'none'
-        for id in self.constellation_ids:
-            self.stars.loc[self.constellations[id]['stars'], 'constellation'] = id
+        for id in self.con_ids:
+            self.stars.loc[self.cons[id]['stars'], 'constellation'] = id
 
         print('Done!\nLoading custom markers....      ', end=' ')
         # Load the custom markers
-        self.markers, self.star_markers = load_markers()
+        self.markers, self.harey_markers = load_markers()
 
         print('Done!\nLoading the object names....      ', end=' ')
         # Load the names from the names.csv file
@@ -122,7 +154,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
                         'calendar': FontProperties(family='DejaVu Sans', weight='bold')}
 
         # Read the card template module and overwrite its values
-        CardTemplate.set_card_template(self, format='tarot-round', dpi=self.dpi)
+        set_card_template(self, format='tarot-round', dpi=self.dpi)
 
     def set_flags(self, dict):
         """ Set the plot flags. They are temporary and are reset after the plot. """  
@@ -170,7 +202,7 @@ class HAReyMain(SkyView, CardPlot, EquatorialMap, PolarMap, CardTemplate, PrintA
         ax.set_facecolor(self.colors['sky'])
 
         for i in range(6):
-            marker = self.star_markers[i] if USE_HAREY_MARKERS else '.'
+            marker = self.harey_markers[i] if USE_HAREY_MARKERS else '.'
             ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude), linewidths=0, color=self.colors['star'])
             ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
 

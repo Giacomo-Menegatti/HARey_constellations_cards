@@ -167,25 +167,30 @@ def load_markers(markers_folder=None):
     folder_path = get_file(markers_folder, default='markers')
 
     #Load empty marker (background of all other markers)
-    _, attributes = svg2paths(f'{folder_path}/empty.svg')
+    _, attributes, *_ = svg2paths(f'{folder_path}/empty.svg')
     empty_marker = parse_path(attributes[0]['d'])
-    empty_marker.vertices -= (empty_marker.vertices.max(axis=0) - empty_marker.vertices.min(axis=0))/2
+    vertices = np.array(empty_marker.vertices)
+    empty_marker.vertices -= (vertices.max(axis=0) + vertices.min(axis=0))/2
 
     markers = {'empty':empty_marker}
     star_markers = []
 
     # Cardinal direction markers
     for direction in ['north', 'east', 'south', 'west']:
-        _, attributes = svg2paths(f'{folder_path}/{direction}.svg')
+        _, attributes, *_ = svg2paths(f'{folder_path}/{direction}.svg')
         marker = parse_path(attributes[0]['d'])
-        marker.vertices -= (marker.vertices.max(axis=0) - marker.vertices.min(axis=0))/2
+        # center the marker
+        vertices = np.array(marker.vertices)
+        marker.vertices -= (vertices.max(axis=0) + vertices.min(axis=0))/2
         markers[direction]=marker
 
     # HARey star markers
     for i in range(5):
-        _, attributes = svg2paths(f'{folder_path}/star_marker_{i}.svg')
+        _, attributes, *_ = svg2paths(f'{folder_path}/star_marker_{i}.svg')
         star_marker = parse_path(attributes[0]['d'])
-        star_marker.vertices -= star_marker.vertices.mean(axis=0)
+        # center the marker
+        vertices = np.array(star_marker.vertices)
+        star_marker.vertices -= vertices.mean(axis=0)
         star_markers.append(star_marker)
 
     # The last marker is a simple dot

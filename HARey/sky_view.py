@@ -8,258 +8,220 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
 from HARey.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereo_polar, mag2size
+from HARey.plot_map import plot_map
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
-class SkyView:
-    def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 100, figsize = 8, font_sizes=(5,7)):
+def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 100, figsize = 8, font_sizes=(5,7)):
 
-        '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
-                FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
-                The parameters are:
-                - observer: an Observer object with the position and time of observation
-                - FOV: the field of view of the sky (in degrees)
-                - figsize: the diameter of the figure (in inches)
-                - star_size: the size of the stars in the plot.
-                - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
-                - save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
-                      
-            '''
+    '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
+            FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
+            The parameters are:
+            - observer: an Observer object with the position and time of observation
+            - FOV: the field of view of the sky (in degrees)
+            - figsize: the diameter of the figure (in inches)
+            - star_size: the size of the stars in the plot.
+            - font_sizes : the sizes of the labels, small (constellation_parts), medium (stars) and big (constellation names and asterism)
+            - save_name: the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
+                    
+        '''
+    
+    # If the save_name is not None or the self.flags['SIS_SCRIPT'] is enabled, save automatically the plot
+    if not save_name == None or self.flags['SIS_SCRIPT']:
+        self.flags['SAVE'] = True
+
+    # Default file name
+    if self.flags['SAVE'] and save_name==None:
+        save_name = 'Sky_view.png'
+
+    
+    map_radius = 1.0  # The map has radius of one unit
+    inner_radius = 0.95 # Map inside the border
+
+    # Scale the star sizes and the text labels based on the plot area
+    scale = (figsize/8)
+    font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
+
+    marker_size = star_size * scale**2
+    self.star_sizes = marker_size * mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
+    self.line_w = marker_size * 0.0075
+
+    # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
+    self.star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
+
+    #Get the custom markers        
+    empty_marker = self.markers['empty']
+    cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
+
+    # There are no highlighted constellation 
+    self.highlight = []
+
+
+    fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    # Max star radius (the radius of the FOV edge)
+    max_radius = stereo_radius(FOV)
+    r_scale = inner_radius/max_radius
+
+    #Draw the sky map
+    self.box = Circle((0, 0), inner_radius, color=self.colors['sky'], fill=True)
+    ax.add_patch(self.box)
+
+    # Horizon circle
+    horizon_line = Circle((0,0), radius=stereo_radius(180)*r_scale, linestyle='--', color=self.colors['horizon'], fill=False)
+    ax.add_patch(horizon_line)
+
+    #Draw ecliptic
+    ecliptic_radec = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
+    ecliptic_alt, ecliptic_az = radec2altaz(*ecliptic_radec, observer)
+    self.ecliptic_x, self.ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)   
+
+
+    # Compute the Alt-Az coordinates of the stars
+    stars_alt, stars_az = radec2altaz(self.stars['ra'], self.stars['dec'], observer)
+    stars_x, stars_y = stereo_polar(stars_az, stars_alt)
+    stars_x, stars_y = stars_x*r_scale, stars_y*r_scale   
+
+    # Convert the values to  Pandas series by adding the index
+    self.stars_x = pd.Series(data = stars_x, index=self.stars.index)
+    self.stars_y = pd.Series(data = stars_y, index=self.stars.index)
+
+    # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the inner radius
+
+    self.not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>inner_radius**2) 
+
+    # Plot the map using the shared function
+    plot_map(self, ax)
+    
+
+    #Plot the compass ring   
+    compass = Annulus((0,0), r=0.99*map_radius, width=(0.99*map_radius-inner_radius), color=self.colors['starmap_border'], transform=ax.transData)
+    ax.add_patch(compass)
+
+    for col in ax.collections:
+        col.set_clip_path(self.box)
+
+    #Plot the markers inside the compass ring
+    m_radius = 0.97
+
+    for i, marker in enumerate(cardinal_markers):
+        t = Affine2D().rotate_deg(90*i)
+        theta = np.deg2rad(90*i)
+        ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(empty_marker, transform=t), markersize=7, color='white', markeredgewidth=0)
+        ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(marker, transform=t), markersize=8, color=self.colors['cardinal_markers'], markeredgewidth=0)
+    
+    ax.set_xlim(-map_radius, map_radius)
+    ax.set_ylim(-map_radius, map_radius)
+    ax.set_axis_off()
+    ax.invert_xaxis()
+
+    if self.flags['SIS_SCRIPT']:
+        # Save the image before adding the labels
+        plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)         
+
+                
+    # Function to plot a label at the mean x and y positions
+    def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
+        '''Take the mean x and y and plot a label there'''
+        label_x = np.mean(stars_x[indexes])
+        label_y = np.mean(stars_y[indexes])
+        if (label_x**2+label_y**2) < inner_radius**2:   # Stay inside the plot
+            ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
+
+    #Plot labels
+    if self.flags['CON_NAMES']:
+        for id in self.con_ids:
+            plot_label(ax, label = self.names[id], indexes = self.cons[id]['stars'], fontsize='l', color=self.colors['constellation_labels'], ha='center',va='center')
+                
+    #Plot minor labels
+    if self.flags['CON_PARTS']:
+        for id in [id for id in self.cons.keys() if id.startswith('.')]:
+                plot_label(ax, label = self.names[id], indexes = self.cons[id]['stars'], fontsize='s', color=self.colors['constellation_parts'], ha='center',va='center')
+
+    #Plot asterisms labels  
+    if self.flags['ASTERISMS'] :           
+        for id in self.asterisms.keys():
+            plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='l', color=self.colors['asterism_labels'], ha='center',va='center')
+
+    # Plot named stars
+    if self.flags['STAR_NAMES']:
+        for star in self.named_stars:
+            # The star index is a string
+            plot_label(ax, label = self.names[star], indexes = int(star), fontsize='s', color=self.colors['star_labels'], ha='center',va='bottom')
         
-        # If the save_name is not None or the self.flags['SIS_SCRIPT'] is enabled, save automatically the plot
-        if not save_name == None or self.flags['SIS_SCRIPT']:
-            self.flags['SAVE'] = True
-
-        # Default file name
-        if self.flags['SAVE'] and save_name==None:
-            save_name = 'Sky_view.png'
-
         
-        map_radius = 1.0  # The map has radius of one unit
-        inner_radius = 0.95 # Map inside the border
+    if self.flags['SIS_SCRIPT']:
+        # Create a script to plot interactive labels in Inkscape, to manually adjust their positions
+        # To make the position consistent with different settings of Inkscape, text
+        # the coordinates are fractions of the canvas width and height, starting from top left
 
-        stars = self.stars
-        colors = self.colors
-        limiting_magnitude = self.limiting_magnitude
-        constellations = self.constellations
-        constellation_ids = self.constellation_ids
-
-        # Scale the star sizes and the text labels based on the plot area
-        scale = (figsize/8)
-        font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
-
-        marker_size = star_size * scale**2
-        star_sizes = marker_size * mag2size(stars['magnitude'], lim_mag=limiting_magnitude)
-        line_w = marker_size * 0.0075
-
-        # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-        star_markers = self.star_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.star_markers)
-
-        #Get the custom markers        
-        empty_marker = self.markers['empty']
-        cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
-
-
-        fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
-        fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
-        # Max star radius (the radius of the FOV edge)
-        max_radius = stereo_radius(FOV)
-        r_scale = inner_radius/max_radius
-
-        #Draw the sky map
-        map = Circle((0, 0), inner_radius, color=colors['sky'], fill=True)
-        ax.add_patch(map)
-
-        # Horizon circle
-        horizon_line = plt.Circle((0,0), radius=stereo_radius(180)*r_scale, linestyle='--', color=colors['horizon'], fill=False)
-        ax.add_patch(horizon_line)
-
-        #Draw ecliptic
-        ecliptic_radec = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
-        ecliptic_alt, ecliptic_az = radec2altaz(*ecliptic_radec, observer)
-        ecliptic_x, ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)
-        ecliptic, = ax.plot(r_scale*ecliptic_x, r_scale*ecliptic_y, color=colors['ecliptic'], linestyle='dashed', linewidth=line_w)
-        ecliptic.set_clip_path(map)
-
-        # Compute the Alt-Az coordinates of the stars
-        stars_alt, stars_az = radec2altaz(stars['ra'], stars['dec'], observer)
-        stars_x, stars_y = stereo_polar(stars_az, stars_alt)
-        stars_x, stars_y = stars_x*r_scale, stars_y*r_scale   
-
-        # Convert the values to  Pandas series by adding the index
-        stars_x = pd.Series(data = stars_x, index=stars.index)
-        stars_y = pd.Series(data = stars_y, index=stars.index)
-
-
-        # Plot constellation lines
-        if self.flags['CON_LINES']:
-            for line in [line for id in constellation_ids for line in constellations[id]['lines']]:
-                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['constellations'], linewidth=line_w)
-                plot_line.set_clip_path(map)
-
-        #Plot asterisms
-        if self.flags['ASTERISMS']:
-            for line in [line for id in self.asterisms.keys() for line in self.asterisms[id]['lines']]:
-                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['asterisms'], linestyle='solid', linewidth=line_w)
-                plot_line.set_clip_path(map)
-
-        #Plot helpers
-        if self.flags['HELPERS']:
-            for line in [line for id in self.helpers.keys() for line in self.helpers[id]['lines']]:  
-                plot_line, = ax.plot(stars_x[line], stars_y[line], color=colors['helpers'], linestyle='dashed', linewidth=0.7*line_w)
-                plot_line.set_clip_path(map)
-
-        # Plot the stars after the lines 
-        # Stars that are not in a constellation shape are represented with a dot
-        bkg_stars = np.logical_and(stars.constellation == 'none', stars.magnitude <= limiting_magnitude)
-        color = stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-
-        # Plot bkg stars
-        ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=star_sizes[bkg_stars], color=color, marker='.', linewidths=0, zorder=2)
-        
-        # Plot the stars that are part of a constellation shape
-        for i, m in enumerate(star_markers):
-            
-            mask = np.logical_and(stars.mag_class == i, stars.constellation != 'none')    
-
-            # Plot a blank circle before the star to make it appear the lines stop before reaching the star
-            ax.scatter(stars_x[mask], stars_y[mask], marker='o', s=1.15*star_sizes[mask], color=colors['sky'], linewidths=0, zorder=2)
-            ax.set_clip_path(map)
-
-            # If star_colors is True, plot the stars with their true color
-            color = stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-            # Plot the star with the custom markers
-            ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], color=color, linewidths=0, zorder=2)
-        
-
-        #Plot the compass ring   
-        compass = Annulus((0,0), r=0.99*map_radius, width=(0.99*map_radius-inner_radius), color=colors['starmap_border'], transform=ax.transData)
-        ax.add_patch(compass)
-
-        for col in ax.collections:
-            col.set_clip_path(map)
-
-        #Plot the markers inside the compass ring
-        m_radius = 0.97
-
-        for i, marker in enumerate(cardinal_markers):
-            t = Affine2D().rotate_deg(90*i)
-            theta = np.deg2rad(90*i)
-            ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(empty_marker, transform=t), markersize=7, color='white', markeredgewidth=0)
-            ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(marker, transform=t), markersize=8, color=colors['cardinal_markers'], markeredgewidth=0)
-        
-        ax.set_xlim(-map_radius, map_radius)
-        ax.set_ylim(-map_radius, map_radius)
-        ax.set_axis_off()
-        ax.invert_xaxis()
-
-        if self.flags['SIS_SCRIPT']:
-            # Save the image before adding the labels
-            plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)         
-
-                  
-        # Function to plot a label at the mean x and y positions
-        def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
-            '''Take the mean x and y and plot a label there'''
+        def write_sis(file, label, indexes, color, fontsize):
+            # The newline character does not work in inkscape. The label must be fixed by hand
+            label = label.replace('\n', ' ')
             label_x = np.mean(stars_x[indexes])
             label_y = np.mean(stars_y[indexes])
-            if (label_x**2+label_y**2) < inner_radius**2:   # Stay inside the plot
-                ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
+            if (label_x**2+label_y**2) < inner_radius**2:
+                # Relative position of the labels w.r.t the image, from top left
+                label_x, label_y = 0.5 - label_x/(2*map_radius), 0.5 - label_y/(2*map_radius)
+                s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), "\
+                        f"font_size='{font_sizes[fontsize]}pt', text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
+                file.write(s)
 
-        #Plot labels
-        if self.flags['CON_NAMES']:
-            for id in constellation_ids:
-                plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='l', color=colors['constellation_labels'], ha='center',va='center')
-                    
-        #Plot minor labels
-        if self.flags['CON_PARTS']:
-            for id in [id for id in constellations.keys() if id.startswith('.')]:
-                 plot_label(ax, label = self.names[id], indexes = constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'], ha='center',va='center')
+        dir = 'inkscape_scripts'    # Folder of the scripts
+        if not os.path.exists(dir):
+            os.mkdir(dir)
 
-        #Plot asterisms labels  
-        if self.flags['ASTERISMS'] :           
-            for id in self.asterisms.keys():
-                plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='l', color=colors['asterism_labels'], ha='center',va='center')
+        # Convert the save file from png to py
+        file_name = save_name.replace('.png', '.py')
+        with open(f'{dir}/{file_name}', 'w') as f:
 
-        # Plot named stars
-        if self.flags['STAR_NAMES']:
-            for star in self.named_stars:
-                # The star index is a string
-                plot_label(ax, label = self.names[star], indexes = int(star), fontsize='s', color=colors['star_labels'], ha='center',va='bottom')
+            #Plot constellation labels
+            if self.flags['CON_NAMES']:
+                f.write('# Constellation names \n')
+                for id in self.con_ids:
+                    write_sis(f, self.names[id], self.cons[id]['stars'], color=self.colors['constellation_labels'], fontsize = 'l')      
+
+            # Plot constellation parts labels
+            if self.flags['CON_PARTS']:
+                f.write('\n# Constellation parts labels\n')
+                for id in [id for id in self.cons.keys() if id.startswith('.')]:
+                    write_sis(f, self.names[id], self.cons[id]['stars'], fontsize='s', color=self.colors['constellation_parts'])
+
+            #Plot asterisms labels
+            if self.flags['ASTERISMS'] :            
+                for id in self.asterisms.keys():
+                    write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='l', color=self.colors['asterism_labels'])            
+
+            # Plot named stars labels  
+            if self.flags['STAR_NAMES']: 
+                f.write('\n# Named stars labels\n')
+                for star in self.named_stars:
+                    write_sis(f, self.names[star], int(star), color=self.colors['star_labels'], fontsize='s')
+
+            # Plot ecliptic label (always present)
+            f.write('\n# Ecliptic label\n')
+            # Write the label at the lowest point of the visible ecliptic
+            mask = (self.ecliptic_y**2 + self.ecliptic_x**2 < inner_radius**2)
+            index = np.argmin(self.ecliptic_y[mask])
+            label_x, label_y = 0.5 - self.ecliptic_x[index]/(2*map_radius), 0.5 - self.ecliptic_y[index]/(2*map_radius)
+            s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
+            f.write(s)
+
+            # Plot horizon label (always present)
+            f.write("\n# Horizon label\n")
+            label_x, label_y = 0.5, 0.5 + stereo_radius(178)*r_scale/(2*map_radius)
+            s = f'text("{self.names["hor"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.colors["horizon_label"])}")\n'
+            f.write(s)                     
             
-            
-        if self.flags['SIS_SCRIPT']:
-            # Create a script to plot interactive labels in Inkscape, to manually adjust their positions
-            # To make the position consistent with different settings of Inkscape, text
-            # the coordinates are fractions of the canvas width and height, starting from top left
+    # Save the image with all the labels
+    if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
+        plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
-            def write_sis(file, label, indexes, color, fontsize):
-                # The newline character does not work in inkscape. The label must be fixed by hand
-                label = label.replace('\n', ' ')
-                label_x = np.mean(stars_x[indexes])
-                label_y = np.mean(stars_y[indexes])
-                if (label_x**2+label_y**2) < inner_radius**2:
-                    # Relative position of the labels w.r.t the image, from top left
-                    label_x, label_y = 0.5 - label_x/(2*map_radius), 0.5 - label_y/(2*map_radius)
-                    s = f"text('{label}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), "\
-                            f"font_size='{font_sizes[fontsize]}pt', text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
-                    file.write(s)
+    if self.flags['SHOW']:
+        plt.show()
+    else:
+        plt.close()
 
-            dir = 'inkscape_scripts'    # Folder of the scripts
-            if not os.path.exists(dir):
-                os.mkdir(dir)
-
-            # Convert the save file from png to py
-            file_name = save_name.replace('.png', '.py')
-            with open(f'{dir}/{file_name}', 'w') as f:
-
-                #Plot constellation labels
-                if self.flags['CON_NAMES']:
-                    f.write('# Constellation names \n')
-                    for id in constellation_ids:
-                        write_sis(f, self.names[id], constellations[id]['stars'], color=colors['constellation_labels'], fontsize = 'l')      
-
-                # Plot constellation parts labels
-                if self.flags['CON_PARTS']:
-                    f.write('\n# Constellation parts labels\n')
-                    for id in [id for id in constellations.keys() if id.startswith('.')]:
-                        write_sis(f, self.names[id], constellations[id]['stars'], fontsize='s', color=colors['constellation_parts'])
-
-                #Plot asterisms labels
-                if self.flags['ASTERISMS'] :            
-                    for id in self.asterisms.keys():
-                        write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='l', color=colors['asterism_labels'])            
-
-                # Plot named stars labels  
-                if self.flags['STAR_NAMES']: 
-                    f.write('\n# Named stars labels\n')
-                    for star in self.named_stars:
-                        write_sis(f, self.names[star], int(star), color=colors['star_labels'], fontsize='s')
-
-                # Plot ecliptic label (always present)
-                f.write('\n# Ecliptic label\n')
-                # Write the label at the lowest point of the visible ecliptic
-                mask = (ecliptic_y**2 + ecliptic_x**2 < inner_radius**2)
-                index = np.argmin(ecliptic_y[mask])
-                label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
-                s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                    f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(colors["ecliptic_label"])}")\n'
-                f.write(s)
-
-                # Plot horizon label (always present)
-                f.write("\n# Horizon label\n")
-                label_x, label_y = 0.5, 0.5 + stereo_radius(178)*r_scale/(2*map_radius)
-                s = f'text("{self.names["hor"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                    f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(colors["horizon_label"])}")\n'
-                f.write(s)                     
-                
-        # Save the image with all the labels
-        if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
-            plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
-
-        if self.flags['SHOW']:
-            plt.show()
-        else:
-            plt.close()
-
-        self.reset_flags()
+    self.reset_flags()
