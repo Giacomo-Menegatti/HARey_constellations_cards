@@ -12,7 +12,7 @@ from HARey.plot_map import plot_map
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
-def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 100, figsize = 8, font_sizes=(5,7)):
+def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, figsize = 8, font_sizes=(5,7)):
 
     '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
             FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
@@ -38,8 +38,9 @@ def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 100, f
     map_radius = 1.0  # The map has radius of one unit
     inner_radius = 0.95 # Map inside the border
 
-    # Scale the star sizes and the text labels based on the plot area
-    scale = (figsize/8)
+    # Scale the star sizes and the text labels based on the plot area and the FOV
+    scale = (figsize/8)*np.sqrt(stereo_radius(180)/stereo_radius(FOV))
+
     font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
 
     marker_size = star_size * scale**2
@@ -52,9 +53,6 @@ def plot_sky_view(self, observer,  FOV = 190, save_name=None, star_size = 100, f
     #Get the custom markers        
     empty_marker = self.markers['empty']
     cardinal_markers = [self.markers[key] for key in ['north', 'east', 'south', 'west']]
-
-    # There are no highlighted constellation 
-    self.highlight = []
 
 
     fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)

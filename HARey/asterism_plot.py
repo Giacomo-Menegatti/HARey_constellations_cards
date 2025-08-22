@@ -1,15 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
-from matplotlib.transforms import Affine2D
-from matplotlib.markers import MarkerStyle
+from matplotlib.patches import Circle
 from matplotlib.colors import to_hex
 import os
 
 from HARey.astro_projection import mag2size, project_region
 from HARey.plot_map import plot_map
+from HARey.polar_map import stereo_radius
 
-def asterism_plot(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
+def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, star_size = 100):
     """
     Plot the asterism or the helper ray.
     
@@ -30,12 +29,10 @@ def asterism_plot(self, id, BEST_AR=False, save_name=None, star_size = 200, font
         cons_list = np.unique(cons_list)
     
     else: 
-         # Get the stars of the helper ray and the respective constellations
+        # Get the stars of the helper ray and the respective constellations
         helper_stars = [HIP for lines in self.helpers[id]['lines'] for HIP in lines]
         cons_list = self.stars.loc[helper_stars, 'constellation'].to_list()
         cons_list = np.unique(cons_list)
-    
-    print(cons_list)
 
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
     if not save_name == None or self.flags['SIS_SCRIPT']:
@@ -44,173 +41,154 @@ def asterism_plot(self, id, BEST_AR=False, save_name=None, star_size = 200, font
     # Default file name
     if self.flags['SAVE'] and save_name==None:
         save_name = f'{id}_{'asterism' if ASTERISM else 'helper'}.png'
-            
-    # Scale the star sizes and the text labels based on the card area
-    scale = self.width*self.height/(2.75*4.75) # Scale w.r.t the standard card (tarot)
-    marker_size = star_size*scale
-    font_size = round(np.sqrt(scale)*font_size)
 
-    # set marker sizes and line widths
-    self.star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
-    self.line_w = marker_size * 0.0055
+    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, cons_list)
 
-    #Get the custom markers
-    empty_marker = self.markers['empty']
-    north_marker = self.markers['north']
+    # Get the map radius
+    map_radius = np.sqrt(x_span**2 + y_span**2) 
 
-    label_font = self.fonts['labels']
+  	# Scale the star sizes and the text labels based on the plot area and the map radius
+    scale =(figsize/8)*(stereo_radius(100)/map_radius)**0.25
 
-    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, cons_list, BEST_AR=BEST_AR)
+    font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
 
-    
-    #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
-    #Also, if self.bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
+    marker_size = star_size * scale**2
+    self.star_sizes = marker_size * mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
+    self.line_w = marker_size * 0.01
 
-    if (x_span/y_span < self.AR_plot):
-        # If the card is thinner than the plot area, add self.pad around y and enlarge the x span to fit the whole card
-        y_span = (1 + 2 * (self.pad + self.bleed) /self.height) * y_span
-        x_span = y_span*self.AR_card
-    else:
-        # If the card is thicker, add self.pad around x and enlarge the y span to fit the whole card
-        x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
-        y_span = x_span/self.AR_card
+    # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
+    self.star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
 
-
-    fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
+    fig,ax = plt.subplots(figsize = (figsize, figsize), dpi=self.dpi) #figure with correct aspect ratio
     fig.subplots_adjust(0,0,1,1)
+      
+    scale = 0.99*figsize/map_radius
+    map_radius = map_radius*scale
 
-    # center around zero
-    height = self.height/2 + self.bleed
-    width = self.width/2 + self.bleed
-
-    # Scale the coordinates
-    scale = height/y_span        
     self.stars_x, self.stars_y = stars_x*scale, stars_y*scale
     self.ecliptic_x, self.ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
-    ax.set_xlim(-width,width)
-    ax.set_ylim(-height,height)
-    ax.set_aspect('equal')
+   	# Put the border a little outside of the plot to avoid clipping the figure
+    ax.set_xlim(-figsize,figsize)
+    ax.set_ylim(-figsize,figsize)
     ax.set_axis_off()
 
     # make the constellation more evident in the plot
-    self.highlight = [id]
-    
-    # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
-    box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
+    self.highlight = cons_list
 
-    # Apply the card template as a mask to round the corners
-    self.box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
-                        fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
-    
+    # Draw the circle patch
+    self.box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
     ax.add_patch(self.box)
 
-    # Condition for plotting lines to avoid crossing the plot. Here no lines should cross the plot as the region plotted is very small.
-    self.not_outside = lambda segment: True
+    # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
+    self.not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
 
     # Plot the map using the shared plot_map function
-    plot_map(self, ax)
-
-    #Plot the North indicator as last thing
-    if BEST_AR: 
-        #The angle is between -90 and 90 and plotted near the edge of the card
-        space = 0.7*self.pad + self.bleed
-
-        plot_width, plot_height = width-space, height-space
-        # Angle of the intersection of the horizontal and vertical edge
-        card_angle = np.arctan(plot_width/plot_height)
-        # The indicator is plotted near the closest edge
-        
-        if north_angle <= -card_angle:
-            # Left side 
-            (x,y) = (-plot_width, -(plot_width)/np.tan(north_angle))
-        elif north_angle >= card_angle:
-            # Right side   
-            (x,y) = (plot_width, (plot_width)/np.tan(north_angle))
-        else:
-            # Up side
-            (x,y) = ((plot_height)*np.tan(north_angle), plot_height)    
-
-        t = Affine2D().rotate_deg(np.rad2deg(-north_angle))
-        ax.plot(x,y, marker=MarkerStyle(empty_marker, transform=t), markersize=11, color='white', markeredgewidth=0)
-        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=12, color=self.colors['cardinal_markers'], markeredgewidth=0)
+    if ASTERISM:
+        plot_map(self, ax, con_highlight=cons_list, asterism_highlight=[id])
+    else:
+        plot_map(self, ax, con_highlight=cons_list, helper_highlight=[id])
 
     for col in ax.collections:
         col.set_clip_path(self.box)
 
-    if self.flags['SIS_SCRIPT']:  # Save the iamge bfore adding labels
-        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
-        
+    if self.flags['SIS_SCRIPT']:
+        # Save the image before adding the labels
+        plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)  
+
     # Function to plot a label at the mean x and y positions
     def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
-        """Take the mean x and y and plot a label there."""
+        '''Take the mean x and y and plot a label there'''
         label_x = np.mean(self.stars_x[indexes])
         label_y = np.mean(self.stars_y[indexes])
-        ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=label_font,  ha = ha, va = va) 
+        if (label_x**2+label_y**2) < map_radius**2:   # Stay inside the plot
+            ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
 
+    #Plot labels
+    if self.flags['CON_NAMES']:
+        for id in self.con_ids:
+            plot_label(ax, label = self.names[id], indexes = self.cons[id]['stars'], fontsize='l', color=self.colors['constellation_labels'], ha='center',va='center')
+                
+    #Plot minor labels
+    if self.flags['CON_PARTS']:
+        for id in [id for id in self.cons.keys() if id.startswith('.')]:
+                plot_label(ax, label = self.names[id], indexes = self.cons[id]['stars'], fontsize='s', color=self.colors['constellation_parts'], ha='center',va='center')
 
+    #Plot asterisms labels  
+    if self.flags['ASTERISMS'] :           
+        for id in self.asterisms.keys():
+            plot_label(ax, label = self.names[id], indexes = [star for line in self.asterisms[id]['lines'] for star in line], fontsize='l', color=self.colors['asterism_labels'], ha='center',va='center')
+
+    # Plot named stars
     if self.flags['STAR_NAMES']:
-        # Plot named stars
-        for star in self.cons[id]['stars']:
-            if str(star) in self.names:
-                plot_label(ax, self.names[str(star)], indexes = star, color=self.colors['star_labels'], fontsize=font_size, ha='center',va='top')
-        
-    if self.flags['CON_PARTS']: 
-        # Plot constellation parts
-        for key in [key for key in self.cons.keys() if key.startswith(f'.{id}')]:
-            plot_label(ax, self.names[key], indexes = self.cons[key]['stars'], color=self.colors['constellation_parts'], fontsize=font_size, ha='center',va='center')
+        for star in self.named_stars:
+            # The star index is a string
+            plot_label(ax, label = self.names[star], indexes = int(star), fontsize='s', color=self.colors['star_labels'], ha='center',va='bottom')
 
-
-    if self.flags['SIS_SCRIPT']:  
-        # Create a script to plot interactive labels in Inkscape, to manually adjust their positions                
+    if self.flags['SIS_SCRIPT']:
+        # Create a script to plot interactive labels in Inkscape, to manually adjust their positions
         # To make the position consistent with different settings of Inkscape, 
-        # the coordinates are fractions of the card self.width and self.height, starting from top left
+        # the coordinates are fractions of the canvas width and height, starting from top left
 
         def write_sis(file, label, indexes, color, fontsize):
-            # The newline character does not work in inkscape. The label is divided in two
-            labels = label.split('\n')
-        
-            for label in labels:
-                label_x = np.mean(stars_x[indexes])
-                label_y = np.mean(stars_y[indexes])
+        # The newline character does not work in inkscape. The label must be fixed by hand
+            label = label.replace('\n', ' ')
+            label_x = np.mean(self.stars_x[indexes])
+            label_y = np.mean(self.stars_y[indexes])
+            if (label_x**2+label_y**2) < map_radius**2:
                 # Relative position of the labels w.r.t the image, from top left
-                label_x, label_y = 0.5 + label_x/(2*self.width), 0.5 - label_y/(2*self.height)
-                s = f"text('{label}', ({label_x:.2f}*canvas.self.width, {label_y:.2f}*canvas.self.height), font_size='{fontsize}pt', " \
-                    f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(color)}')\n"
-                file.write(s)         
+                label_x, label_y = 0.5 + label_x/(2*0.99*figsize), 0.5 - label_y/(2*0.99*figsize)
+                s = f'text("{label}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), '\
+                    f'font_size="{font_sizes[fontsize]}pt", text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(color)}")\n'
+                file.write(s)
 
         dir = 'inkscape_scripts'    # Folder of the scripts
         if not os.path.exists(dir):
             os.mkdir(dir)
-        with open(f'{dir}/labels_{id}.py', 'w') as f:
 
-            f.write('# Named stars labels\n')
-            # Plot star labels
-            if self.flags['STAR_NAMES']:
-                for star in self.cons[id]['stars']:
-                    if str(star) in self.names:
-                        write_sis(f, self.names[str(star)], star, color=self.colors['star_labels'], fontsize = 10)
-                
-            f.write('\n# Constellation parts labels\n')
-            # Plot constellation parts
+        # Convert the save file from png to py
+        file_name = save_name.replace('.png', '.py')
+
+        with open(f'{dir}/{file_name}', 'w') as f:
+        #Plot constellation labels
+            if self.flags['CON_NAMES']:
+                f.write('# Constellation names \n')
+                for id in self.con_ids:
+                    write_sis(f, self.names[id], self.cons[id]['stars'], color=self.colors['constellation_labels'], fontsize = 'l')      
+
+            # Plot constellation parts labels
             if self.flags['CON_PARTS']:
-                for key in [key for key in self.cons.keys() if key.startswith(f'.{id}')]:
-                    write_sis(f, self.names[key], self.cons[key]['stars'], fontsize=font_size, color=self.colors['constellation_parts'])
+                f.write('\n# Constellation parts labels\n')
+                for id in [id for id in self.cons.keys() if id.startswith('.')]:
+                    write_sis(f, self.names[id], self.cons[id]['stars'], fontsize='s', color=self.colors['constellation_parts'])
 
-            if self.flags['CON_LINES']:
-                f.write('\n# Ecliptic label\n')
-                # Add a label close to the ecliptic if it is inside the constellation
-                mask = ((ecliptic_x > -self.width) & (ecliptic_x < self.width) & (ecliptic_y > -self.height) & (ecliptic_y < self.height)).tolist()
-                
-                if np.any(mask):
-                    label_x = np.mean(ecliptic_x[mask])/(2*self.width) + 0.5
-                    label_y = - np.mean(ecliptic_y[mask])/(2*self.height) + 0.5
-                    s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.self.width, {label_y:.2f}*canvas.self.height), font_size='{font_size}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
-                    f.write(s)
+            #Plot asterisms labels
+            if self.flags['ASTERISMS'] :            
+                for id in self.asterisms.keys():
+                    write_sis(f, label = self.names[id], indexes = self.asterisms[id]['lines'][0], fontsize='l', color=self.colors['asterism_labels'])            
 
-    if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:            
-        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
+            # Plot named stars labels  
+            if self.flags['STAR_NAMES']: 
+                f.write('\n# Named stars labels\n')
+                for star in self.named_stars:
+                    write_sis(f, self.names[star], int(star), color=self.colors['star_labels'], fontsize = 's')
+
+            # Plot ecliptic label (always present)
+            f.write('\n# Ecliptic label\n')
+            # Write the label at the lowest point of the visible ecliptic
+            mask = (self.ecliptic_y**2 + self.ecliptic_x**2 < map_radius**2)
+
+            if np.any(mask)>0:	# if there is at least one point visible
+                index = np.argmin(self.ecliptic_y[mask])
+                label_x, label_y = 0.5 - self.ecliptic_x[index]/(2*map_radius), 0.5 - self.ecliptic_y[index]/(2*map_radius)
+                s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                    f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
+                f.write(s)
+
+
+    # Save the image with all the labels
+    if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
+        plt.savefig(save_name, transparent=True, dpi=self.dpi, pad_inches=0)
 
     if self.flags['SHOW']:
         plt.show()

@@ -48,8 +48,9 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 		pole_name = 'North' if pole == 'N' else 'South' if pole == 'S' else ''
 		save_name = f'{pole_name}_polar_map.png'
 
-	# Scale the star sizes and the text labels based on the card area
-	scale = (figsize/8)
+	# Scale the star sizes and the text labels based on the plot area and the FOV
+	scale = (figsize/8)*(stereo_radius(100)/stereo_radius(FOV))**0.25
+
 	font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
 
 	marker_size = star_size * scale**2
@@ -93,10 +94,7 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 	self.stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
 	# Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
-	self.not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
-
-	# No constellation is highlighted
-	self.highlight = []
+	self.not_outside = lambda segment: not np.all(self.stars_x[segment]**2+self.stars_y[segment]**2>map_radius**2) 
 
 	# Plot the map using the shared function
 	plot_map(self, ax)
@@ -173,8 +171,8 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 	# Function to plot a label at the mean x and y positions
 	def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
 		'''Take the mean x and y and plot a label there'''
-		label_x = np.mean(stars_x[indexes])
-		label_y = np.mean(stars_y[indexes])
+		label_x = np.mean(self.stars_x[indexes])
+		label_y = np.mean(self.stars_y[indexes])
 		if (label_x**2+label_y**2) < map_radius**2:   # Stay inside the plot
 			ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
 
@@ -207,8 +205,8 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 		def write_sis(file, label, indexes, color, fontsize):
 		# The newline character does not work in inkscape. The label must be fixed by hand
 			label = label.replace('\n', ' ')
-			label_x = np.mean(stars_x[indexes])
-			label_y = np.mean(stars_y[indexes])
+			label_x = np.mean(self.stars_x[indexes])
+			label_y = np.mean(self.stars_y[indexes])
 			if (label_x**2+label_y**2) < map_radius**2:
 				# Relative position of the labels w.r.t the image, from top left
 				label_x, label_y = 0.5 + label_x/(2*0.99*figsize), 0.5 - label_y/(2*0.99*figsize)

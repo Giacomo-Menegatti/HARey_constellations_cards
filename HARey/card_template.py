@@ -107,7 +107,7 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
         # Circular plot for the quiz game
         self.height = 5
         self.width = 5
-        self.pad = 1.2 
+        self.pad = 0.2 
 
         self.box_style = 'circle, pad=0.0'
 

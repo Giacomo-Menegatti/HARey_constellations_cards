@@ -49,9 +49,6 @@ def plot_within_borders(self, borders, FOV, scale):
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
 	self.not_outside = lambda segment: not (np.any(self.stars_x[segment]<left_border) and np.any(self.stars_x[segment]>right_border)) 
 
-	# No constellation is highlighted
-	self.highlight = []
-
 	plot_map(self, ax)
 
 	# Compute the labels positions
