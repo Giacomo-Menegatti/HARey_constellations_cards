@@ -64,10 +64,6 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
     marker_size = star_size*scale
     font_size = round(np.sqrt(scale)*font_size)
 
-    # set marker sizes and line widths
-    self.star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
-    self.line_w = marker_size * 0.0055
-
     #Get the custom markers
     empty_marker = self.markers['empty']
     north_marker = self.markers['north']
@@ -83,8 +79,8 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
 
     # Scale the coordinates
     scale = height/y_span        
-    self.stars_x, self.stars_y = stars_x*scale, stars_y*scale
-    self.ecliptic_x, self.ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
+    stars_x, stars_y = stars_x*scale, stars_y*scale
+    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
     ax.set_xlim(-width,width)
     ax.set_ylim(-height,height)
@@ -96,21 +92,22 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
     box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
 
     # Apply the card template as a mask to round the corners
-    self.box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
+    box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
                         fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
     
-    ax.add_patch(self.box)
+    ax.add_patch(box)
 
     # Condition for plotting lines to avoid crossing the plot.
     if self.box_style == 'circle, pad=0.0':
         # If the map is clipped to a circle, stars in the clipped regions could still be connected
-        self.not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2 > height**2) 
+        not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2 > height**2) 
     else: 
         # In the other cases, check if at least a point is inside the borders
-        self.not_outside = lambda segment: np.any(np.logical_and(stars_x[segment]>-width, stars_x[segment]<width)) and np.any(np.logical_and(stars_y[segment]>-height, stars_y[segment]<height))
+        not_outside = lambda segment: np.any(np.logical_and(stars_x[segment]>-width, stars_x[segment]<width)) and np.any(np.logical_and(stars_y[segment]>-height, stars_y[segment]<height))
 
     # Plot the map using the shared plot_map function
-    plot_map(self, ax, con_highlight=[id])
+    plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
+             marker_size=marker_size, not_outside=not_outside, con_highlight=[id])
 
     #Plot the North indicator as last thing
     if BEST_AR: 
@@ -143,7 +140,7 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
         ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=12, color=self.colors['cardinal_markers'], markeredgewidth=0)
 
     for col in ax.collections:
-        col.set_clip_path(self.box)
+        col.set_clip_path(box)
 
     if self.flags['SIS_SCRIPT']:  # Save the iamge bfore adding labels
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
@@ -151,8 +148,8 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
     # Function to plot a label at the mean x and y positions
     def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
         """Take the mean x and y and plot a label there."""
-        label_x = np.mean(self.stars_x[indexes])
-        label_y = np.mean(self.stars_y[indexes])
+        label_x = np.mean(stars_x[indexes])
+        label_y = np.mean(stars_y[indexes])
         ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=label_font,  ha = ha, va = va) 
 
 

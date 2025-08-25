@@ -14,7 +14,7 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     
     Arguments:
         id : Constellation ID (e.g. 'Ori' for Orion).
-        save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
+        save_name : Name of the file to save the plot. If specified, sets flags['SAVE'] to True.
         star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
         font_size : Size of the labels in the plot. It is relative to the card area.
     """ 
@@ -53,8 +53,6 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
 
     marker_size = star_size * scale**2
-    self.star_sizes = marker_size * mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
-    self.line_w = marker_size * 0.01
 
     # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
     self.star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
@@ -65,8 +63,8 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     scale = 0.99*figsize/map_radius
     map_radius = map_radius*scale
 
-    self.stars_x, self.stars_y = stars_x*scale, stars_y*scale
-    self.ecliptic_x, self.ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
+    stars_x, stars_y = stars_x*scale, stars_y*scale
+    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
    	# Put the border a little outside of the plot to avoid clipping the figure
     ax.set_xlim(-figsize,figsize)
@@ -77,20 +75,22 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     self.highlight = cons_list
 
     # Draw the circle patch
-    self.box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
-    ax.add_patch(self.box)
+    box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
+    ax.add_patch(box)
 
     # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
-    self.not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
+    not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
 
     # Plot the map using the shared plot_map function
     if ASTERISM:
-        plot_map(self, ax, con_highlight=cons_list, asterism_highlight=[id])
+        plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
+             marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, asterism_highlight=[id])
     else:
-        plot_map(self, ax, con_highlight=cons_list, helper_highlight=[id])
+        plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
+             marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, helper_highlight=[id])
 
     for col in ax.collections:
-        col.set_clip_path(self.box)
+        col.set_clip_path(box)
 
     if self.flags['SIS_SCRIPT']:
         # Save the image before adding the labels
@@ -99,8 +99,8 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     # Function to plot a label at the mean x and y positions
     def plot_label(ax, label, indexes, color, fontsize, ha='center', va = 'center'):
         '''Take the mean x and y and plot a label there'''
-        label_x = np.mean(self.stars_x[indexes])
-        label_y = np.mean(self.stars_y[indexes])
+        label_x = np.mean(stars_x[indexes])
+        label_y = np.mean(stars_y[indexes])
         if (label_x**2+label_y**2) < map_radius**2:   # Stay inside the plot
             ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font = self.fonts['labels']) 
 
@@ -133,8 +133,8 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
         def write_sis(file, label, indexes, color, fontsize):
         # The newline character does not work in inkscape. The label must be fixed by hand
             label = label.replace('\n', ' ')
-            label_x = np.mean(self.stars_x[indexes])
-            label_y = np.mean(self.stars_y[indexes])
+            label_x = np.mean(stars_x[indexes])
+            label_y = np.mean(stars_y[indexes])
             if (label_x**2+label_y**2) < map_radius**2:
                 # Relative position of the labels w.r.t the image, from top left
                 label_x, label_y = 0.5 + label_x/(2*0.99*figsize), 0.5 - label_y/(2*0.99*figsize)
@@ -176,11 +176,11 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
             # Plot ecliptic label (always present)
             f.write('\n# Ecliptic label\n')
             # Write the label at the lowest point of the visible ecliptic
-            mask = (self.ecliptic_y**2 + self.ecliptic_x**2 < map_radius**2)
+            mask = (ecliptic_y**2 + ecliptic_x**2 < map_radius**2)
 
             if np.any(mask)>0:	# if there is at least one point visible
-                index = np.argmin(self.ecliptic_y[mask])
-                label_x, label_y = 0.5 - self.ecliptic_x[index]/(2*map_radius), 0.5 - self.ecliptic_y[index]/(2*map_radius)
+                index = np.argmin(ecliptic_y[mask])
+                label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
                 s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
                     f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
                 f.write(s)

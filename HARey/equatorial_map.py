@@ -10,7 +10,7 @@ from HARey.astro_projection import ecliptic2radec, Gall_projection, Gall_dims, G
 from HARey.plot_map import plot_map
 
 
-def plot_within_borders(self, borders, FOV, scale):
+def plot_within_borders(self, borders, FOV, scale, marker_size):
 	'''Plot the sky near the equator between the borders (in degrees) and with vertical height [-FOV, FOV],
 		and return the image generated.
 		The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
@@ -24,14 +24,14 @@ def plot_within_borders(self, borders, FOV, scale):
 	
 	# Project the stars positions and the ecliptic points
 	stars_x, stars_y = Gall_projection(self.stars['ra'], self.stars['dec'])
-	self.stars_x, self.stars_y = scale * stars_x, scale * stars_y
+	stars_x, stars_y = scale * stars_x, scale * stars_y
 	
 	ecliptic_x , ecliptic_y = Gall_projection(self.ecliptic_ra, self.ecliptic_dec)
 	ecliptic_x, ecliptic_y = scale * ecliptic_x, scale * ecliptic_y
 
 	# Mask the ecliptic to avoid crossing the plot
 	mask = (ecliptic_x >= left_border) & (ecliptic_x <= right_border)
-	self.ecliptic_x, self.ecliptic_y = ecliptic_x[mask], ecliptic_y[mask]
+	ecliptic_x, ecliptic_y = ecliptic_x[mask], ecliptic_y[mask]
 
 	# Create figure and axes
 	fig,ax = plt.subplots(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
@@ -43,18 +43,19 @@ def plot_within_borders(self, borders, FOV, scale):
 	ax.set_axis_off()
 	ax.invert_xaxis()
 
-	self.box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
-	ax.add_patch(self.box)
+	box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
+	ax.add_patch(box)
 
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
-	self.not_outside = lambda segment: not (np.any(self.stars_x[segment]<left_border) and np.any(self.stars_x[segment]>right_border)) 
+	not_outside = lambda segment: not (np.any(stars_x[segment]<left_border) and np.any(stars_x[segment]>right_border)) 
 
-	plot_map(self, ax)
+	plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
+             marker_size=marker_size, not_outside=not_outside)
 
 	# Compute the labels positions
 	def compute_label_pos(id, indexes):
-		label_x = np.mean(self.stars_x[indexes])
-		label_y = np.mean(self.stars_y[indexes])
+		label_x = np.mean(stars_x[indexes])
+		label_y = np.mean(stars_y[indexes])
 		if (label_x > left_border and label_x < right_border and label_y > -height/2 and label_y < height/2):
 			self.labels_pos[id] = (label_x/scale, label_y/scale)
 	
@@ -81,7 +82,7 @@ def plot_within_borders(self, borders, FOV, scale):
 	
 	#Restrict everything to the bounding box
 	for col in ax.collections:
-		col.set_clip_path(self.box)
+		col.set_clip_path(box)
 
 	#Instead of showing the plot, save the partial map as image
 	with io.BytesIO() as buff:
@@ -126,13 +127,9 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 	text_scale = map_width/11 # Scale the text depending on the width of the plot, w.r.t the default 11 in (A4 size)
 
 	marker_size = star_size * scale**2
-	self.star_sizes = marker_size * mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
-	self.line_w = marker_size * 0.0075
+	line_w = marker_size * 0.0075
 
 	font_sizes = {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
-
-	# If the HAREY option is selected, use the custom star markers, else use simple dots
-	self.star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
 
 	# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 	# i.e., a label around the origin is plotted near the mean value in the center of the plot
@@ -144,16 +141,16 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 
 	half_overlap = overlap/2
 
-	# Computhe the ecliptic coordinates
+	# Compute the ecliptic coordinates
 	self.ecliptic_ra, self.ecliptic_dec = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
-
-	self.stars['ra'] = self.stars['ra']%360	# Angle coordinates from 0 to 360
-	self.ecliptic_ra = self.ecliptic_ra%360
-	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale)
 
 	self.stars['ra'] = (self.stars['ra']+180)%360 -180 # Angles from -180 to 180
 	self.ecliptic_ra = (self.ecliptic_ra+180)%360 -180
-	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale)
+	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size)
+
+	self.stars['ra'] = self.stars['ra']%360	# Angle coordinates from 0 to 360
+	self.ecliptic_ra = self.ecliptic_ra%360
+	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size)
 
 	# Join the images and plot it
 	map = np.concatenate((border, center, border), axis=1)
@@ -170,11 +167,11 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 		# Plot the RA grid
 		for ra in np.arange(25):
 			x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
-			ax.axvline(x, height, 0, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*self.line_w)
+			ax.axvline(x, height, 0, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 			ax.text(x, height, s=f'{ra} h', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		# Plot the 0 dec line
-		ax.axhline(height/2, 0, width, color=self.colors['grid'], linestyle='solid', linewidth=0.8*self.line_w)
+		ax.axhline(height/2, 0, width, color=self.colors['grid'], linestyle='solid', linewidth=0.8*line_w)
 		ax.text(0, height/2, s=f'  {0}° N  ', color=self.colors['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 		#ax.text(width, height/2, s=f'  {0}° N  ', color=self.colors['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
@@ -183,13 +180,13 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 		for dec in np.arange(10, 75, 10):
 			# Plot the north grid lines
 			y_n = height/2 - Gall_vertical(dec)*y_scale	
-			ax.axhline(y_n, 0, width, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*self.line_w)
+			ax.axhline(y_n, 0, width, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 			ax.text(0, y_n, s=f'  {dec}° N  ', color=self.colors['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			#ax.text(width, y_n, s=f'  {dec}° N  ', color=self.colors['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 			# Plot the south grid lines
 			y_s = height/2 + Gall_vertical(dec)*y_scale
-			ax.axhline(y_s, 0, width, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*self.line_w)
+			ax.axhline(y_s, 0, width, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
 			ax.text(0, y_s, s=f'  {dec}° S  ', color=self.colors['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=self.fonts['labels'])
 

@@ -12,10 +12,10 @@ from HARey.plot_map import plot_map
 
 '''This module contains the function to plot the sky view of the stars visible at a given time and place'''
 
-def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, figsize = 8, font_sizes=(5,7)):
+def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, figsize = 8, font_sizes=(6,7)):
 
     '''Plot an Alt-Az map of the stars seen by the observer at the given date and time
-            FOV is the filed of view of the sky (190° includes more stars than the ones visible). 
+            FOV is the filed of view of the sky (182° includes more stars than the ones visible). 
             The parameters are:
             - observer: an Observer object with the position and time of observation
             - FOV: the field of view of the sky (in degrees)
@@ -44,11 +44,6 @@ def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, f
     font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
 
     marker_size = star_size * scale**2
-    self.star_sizes = marker_size * mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
-    self.line_w = marker_size * 0.0075
-
-    # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-    self.star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
 
     #Get the custom markers        
     empty_marker = self.markers['empty']
@@ -62,8 +57,8 @@ def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, f
     r_scale = inner_radius/max_radius
 
     #Draw the sky map
-    self.box = Circle((0, 0), inner_radius, color=self.colors['sky'], fill=True)
-    ax.add_patch(self.box)
+    box = Circle((0, 0), inner_radius, color=self.colors['sky'], fill=True)
+    ax.add_patch(box)
 
     # Horizon circle
     horizon_line = Circle((0,0), radius=stereo_radius(180)*r_scale, linestyle='--', color=self.colors['horizon'], fill=False)
@@ -72,7 +67,7 @@ def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, f
     #Draw ecliptic
     ecliptic_radec = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
     ecliptic_alt, ecliptic_az = radec2altaz(*ecliptic_radec, observer)
-    self.ecliptic_x, self.ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)   
+    ecliptic_x, ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)   
 
 
     # Compute the Alt-Az coordinates of the stars
@@ -81,15 +76,16 @@ def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, f
     stars_x, stars_y = stars_x*r_scale, stars_y*r_scale   
 
     # Convert the values to  Pandas series by adding the index
-    self.stars_x = pd.Series(data = stars_x, index=self.stars.index)
-    self.stars_y = pd.Series(data = stars_y, index=self.stars.index)
+    stars_x = pd.Series(data = stars_x, index=self.stars.index)
+    stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
     # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the inner radius
 
-    self.not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>inner_radius**2) 
+    not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>inner_radius**2) 
 
     # Plot the map using the shared function
-    plot_map(self, ax)
+    plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
+             marker_size=marker_size, not_outside=not_outside)
     
 
     #Plot the compass ring   
@@ -97,7 +93,7 @@ def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, f
     ax.add_patch(compass)
 
     for col in ax.collections:
-        col.set_clip_path(self.box)
+        col.set_clip_path(box)
 
     #Plot the markers inside the compass ring
     m_radius = 0.97
@@ -199,9 +195,9 @@ def plot_sky_view(self, observer,  FOV = 182, save_name=None, star_size = 100, f
             # Plot ecliptic label (always present)
             f.write('\n# Ecliptic label\n')
             # Write the label at the lowest point of the visible ecliptic
-            mask = (self.ecliptic_y**2 + self.ecliptic_x**2 < inner_radius**2)
-            index = np.argmin(self.ecliptic_y[mask])
-            label_x, label_y = 0.5 - self.ecliptic_x[index]/(2*map_radius), 0.5 - self.ecliptic_y[index]/(2*map_radius)
+            mask = (ecliptic_y**2 + ecliptic_x**2 < inner_radius**2)
+            index = np.argmin(ecliptic_y[mask])
+            label_x, label_y = 0.5 - ecliptic_x[index]/(2*map_radius), 0.5 - ecliptic_y[index]/(2*map_radius)
             s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
                 f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.colors["ecliptic_label"])}")\n'
             f.write(s)
