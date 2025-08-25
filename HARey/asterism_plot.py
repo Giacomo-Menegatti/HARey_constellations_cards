@@ -51,11 +51,7 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     scale =(figsize/8)*(stereo_radius(100)/map_radius)**0.25
 
     font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
-
     marker_size = star_size * scale**2
-
-    # If the HAREY plot option is enables use the custom star markers, otherwise use simple dots
-    self.star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
 
     fig,ax = plt.subplots(figsize = (figsize, figsize), dpi=self.dpi) #figure with correct aspect ratio
     fig.subplots_adjust(0,0,1,1)
@@ -71,8 +67,6 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     ax.set_ylim(-figsize,figsize)
     ax.set_axis_off()
 
-    # make the constellation more evident in the plot
-    self.highlight = cons_list
 
     # Draw the circle patch
     box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
