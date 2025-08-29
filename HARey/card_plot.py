@@ -1,29 +1,33 @@
 """
-CARD PLOT.
-
-This module contains the class CardPlot, which is used to plot the constellation cards.
+CARD PLOT MODULE
+This module contains the function plot_card, which is used to plot a constellation inside a card template
 """
+
+
 import numpy as np
+import os
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
-import os
 
-from HARey.astro_projection import mag2size, project_region
+from HARey.astro_projection import project_region
 from HARey.plot_map import plot_map
 
 
-def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_size=10):
+def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font_size = 10):
     """
-    Plot the constellation card inside the card template.
+    Plot the constellation card inside the card template.    
+	Font and star sizes are relative to the card area and FOV, so that the plot looks similar with different FOVs and templates.
     
     Arguments:
-        id : Constellation ID (e.g. 'Ori' for Orion).
-        save_name : Name of the file to save the plot. If specified, sets self.flags['SAVE'] to True.
-        star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
-        font_size : Size of the labels in the plot. It is relative to the card area.
+        - id (str): Constellation ID (e.g. 'Ori' for Orion).
+        - BEST_AR (bool): If True, rotate the constellation to better fit inside the card. Otherwise, plot with North side up
+        - save_name (str): Name of the file to save the plot. If None, saves as 'id_lines.png' or 'id_bare.png'
+        - star_size (float): Relative size of the stars in the plot.
+        - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
 
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
@@ -35,41 +39,38 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
         save_name = f'{id}_{'lines' if self.flags['CON_LINES'] else 'bare'}.png'
 
     # Project the sky around the constellation
-    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, id, BEST_AR=BEST_AR)
-       
+    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, id, BEST_AR=BEST_AR)     
 
-
-    # If the plot is in a circle, computhe the radius on the corner of the plot
+    # Get the plot dimensions
     if self.box_style == 'circle, pad=0.0':
+        # If the plot is in a circle, compute the radius on the corner of the plot
         map_radius = np.sqrt(x_span**2 + y_span**2)
         x_span = (1 + 2 * (self.pad + self.bleed)/self.height)*map_radius
         y_span = x_span
-
     else:
         #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
         #Also, if self.bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
         if (x_span/y_span < self.AR_plot):
-            # If the card is thinner than the plot area, add pad around y and enlarge the x span to fit the whole card
+            # If the constellation is thinner than the plot area, pad y and enlarge the x span to fit the whole card
             y_span = (1 + 2 * (self.pad + self.bleed) /self.height) * y_span
             x_span = y_span*self.AR_card
         else:
-            # If the card is thicker, add pad around x and enlarge the y span to fit the whole card
+            # If the constellation is thicker, pad x and enlarge the y span to fit the whole card
             x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
             y_span = x_span/self.AR_card
 
     # Scale the star sizes and the text labels based on the card area and the region of sky plotted
-    scale = self.width*self.height/(2.75*4.75)      # Scale w.r.t the standard card (tarot)
-    scale = scale*np.sqrt(0.01/(x_span*y_span))            # Scale w.r.t the area of sky plotted
+    marker_scale = self.width*self.height/(2.75*4.75)      # Scale w.r.t the standard card (tarot)
+    marker_scale = marker_scale*np.sqrt(0.01/(x_span*y_span))     # Scale w.r.t the area of sky plotted
 
-    marker_size = star_size*scale
-    font_size = round(np.sqrt(scale)*font_size)
+    marker_size = star_size*marker_scale
+    font_size = round(np.sqrt(marker_scale)*font_size)
 
     #Get the custom markers
     empty_marker = self.markers['empty']
     north_marker = self.markers['north']
 
-    label_font = self.fonts['labels']
-
+    # Create the figure
     fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
     fig.subplots_adjust(0,0,1,1)
 
@@ -77,25 +78,26 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
     height = self.height/2 + self.bleed
     width = self.width/2 + self.bleed
 
-    # Scale the coordinates
-    scale = height/y_span        
-    stars_x, stars_y = stars_x*scale, stars_y*scale
-    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
-
+    # Set ax limits
     ax.set_xlim(-width,width)
     ax.set_ylim(-height,height)
     ax.set_aspect('equal')
     ax.set_axis_off()
 
+    # Scale the coordinates
+    scale = height/y_span        
     
     # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
     box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
 
-    # Apply the card template as a mask to round the corners
+    # Apply the card template patch
     box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
-                        fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
-    
+                        fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)    
     ax.add_patch(box)
+
+    # Rescale the ecliptic and star positions
+    stars_x, stars_y = stars_x*scale, stars_y*scale
+    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
     # Condition for plotting lines to avoid crossing the plot.
     if self.box_style == 'circle, pad=0.0':
@@ -139,6 +141,7 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
         ax.plot(x,y, marker=MarkerStyle(empty_marker, transform=t), markersize=11, color='white', markeredgewidth=0)
         ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=12, color=self.colors['cardinal_markers'], markeredgewidth=0)
 
+    # Clip everything to the box plot
     for col in ax.collections:
         col.set_clip_path(box)
 
@@ -150,7 +153,7 @@ def plot_card(self, id, BEST_AR=False, save_name=None, star_size = 200, font_siz
         """Take the mean x and y and plot a label there."""
         label_x = np.mean(stars_x[indexes])
         label_y = np.mean(stars_y[indexes])
-        ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=label_font,  ha = ha, va = va) 
+        ax.text(label_x, label_y, label, color=color, fontsize=fontsize, font=self.fonts['labels'],  ha = ha, va = va) 
 
 
     if self.flags['STAR_NAMES']:

@@ -1,22 +1,31 @@
+"""
+ASTERISM PLOT MODULE
+This module contains the function plot_asterism, which is used to plot asterisms and helper rays.
+"""
+
+
 import numpy as np
+import os
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.colors import to_hex
-import os
 
-from HARey.astro_projection import mag2size, project_region
+from HARey.astro_projection import project_region
 from HARey.plot_map import plot_map
 from HARey.polar_map import stereo_radius
 
-def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, star_size = 100):
+def plot_asterism(self, id, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7)):
     """
-    Plot the asterism or the helper ray.
+    Plot the asterism or the helper ray, highlighting the constellations involved.
+	Font and star sizes are relative to the map area and FOV, so that the plot looks similar with different FOVs and figure sizes.
     
     Arguments:
-        id : Constellation ID (e.g. 'Ori' for Orion).
-        save_name : Name of the file to save the plot. If specified, sets flags['SAVE'] to True.
-        star_size : Relative size of the stars in the plot. It is relative to the card area, so text appears the same with different cards
-        font_size : Size of the labels in the plot. It is relative to the card area.
+        - id (str): Asterism ID (e.g. 'BigD' for the Big Dipper) or Helper Ray ID (e.g. 'HR01').
+        - figsize (float): the diameter of the figure (in inches). Default is 8 inches.
+        - save_name (str): Name of the file to save the plot. If None, saves as 'ID_asterism.png' or 'ID_helper.png'.
+        - star_size (float): the relative size of the stars in the plot.
+		- font_sizes (float, float): the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterisms)		
     """ 
 
     # Check if the id is of an asterism or a helper ray (which starts with HR)
@@ -42,35 +51,40 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
     if self.flags['SAVE'] and save_name==None:
         save_name = f'{id}_{'asterism' if ASTERISM else 'helper'}.png'
 
-    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, cons_list)
+    # Project the region of sky including the constellations part of the asterism or helper ray
+    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), _ = project_region(self, cons_list)
 
     # Get the map radius
     map_radius = np.sqrt(x_span**2 + y_span**2) 
 
   	# Scale the star sizes and the text labels based on the plot area and the map radius
-    scale =(figsize/8)*(stereo_radius(100)/map_radius)**0.25
+    marker_scale =(figsize/8)*(stereo_radius(100)/map_radius)**0.25
 
-    font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
-    marker_size = star_size * scale**2
+    font_sizes = {k:marker_scale*size for k,size in zip(('s', 'l'), font_sizes)}
+    marker_size = star_size * marker_scale**2  
 
+    # Create the figure
     fig,ax = plt.subplots(figsize = (figsize, figsize), dpi=self.dpi) #figure with correct aspect ratio
     fig.subplots_adjust(0,0,1,1)
-      
-    scale = 0.99*figsize/map_radius
-    map_radius = map_radius*scale
 
-    stars_x, stars_y = stars_x*scale, stars_y*scale
-    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
-
-   	# Put the border a little outside of the plot to avoid clipping the figure
+   	# Set ax limits
     ax.set_xlim(-figsize,figsize)
     ax.set_ylim(-figsize,figsize)
-    ax.set_axis_off()
+    ax.set_axis_off()    
 
+    # Scale the coordinates
+
+    # Restrict the plotting area a bit to avoid clipping the circle near the borders
+    scale = 0.99*figsize/map_radius
+    map_radius = map_radius*scale
 
     # Draw the circle patch
     box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
     ax.add_patch(box)
+
+    # Rescale the ecliptic and star positions
+    stars_x, stars_y = stars_x*scale, stars_y*scale
+    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
     # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
     not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
@@ -83,6 +97,7 @@ def asterism_plot(self, id, figsize = 8, font_sizes=(5,7), save_name = None, sta
         plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
              marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, helper_highlight=[id])
 
+	# Clip everything to the box plot
     for col in ax.collections:
         col.set_clip_path(box)
 

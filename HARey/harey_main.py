@@ -9,7 +9,7 @@ from HARey.sky_view import plot_sky_view
 from HARey.polar_map import polar_map
 from HARey.equatorial_map import equatorial_map
 from HARey.card_plot import plot_card
-from HARey.asterism_plot import asterism_plot
+from HARey.asterism_plot import plot_asterism
 from HARey.print_and_play import print_card_set, print_and_play
 
 from HARey.astro_projection import Observer, is_visible, mag2size
@@ -53,7 +53,7 @@ class HAReyMain(StarColorMap):
     plot_card = plot_card
 
     # Recast asterism_plot methods as methods of HAReyMain
-    asterism_plot = asterism_plot
+    plot_asterism = plot_asterism
 
     # Recast sky_view methods as methods of HAReyMain
     plot_sky_view = plot_sky_view

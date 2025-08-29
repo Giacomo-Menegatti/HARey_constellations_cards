@@ -1,3 +1,10 @@
+"""
+POLAR MAP MODULE
+This module contains the function polar_map, which is used to create a map of the sky around the poles, 
+using either a stereographic or an azimuthal projection.
+"""
+
+
 import numpy as np
 import os
 import pandas as pd
@@ -7,38 +14,44 @@ from matplotlib.patches import Circle, PathPatch
 from matplotlib.textpath import TextPath
 from matplotlib.transforms import Affine2D
 from matplotlib.colors import to_hex
+
 from datetime import datetime
 from calendar import monthrange
 
-from HARey.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius, mag2size
+from HARey.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius
 from HARey.plot_map import plot_map
 
-def place_text(text, ax, xy, angle, font_size, font_prop):
-	'''Quick and dirty fix to align the rotated text correctly'''
+def _place_text(text, ax, xy, angle, font_size, font_prop):
+	"""Quick and dirty fix to align the rotated text correctly"""
+	# Create the text path and center it
 	text_path = TextPath((0, 0), text, size=font_size, prop=font_prop)
 	bb = text_path.get_extents()
 	text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
 	x, y = xy
-	# Rotate and move the path to its position
 
+	# Rotate and move the path to its position
 	trans = (Affine2D().rotate(angle).translate(x, y))
 	patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
 	ax.add_patch(patch)
 
-def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_name = None, star_size=100, mode='stereo', ADD_CALENDAR=False, MARK_CENTER=False):
-	"""Plot a stereographic map of the stars near the poles.
+
+def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7), mode='stereo', _ADD_CALENDAR=False, _MARK_CENTER=False):
+	"""
+	Plot a stereographic map of the stars near the celestial poles. Uses either a stereographic or an azimuthal projection:
+	the first preserves shapes but enlarges further objects more, the second distorts shapes but prevents extreme enlargements.
+	Font and star sizes are relative to the map area and FOV, so that the plot looks similar with different FOVs and figure sizes.
 
 	Arguments:
-		- pole ('N' or 'S'): the pole of the sky around which the sky is plotted
-		- FOV (float): the total field of view (in degrees). Default is 100 degrees
-		- figsize (float): the diameter of the figure (in inches)
-		- font_sizes (float, float): the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterism)
-		- star_size (float): the relative size of the stars in the plot
-		- save_name (str): the name of the file in which the plot is saved. If None, saves as 'Sky_view.png'
-		- mode ('stereo' or 'azimuth') : the type of projection, either stereographic or azimutal. Stereographic projection (default) preserves shapes, 
-		azimuthal limits the enlargement of constellations further from the pole
-	
+		- pole ('N' or 'S'): the pole of the sky to plot, either North or South. Default is 'N'.
+		- FOV (float): the total field of view of the map in degrees. Default is 100 degrees.
+		- figsize (float): the diameter of the figure (in inches). Default is 8 inches
+		- save_name (str): the name of the file in which the plot is saved. If None, saves as 'N_polar_map.png'
+		- star_size (float): the relative size of the stars in the plot.
+		- font_sizes (float, float): the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterisms)		
+		- mode ('stereo' or 'azimuth') : the type of projection, either stereographic or azimutal.	
+		- _ADD_CALENDAR and _MARK_CENTER: Add a the calendar ring around the map and mark the position of the pole. Used to make planispheres.
 	"""
+
 	# If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
 	if not save_name == None or self.flags['SIS_SCRIPT']:
 		self.flags['SAVE'] = True
@@ -49,33 +62,35 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 		save_name = f'{pole_name}_polar_map.png'
 
 	# Scale the star sizes and the text labels based on the plot area and the FOV
-	scale = (figsize/8)*(stereo_radius(100)/stereo_radius(FOV))**0.25
+	marker_scale = (figsize/8)*(stereo_radius(100)/stereo_radius(FOV))**0.25
 
-	font_sizes = {k:scale*size for k,size in zip(('s', 'l'), font_sizes)}
-
-	marker_size = star_size * scale**2	
+	font_sizes = {k:marker_scale*size for k,size in zip(('s', 'l'), font_sizes)}
+	marker_size = star_size * marker_scale**2	
 	line_w = marker_size * 0.0075	
 
-	# Create figure and circular patch
-	fig = plt.figure(figsize=(figsize, figsize), dpi=self.dpi)
-	ax = fig.add_subplot(111, aspect='equal')
-	fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
-	
-	map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
+	# Create the figure
+	fig, ax = plt.subplots(figsize=(figsize, figsize), dpi=self.dpi)
+	fig.subplots_adjust(0,0,1,1)
 
-	# Restrict the plotting are a bit to avoid clipping the circle near the borders
-	scale = 0.85*figsize/map_radius if ADD_CALENDAR else 0.99*figsize/map_radius
-	
+	# Set ax limits
+	ax.set_xlim(-figsize,figsize)
+	ax.set_ylim(-figsize,figsize)
+	ax.set_axis_off()
+
+	# Scale the coordinates
+	map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
+	# Restrict the plotting area a bit to avoid clipping the circle near the borders
+	scale = 0.85*figsize/map_radius if _ADD_CALENDAR else 0.99*figsize/map_radius	
 	map_radius = scale*map_radius
 
-	# Draw the circle patch
+	# Add the circular patch
 	box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
 	ax.add_patch(box)
 	
 	# Depending on the value of the pole, invert the dec values
 	c = 1 if pole=='N' else -1 if pole=='S' else 0
 	
-	# Draw the ecliptic
+	# Compute the ecliptic positions
 	(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
 	ecliptic_x, ecliptic_y = azimuthal_polar(c*ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(c*ecliptic_ra, c*ecliptic_dec)	
 	ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
@@ -116,10 +131,10 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 		   		ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			ax.add_patch(grid_circle)
 
-	if ADD_CALENDAR:
+	if _ADD_CALENDAR:
 		# Add the calendar ring outside of the plot to use it in a planisphere
 		int_r, ext_r = 0.85*figsize, 0.99*figsize
-		spacing = (ext_r-int_r)/4
+		spacing = (ext_r-int_r)/3
 
 		for i in range(4):
 			ax.add_patch(Circle((0,0), int_r + i*spacing, fill=False, edgecolor='k', lw=0.5))
@@ -138,26 +153,21 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, font_sizes=(5,7), save_n
 				# Get the angle as a fraction of the whole year
 				angle = c*(datetime(2001, m, day).timetuple().tm_yday/365 - equinox_offest)
 				a = 2*np.pi*angle + np.pi
-				place_text(f'{day}', ax, (r_days*np.sin(a), r_days*np.cos(a)), -a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
+				_place_text(f'{day}', ax, (r_days*np.sin(a), r_days*np.cos(a)), -a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
 
 			# Plot the month label
 			angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
 			a = 2*np.pi*angle + np.pi
 			month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
-			place_text(month_name, ax, (r_months*np.sin(a), r_months*np.cos(a)), -a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
+			_place_text(month_name, ax, (r_months*np.sin(a), r_months*np.cos(a)), -a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
 
-	if MARK_CENTER:
+	if _MARK_CENTER:
 		# Add a marker at the center of the plot
 		ax.plot(0,0, '+', color=self.colors['grid'], markersize=3, lw=0)
 
-	# Clip everything and fix plot limits
+	# Clip everything to the box plot
 	for col in ax.collections:
 			col.set_clip_path(box)
-
-	# Put the border a little outside of the plot to avoid clipping the figure
-	ax.set_xlim(-figsize,figsize)
-	ax.set_ylim(-figsize,figsize)
-	ax.set_axis_off()
 
 	if self.flags['SIS_SCRIPT']:
 		# Save the image before adding the labels

@@ -259,7 +259,7 @@ def create_planisphere(self, lat, FOV=200, save_folder = None, figsize=8, mode='
     pole = lat[-1]
     name = 'North' if pole == 'N' else 'South'
     self.polar_map(pole, FOV, figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
-                    ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
+                    _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
 
 
 def create_planisphere_2sided(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth',

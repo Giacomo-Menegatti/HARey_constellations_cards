@@ -49,10 +49,11 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
                                 linestyle='dashed', linewidth=0.7*line_w)
                     plot_line.set_clip_path(box)
 
-    #Draw ecliptic            
-    ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.colors['ecliptic'], linestyle='dotted', \
-                            linewidth=1.5* line_w)
-    ecliptic.set_clip_path(box)  
+    #Draw ecliptic 
+    if self.flags['CON_LINES']:           
+        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.colors['ecliptic'], linestyle='dotted', \
+                                linewidth=1.5* line_w)
+        ecliptic.set_clip_path(box)  
 
     
     # Stars that are not in a constellation shape are represented with a dot
