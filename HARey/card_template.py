@@ -116,8 +116,8 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
     
     elif format == 'square':
         # Square format
-        self.height = 5
-        self.width = 5
+        self.height = 2.75
+        self.width = 2
         self.pad = 0.25
         
         self.box_style = 'square, pad=0.0'
@@ -139,6 +139,7 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
 
     cardback_file = get_file(cardback_file, default=self.default_cardback_file)
     self.template = plt.imread(cardback_file)
+
         
     print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')    
 

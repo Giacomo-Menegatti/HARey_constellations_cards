@@ -1,7 +1,9 @@
 import numpy as np
 from HARey.astro_projection import mag2size
+from matplotlib.transforms import Affine2D
+from matplotlib.markers import MarkerStyle
 
-def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con_highlight=[], asterism_highlight=[], helper_highlight=[]):
+def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False, font_size=15):
 
     stars_x, stars_y = stars_xy
     ecliptic_x, ecliptic_y = ecliptic_xy
@@ -18,7 +20,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
             for line in [line for line in self.cons[constellation_id]['lines']]:
                 # Divide the line in individual segments
                 for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-                    if not_outside(segment):
+                    if not_outside(stars_x[segment], stars_y[segment]):
                         plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['constellations'],\
                                                 linewidth=line_w, alpha=alpha)
                         plot_line.set_clip_path(box)
@@ -31,7 +33,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
         for line in [line for id in asterism_ids for line in self.asterisms[id]['lines']]:
             # Divide the line in individual segments
                 for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-                    if not_outside(segment):
+                    if not_outside(stars_x[segment], stars_y[segment]):
                         plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['asterisms'],\
                                         linestyle='solid', linewidth=line_w)
                     plot_line.set_clip_path(box)
@@ -44,16 +46,22 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
         for line in [line for id in helper_ids for line in self.helpers[id]['lines']]: 
             # Divide the line in individual segments
             for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-                if not_outside(segment):
+                if not_outside(stars_x[segment], stars_y[segment]):
                     plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['helpers'], \
                                 linestyle='dashed', linewidth=0.7*line_w)
                     plot_line.set_clip_path(box)
 
     #Draw ecliptic 
-    if self.flags['CON_LINES']:           
-        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.colors['ecliptic'], linestyle='dotted', \
-                                linewidth=1.5* line_w)
-        ecliptic.set_clip_path(box)  
+    if self.flags['CON_LINES']:
+        for i in range(0,361,10):
+            if not_outside(ecliptic_x[i:i+11], ecliptic_y[i:i+11]):
+                ecliptic, = ax.plot(ecliptic_x[i:i+11], ecliptic_y[i:i+11], color=self.colors['ecliptic'], linestyle='dotted', \
+                           linewidth=1.5* line_w)
+                ecliptic.set_clip_path(box) 
+
+
+
+        
 
     
     # Stars that are not in a constellation shape are represented with a dot
@@ -99,5 +107,23 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
             color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
             ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], \
                        color=color, linewidths=0.001*star_sizes[mask], edgecolor=self.colors['sky'], zorder=2)
+            
+    # Draw the zodiac
+    if self.flags['ZODIAC']:
+        c = -1 if is_inverted else 1
+        for i, symbol in enumerate(self.zodiac_symbols):
+                # Place triangular markers to indicate the start and end of zodiacal signs 
+                if not_outside(ecliptic_x[30*i], ecliptic_y[30*i]):
+                    angle = np.rad2deg( np.atan2( ecliptic_y[30*i+1]-ecliptic_y[30*i],  c*(ecliptic_x[30*i+1]-ecliptic_x[30*i])))
+                    t = Affine2D().rotate_deg(angle)
+                    marker = ax.scatter((ecliptic_x[30*i]), (ecliptic_y[30*i]), marker=MarkerStyle('>', transform=t), color = self.colors['ecliptic'], s =0.2*marker_size, linewidths=0)
+                    marker.set_clip_path(box)
 
-        
+                # Place the zodiacal sign
+                if not_outside(ecliptic_x[30*i+15], ecliptic_y[30*i+15]):
+                    offset = 0 if is_inverted else 180
+
+                    ax.scatter(ecliptic_x[30*i+15], ecliptic_y[30*i+15], marker='o', s=3*font_size**2, color=self.colors['sky'], linewidths=0, zorder=2)
+                    ax.annotate( symbol, xy = (ecliptic_x[30*i+15],(ecliptic_y[30*i+15])), color=self.colors['ecliptic'], ha='center', va='center', fontsize= 1.5*font_size)
+
+    

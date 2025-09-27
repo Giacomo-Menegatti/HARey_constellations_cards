@@ -135,6 +135,7 @@ class HAReyMain(StarColorMap):
         
         self.default_plot_flags = {'CON_LINES':False, 'STAR_COLORS':False, 
                                     'CON_NAMES':False,'CON_PARTS':False,
+                                    'ZODIAC':False, 
                                     'STAR_NAMES':False,'ASTERISMS':False, 
                                     'HELPERS':False, 'HAREY_MARKERS':True, 
                                     'GRID':False, 'SIS_SCRIPT':False,
@@ -145,7 +146,10 @@ class HAReyMain(StarColorMap):
         
         self.flags.update(self.default_plot_flags)
         self.dpi = 300
-        
+
+        self.zodiac_symbols = ['\u2648', '\u2649', '\u264A', '\u264B', '\u264C', '\u264D','\u264E', '\u264F', '\u2650', '\u2651', '\u2652', '\u2653']
+
+        self.N_ecliptic = 361
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,
         # the font must be permanently installed on the system to be able to see it in Inkscape

@@ -87,15 +87,15 @@ def plot_asterism(self, id, figsize = 8, save_name = None, star_size = 100, font
     ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
     # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
-    not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
+    not_outside = lambda x,y: not np.all(x**2 + y**2>map_radius**2) 
 
     # Plot the map using the shared plot_map function
     if ASTERISM:
         plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, asterism_highlight=[id])
+             marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, asterism_highlight=[id], font_size=font_sizes['l'])
     else:
         plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, helper_highlight=[id])
+             marker_size=marker_size, not_outside=not_outside, con_highlight=cons_list, helper_highlight=[id], font_size=font_sizes['l'])
 
 	# Clip everything to the box plot
     for col in ax.collections:

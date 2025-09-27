@@ -73,7 +73,7 @@ def plot_sky_view(self, observer, FOV = 182, figsize = 8, save_name = None, star
     ax.add_patch(horizon_line)
 
     # Compute the ecliptic positions
-    ecliptic_radec = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
+    ecliptic_radec = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic), np.zeros(self.N_ecliptic))
     ecliptic_alt, ecliptic_az = radec2altaz(*ecliptic_radec, observer)
     ecliptic_x, ecliptic_y = stereo_polar(ecliptic_az, ecliptic_alt)   
     ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
@@ -89,11 +89,11 @@ def plot_sky_view(self, observer, FOV = 182, figsize = 8, save_name = None, star
     stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
     # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map_radius
-    not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
+    not_outside = lambda x,y: not np.all(x**2 + y**2>map_radius**2) 
 
     # Plot the map using the shared function
     plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside)
+             marker_size=marker_size, not_outside=not_outside, is_inverted=True, font_size=font_sizes['l'])
     
 
     #Plot the compass ring   

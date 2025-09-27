@@ -516,7 +516,7 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
     stars_y = pd.Series(data = stars_y, index=stars.index)
 
     #Project the ecliptic
-    (ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0,360, 100), np.zeros(100))
+    (ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0,360, 361), np.zeros(361))
     ecliptic_x, ecliptic_y = stereo_centered(ecliptic_ra, ecliptic_dec, center_ra, center_dec)
 
     # Project the north pole. This is done because the north pole is not infinitely distant on the sphere, so 

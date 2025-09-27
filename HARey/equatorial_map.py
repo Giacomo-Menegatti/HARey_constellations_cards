@@ -10,7 +10,7 @@ from HARey.astro_projection import ecliptic2radec, Gall_projection, Gall_dims, G
 from HARey.plot_map import plot_map
 
 
-def plot_within_borders(self, borders, FOV, scale, marker_size):
+def plot_within_borders(self, borders, FOV, scale, marker_size, font_size):
 	'''Plot the sky near the equator between the borders (in degrees) and with vertical height [-FOV, FOV],
 		and return the image generated.
 		The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
@@ -29,9 +29,6 @@ def plot_within_borders(self, borders, FOV, scale, marker_size):
 	ecliptic_x , ecliptic_y = Gall_projection(self.ecliptic_ra, self.ecliptic_dec)
 	ecliptic_x, ecliptic_y = scale * ecliptic_x, scale * ecliptic_y
 
-	# Mask the ecliptic to avoid crossing the plot
-	mask = (ecliptic_x >= left_border) & (ecliptic_x <= right_border)
-	ecliptic_x, ecliptic_y = ecliptic_x[mask], ecliptic_y[mask]
 
 	# Create figure and axes
 	fig,ax = plt.subplots(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
@@ -47,10 +44,10 @@ def plot_within_borders(self, borders, FOV, scale, marker_size):
 	ax.add_patch(box)
 
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
-	not_outside = lambda segment: not (np.any(stars_x[segment]<left_border) and np.any(stars_x[segment]>right_border)) 
+	not_outside = lambda x,y: not (np.any(x<left_border) and np.any(x>right_border)) 
 
 	plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside)
+             marker_size=marker_size, not_outside=not_outside, is_inverted=True, font_size=font_size)
 
 	# Compute the labels positions
 	def compute_label_pos(id, indexes):
@@ -142,15 +139,15 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 	half_overlap = overlap/2
 
 	# Compute the ecliptic coordinates
-	self.ecliptic_ra, self.ecliptic_dec = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
+	self.ecliptic_ra, self.ecliptic_dec = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
 
 	self.stars['ra'] = (self.stars['ra']+180)%360 -180 # Angles from -180 to 180
 	self.ecliptic_ra = (self.ecliptic_ra+180)%360 -180
-	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size)
+	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, font_size=font_sizes['l'])
 
 	self.stars['ra'] = self.stars['ra']%360	# Angle coordinates from 0 to 360
 	self.ecliptic_ra = self.ecliptic_ra%360
-	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size)
+	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, font_size=font_sizes['l'])
 
 	# Join the images and plot it
 	map = np.concatenate((border, center, border), axis=1)

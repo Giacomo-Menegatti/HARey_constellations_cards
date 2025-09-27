@@ -107,6 +107,8 @@ def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', C
         is_back = (n%4)//2 == 0                         # Check if the image is front or back
         index = 2*(n//4) + n%2                          # Index of the card among the fronts or backs
         x = index%grid                                 # x-Position of the image in the grid
+        if is_back:                                     # On the backs, reverse the left-right order
+            x = grid - x - 1
         y = (index%cards_per_page)//grid                # y-position
 
         pdf.page = 2*(index//cards_per_page) + (n%4)//2 + 1

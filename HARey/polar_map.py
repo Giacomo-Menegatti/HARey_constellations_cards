@@ -21,18 +21,45 @@ from calendar import monthrange
 from HARey.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius
 from HARey.plot_map import plot_map
 
-def _place_text(text, ax, xy, angle, font_size, font_prop):
-	"""Quick and dirty fix to align the rotated text correctly"""
-	# Create the text path and center it
-	text_path = TextPath((0, 0), text, size=font_size, prop=font_prop)
-	bb = text_path.get_extents()
-	text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
-	x, y = xy
+def draw_text_wrapped_on_circle(text, ax, radius, font_size, font_prop, anchor_angle=np.pi/2, spacing_factor=1.2):
 
-	# Rotate and move the path to its position
-	trans = (Affine2D().rotate(angle).translate(x, y))
-	patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
-	ax.add_patch(patch)
+
+	# Preprocess character paths and widths
+	char_data = []
+	for c in text:
+		
+		path = TextPath((0, 0), c, size=font_size, prop=font_prop)
+		bbox = path.get_extents()
+		width = (bbox.x1 - bbox.x0) * spacing_factor
+		center_x = (bbox.x0 + bbox.x1) / 2
+		center_y = (bbox.y0 + bbox.y1) / 2
+		path = path.transformed(Affine2D().translate(-center_x, -center_y))
+
+		char_data.append((path, width))
+
+	total_text_width = sum(w for _, w in char_data)
+	total_arc_angle = total_text_width / radius  # θ = s / r
+
+	# Compute angular position for each character
+	angle_positions = []
+	current_offset = 0
+	for _, width in char_data:
+		angle = current_offset + width / 2
+		angle_positions.append(angle / radius)
+		current_offset += width
+
+	# Starting angle so the text is centered at anchor
+	start_angle = anchor_angle + total_arc_angle / 2
+
+	for (path, _), angle_offset in zip(char_data, angle_positions):
+		theta = start_angle - angle_offset
+		x = radius * np.cos(theta)
+		y = radius * np.sin(theta)
+
+		trans = Affine2D().rotate(theta - np.pi/2).translate(x, y)
+
+		patch = PathPatch(path, transform=trans + ax.transData, color='black', lw=0)
+		ax.add_patch(patch)
 
 
 def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7), mode='stereo', _ADD_CALENDAR=False, _MARK_CENTER=False):
@@ -91,7 +118,7 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 	c = 1 if pole=='N' else -1 if pole=='S' else 0
 	
 	# Compute the ecliptic positions
-	(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, 101, endpoint=True), np.zeros(101))
+	(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
 	ecliptic_x, ecliptic_y = azimuthal_polar(c*ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(c*ecliptic_ra, c*ecliptic_dec)	
 	ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
 
@@ -104,11 +131,11 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 	stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
 	# Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
-	not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2>map_radius**2) 
+	not_outside = lambda x, y: not np.all(x**2+y**2>map_radius**2) 
 
 	# Plot the map using the shared function
 	plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside)
+             marker_size=marker_size, not_outside=not_outside, font_size=font_sizes['l'])
 
 	# Plot the grid
 	if self.flags['GRID']: 
@@ -152,14 +179,14 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 			for day in range(5,days_in_month+1,5):
 				# Get the angle as a fraction of the whole year
 				angle = c*(datetime(2001, m, day).timetuple().tm_yday/365 - equinox_offest)
-				a = 2*np.pi*angle + np.pi
-				_place_text(f'{day}', ax, (r_days*np.sin(a), r_days*np.cos(a)), -a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
+				a = 2*np.pi*angle + np.pi/2
+				draw_text_wrapped_on_circle(f'{day}', ax, r_days, anchor_angle=-a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
 
 			# Plot the month label
 			angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
-			a = 2*np.pi*angle + np.pi
+			a = 2*np.pi*angle + np.pi/2
 			month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
-			_place_text(month_name, ax, (r_months*np.sin(a), r_months*np.cos(a)), -a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
+			draw_text_wrapped_on_circle(month_name, ax, r_months, anchor_angle=-a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
 
 	if _MARK_CENTER:
 		# Add a marker at the center of the plot

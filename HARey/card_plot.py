@@ -102,14 +102,14 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
     # Condition for plotting lines to avoid crossing the plot.
     if self.box_style == 'circle, pad=0.0':
         # If the map is clipped to a circle, stars in the clipped regions could still be connected
-        not_outside = lambda segment: not np.all(stars_x[segment]**2+stars_y[segment]**2 > height**2) 
+        not_outside = lambda x,y: not np.all(x**2 + y**2 > height**2) 
     else: 
         # In the other cases, check if at least a point is inside the borders
-        not_outside = lambda segment: np.any(np.logical_and(stars_x[segment]>-width, stars_x[segment]<width)) and np.any(np.logical_and(stars_y[segment]>-height, stars_y[segment]<height))
+        not_outside = lambda x,y: np.any(np.logical_and(x>-width, x<width)) and np.any(np.logical_and(y>-height, y<height))
 
     # Plot the map using the shared plot_map function
     plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside, con_highlight=[id])
+             marker_size=marker_size, not_outside=not_outside, con_highlight=[id], font_size=font_size)
 
     #Plot the North indicator as last thing
     if BEST_AR: 
