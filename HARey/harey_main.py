@@ -135,7 +135,6 @@ class HAReyMain(StarColorMap):
         
         self.default_plot_flags = {'CON_LINES':False, 'STAR_COLORS':False, 
                                     'CON_NAMES':False,'CON_PARTS':False,
-                                    'ZODIAC':False, 
                                     'STAR_NAMES':False,'ASTERISMS':False, 
                                     'HELPERS':False, 'HAREY_MARKERS':True, 
                                     'GRID':False, 'SIS_SCRIPT':False,
@@ -146,10 +145,7 @@ class HAReyMain(StarColorMap):
         
         self.flags.update(self.default_plot_flags)
         self.dpi = 300
-
-        self.zodiac_symbols = ['\u2648', '\u2649', '\u264A', '\u264B', '\u264C', '\u264D','\u264E', '\u264F', '\u2650', '\u2651', '\u2652', '\u2653']
-
-        self.N_ecliptic = 361
+        
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,
         # the font must be permanently installed on the system to be able to see it in Inkscape
@@ -172,6 +168,25 @@ class HAReyMain(StarColorMap):
     def reset_flags(self):
         """ Reset the plot flags to their default values """
         self.flags.update(self.default_plot_flags)
+
+
+    def is_constellation(self, id):
+        """ Check if the given id is a valid constellation id, or raise an error. """
+        if id not in self.con_ids:
+            raise ValueError(f'{id} is not a constellation id. To see all the valid ids, print the attribute HARey.con_ids')
+        return True
+    
+    def is_asterism(self, id):
+        """ Check if the given id is a valid asterism id, or raise an error. """
+        if id not in self.con_ids:
+            raise ValueError(f'{id} is not a asterism id. Valid asterism ids are {list(self.asterisms.keys())}')
+        return True
+    
+    def is_helper(self, id):
+        """ Check if the given id is a valid helper id, or raise an error. """
+        if id not in self.con_ids:
+            raise ValueError(f'{id} is not a helper id. Valid helpers ids are {list(self.helpers.keys())}')
+        return True
 
     # Function to set the limiting magnitude
     def set_limiting_magnitude(self, limiting_magnitude=6.5):
