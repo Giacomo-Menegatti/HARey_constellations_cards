@@ -21,45 +21,24 @@ from calendar import monthrange
 from HARey.astro_projection import ecliptic2radec, stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius
 from HARey.plot_map import plot_map
 
-def draw_text_wrapped_on_circle(text, ax, radius, font_size, font_prop, anchor_angle=np.pi/2, spacing_factor=1.2):
+def curved_text(ax, text, r, angle_offset=0.0, font_size=1.0, font_prop=None):
+    """ Add a curved text to an axis. r is the radius of curvature at the text center, angle offset the angle of the text center (in RADIANS)"""
 
+    # Create a TextPath object with the text
+    text_path = TextPath((0, 0), text, size=font_size, prop=font_prop)
+    bb = text_path.get_extents()
+    # Center the text path
+    text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
 
-	# Preprocess character paths and widths
-	char_data = []
-	for c in text:
-		
-		path = TextPath((0, 0), c, size=font_size, prop=font_prop)
-		bbox = path.get_extents()
-		width = (bbox.x1 - bbox.x0) * spacing_factor
-		center_x = (bbox.x0 + bbox.x1) / 2
-		center_y = (bbox.y0 + bbox.y1) / 2
-		path = path.transformed(Affine2D().translate(-center_x, -center_y))
+    # Curve the text vertexes
+    verts = text_centered.vertices
+    new_verts = np.array([((r+y)*np.sin(x/r + angle_offset), (r+y)*np.cos(x/r + angle_offset)) for (x,y) in verts])
+    text_centered.vertices = new_verts
 
-		char_data.append((path, width))
+    # Create a PathPatch from the curved text path and add it to the axis
+    patch = PathPatch(text_centered, color='black', linewidth=0)
+    ax.add_patch(patch)
 
-	total_text_width = sum(w for _, w in char_data)
-	total_arc_angle = total_text_width / radius  # θ = s / r
-
-	# Compute angular position for each character
-	angle_positions = []
-	current_offset = 0
-	for _, width in char_data:
-		angle = current_offset + width / 2
-		angle_positions.append(angle / radius)
-		current_offset += width
-
-	# Starting angle so the text is centered at anchor
-	start_angle = anchor_angle + total_arc_angle / 2
-
-	for (path, _), angle_offset in zip(char_data, angle_positions):
-		theta = start_angle - angle_offset
-		x = radius * np.cos(theta)
-		y = radius * np.sin(theta)
-
-		trans = Affine2D().rotate(theta - np.pi/2).translate(x, y)
-
-		patch = PathPatch(path, transform=trans + ax.transData, color='black', lw=0)
-		ax.add_patch(patch)
 
 
 def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7), mode='stereo', _ADD_CALENDAR=False, _MARK_CENTER=False):
@@ -100,14 +79,14 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 	fig.subplots_adjust(0,0,1,1)
 
 	# Set ax limits
-	ax.set_xlim(-figsize,figsize)
-	ax.set_ylim(-figsize,figsize)
+	ax.set_xlim(-1.01*figsize,1.01*figsize)
+	ax.set_ylim(-1.01*figsize,1.01*figsize)
 	ax.set_axis_off()
 
 	# Scale the coordinates
 	map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
 	# Restrict the plotting area a bit to avoid clipping the circle near the borders
-	scale = 0.85*figsize/map_radius if _ADD_CALENDAR else 0.99*figsize/map_radius	
+	scale = 0.85*figsize/map_radius if _ADD_CALENDAR else figsize/map_radius	
 	map_radius = scale*map_radius
 
 	# Add the circular patch
@@ -160,7 +139,7 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 
 	if _ADD_CALENDAR:
 		# Add the calendar ring outside of the plot to use it in a planisphere
-		int_r, ext_r = 0.85*figsize, 0.99*figsize
+		int_r, ext_r = 0.85*figsize, figsize
 		spacing = (ext_r-int_r)/3
 
 		for i in range(4):
@@ -179,14 +158,14 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 			for day in range(5,days_in_month+1,5):
 				# Get the angle as a fraction of the whole year
 				angle = c*(datetime(2001, m, day).timetuple().tm_yday/365 - equinox_offest)
-				a = 2*np.pi*angle + np.pi/2
-				draw_text_wrapped_on_circle(f'{day}', ax, r_days, anchor_angle=-a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
+				a = 2*np.pi*angle + np.pi
+				curved_text(ax, f'{day}', r_days, angle_offset=a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
 
 			# Plot the month label
 			angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
-			a = 2*np.pi*angle + np.pi/2
+			a = 2*np.pi*angle + np.pi
 			month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
-			draw_text_wrapped_on_circle(month_name, ax, r_months, anchor_angle=-a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
+			curved_text(ax, month_name, r_months, angle_offset=a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
 
 	if _MARK_CENTER:
 		# Add a marker at the center of the plot

@@ -66,9 +66,8 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
     marker_size = star_size*marker_scale
     font_size = round(np.sqrt(marker_scale)*font_size)
 
-    #Get the custom markers
-    empty_marker = self.markers['empty']
-    north_marker = self.markers['north']
+    #Get the north star marker
+    north_marker = self.markers['north_star']
 
     # Create the figure
     fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
@@ -137,8 +136,7 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
             else:
                 (x,y) = ((plot_height)*np.tan(north_angle), plot_height)    
 
-        t = Affine2D().rotate_deg(np.rad2deg(-north_angle))
-        ax.plot(x,y, marker=MarkerStyle(empty_marker, transform=t), markersize=11, color='white', markeredgewidth=0)
+        t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
         ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=12, color=self.colors['cardinal_markers'], markeredgewidth=0)
 
     # Clip everything to the box plot

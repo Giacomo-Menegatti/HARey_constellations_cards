@@ -138,13 +138,15 @@ class HAReyMain(StarColorMap):
                                     'STAR_NAMES':False,'ASTERISMS':False, 
                                     'HELPERS':False, 'HAREY_MARKERS':True, 
                                     'GRID':False, 'SIS_SCRIPT':False,
-                                    'SHOW':True, 'SAVE':False
+                                    'SHOW':True, 'SAVE':False, 'ZODIAC':False
                                     }
 
         self.flags = {}
         
         self.flags.update(self.default_plot_flags)
         self.dpi = 300
+
+        self.N_ecliptic = 361
         
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,
@@ -155,6 +157,8 @@ class HAReyMain(StarColorMap):
 
         # Read the card template module and overwrite its values
         set_card_template(self, format='tarot-round', dpi=self.dpi)
+
+        self.zodiac_symbols = ['\u2648', '\u2649', '\u264A', '\u264B', '\u264C', '\u264D','\u264E', '\u264F', '\u2650', '\u2651', '\u2652', '\u2653']
 
     def set_flags(self, dict):
         """ Set the plot flags. They are temporary and are reset after the plot. """  

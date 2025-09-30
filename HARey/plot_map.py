@@ -121,9 +121,8 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
 
                 # Place the zodiacal sign
                 if not_outside(ecliptic_x[30*i+15], ecliptic_y[30*i+15]):
-                    offset = 0 if is_inverted else 180
 
                     ax.scatter(ecliptic_x[30*i+15], ecliptic_y[30*i+15], marker='o', s=3*font_size**2, color=self.colors['sky'], linewidths=0, zorder=2)
-                    ax.annotate( symbol, xy = (ecliptic_x[30*i+15],(ecliptic_y[30*i+15])), color=self.colors['ecliptic'], ha='center', va='center', fontsize= 1.5*font_size)
+                    ax.annotate( symbol, xy = (ecliptic_x[30*i+15],(ecliptic_y[30*i+15])), color=self.colors['ecliptic'], ha='center', va='center', fontsize= 1.5*font_size, zorder=2)
 
     

@@ -18,20 +18,22 @@ import os
 from HARey.astro_projection import stereo_polar, local2polarmap, azimuthal_polar
 
 
-def text_place(text, ax, xy, angle, font_prop, font_size):
-    """ Hot fix to place rotated text because matplotlib text rotation is misaligned"""
+def curved_text(ax, text, r, angle_offset=0, font_size=1.0, font_prop=None):
+    """ Add a curved text to an axis. r is the radius of curvature at the text center, angle offset the angle of the text center (in RADIANS)"""
 
     # Create a TextPath object with the text
     text_path = TextPath((0, 0), text, size=font_size, prop=font_prop)
     bb = text_path.get_extents()
     # Center the text path
     text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
-    x, y = xy
 
-    # Rotate and move the path to its position
-    trans = (Affine2D().rotate(angle).translate(x, y))
-    patch = PathPatch(text_centered, transform=trans + ax.transData, color='black', linewidth=0)
-    # Add the text patch to the working axis
+    # Curve the text vertexes
+    verts = text_centered.vertices
+    new_verts = np.array([((r+y)*np.sin(x/r + angle_offset), (r+y)*np.cos(x/r + angle_offset)) for (x,y) in verts])
+    text_centered.vertices = new_verts
+
+    # Create a PathPatch from the curved text path and add it to the axis
+    patch = PathPatch(text_centered, color='black', linewidth=0)
     ax.add_patch(patch)
 
 
@@ -193,8 +195,8 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
     circle_r = int_r + spacing
 
     for hour in range(1,25):
-        angle = np.pi/12*hour        
-        text_place(f'{hour:02}', ax, (hour_r*np.sin(-sign*angle), hour_r*np.cos(-sign*angle)), angle=sign*angle, font_size=0.035, font_prop=self.fonts['calendar'])
+        angle = - sign * np.pi/12*hour        
+        curved_text(ax, f'{hour:02}', r = hour_r, angle_offset=angle, font_size=0.035, font_prop=self.fonts['calendar'])
 
     for angle in np.linspace(0,2*np.pi,49):
         ax.plot([circle_r*np.sin(angle), int_r*np.sin(angle)], [circle_r*np.cos(angle), int_r*np.cos(angle)], color='k', ls='-.', lw=0.7)
@@ -300,6 +302,6 @@ def create_planisphere_2sided(self, lat, FOV=200, save_folder = None, figsize=8,
 
     # Plot and save the polar maps
     self.flags.update(flags)
-    self.polar_map('N', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
+    self.polar_map('N', FOV, figsize, mode=mode, _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
     self.flags.update(flags)
-    self.polar_map('S', FOV, figsize, mode=mode, ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
+    self.polar_map('S', FOV, figsize, mode=mode, _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)

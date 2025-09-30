@@ -105,20 +105,18 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
 
     elif format == 'circle':
         # Circular plot for the quiz game
-        self.height = 5
-        self.width = 5
-        self.pad = 0.2 
+        self.height = 2
+        self.width = 2
+        self.pad = 0.05
 
         self.box_style = 'circle, pad=0.0'
 
-        # Area of the card fully occupied by the constellation
-        self.AR_plot = 1
     
     elif format == 'square':
         # Square format
         self.height = 2.75
         self.width = 2
-        self.pad = 0.25
+        self.pad = 0.2
         
         self.box_style = 'square, pad=0.0'
 

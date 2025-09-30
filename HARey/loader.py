@@ -5,7 +5,7 @@ import json
 from svgpathtools import svg2paths
 from svgpath2mpl import parse_path
 
-from importlib.resources import files, as_file
+from importlib.resources import files
 
 """
 This module deals with loading the stars positions and the constellations information.
@@ -183,6 +183,13 @@ def load_markers(markers_folder=None):
         vertices = np.array(marker.vertices)
         marker.vertices -= (vertices.max(axis=0) + vertices.min(axis=0))/2
         markers[direction]=marker
+
+    #Load north_star marker (used to plot the direction in cards)
+    _, attributes, *_ = svg2paths(f'{folder_path}/north_star.svg')
+    north_star_marker = parse_path(attributes[0]['d'])
+    vertices = np.array(north_star_marker.vertices)
+    north_star_marker.vertices -= (vertices.max(axis=0) + vertices.min(axis=0))/2
+    markers['north_star'] = north_star_marker
 
     # HARey star markers
     for i in range(5):
