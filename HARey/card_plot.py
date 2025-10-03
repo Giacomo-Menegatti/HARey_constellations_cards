@@ -61,9 +61,9 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
 
     # Scale the star sizes and the text labels based on the card area and the region of sky plotted
     marker_scale = self.width*self.height/(2.75*4.75)      # Scale w.r.t the standard card (tarot)
-    marker_scale = marker_scale*np.sqrt(0.01/(x_span*y_span))     # Scale w.r.t the area of sky plotted
+    area_scale = np.sqrt(0.01/(x_span*y_span))     # Scale w.r.t the area of sky plotted
 
-    marker_size = star_size*marker_scale
+    marker_size = star_size*marker_scale*area_scale
     font_size = round(np.sqrt(marker_scale)*font_size)
 
     #Get the north star marker
@@ -137,7 +137,7 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
                 (x,y) = ((plot_height)*np.tan(north_angle), plot_height)    
 
         t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
-        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=12, color=self.colors['cardinal_markers'], markeredgewidth=0)
+        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.colors['cardinal_markers'], markeredgewidth=0)
 
     # Clip everything to the box plot
     for col in ax.collections:

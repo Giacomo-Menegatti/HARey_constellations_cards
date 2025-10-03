@@ -52,7 +52,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
                     plot_line.set_clip_path(box)
 
     #Draw ecliptic 
-    if self.flags['CON_LINES']:
+    if self.flags['CON_LINES'] and self.flags['ECLIPTIC']:
         for i in range(0,361,10):
             if not_outside(ecliptic_x[i:i+11], ecliptic_y[i:i+11]):
                 ecliptic, = ax.plot(ecliptic_x[i:i+11], ecliptic_y[i:i+11], color=self.colors['ecliptic'], linestyle='dotted', \

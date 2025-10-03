@@ -105,19 +105,27 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
 
     elif format == 'circle':
         # Circular plot for the quiz game
-        self.height = 2
-        self.width = 2
-        self.pad = 0.05
+        self.height = 5
+        self.width = 5
+        self.pad = 0.25
 
         self.box_style = 'circle, pad=0.0'
 
     
     elif format == 'square':
         # Square format
+        self.height = 5
+        self.width = 5
+        self.pad = 0.25
+        
+        self.box_style = 'square, pad=0.0'
+
+    elif format == 'temp':
+
         self.height = 2.75
         self.width = 2
-        self.pad = 0.2
-        
+        self.pad = 0.25
+
         self.box_style = 'square, pad=0.0'
 
     else:

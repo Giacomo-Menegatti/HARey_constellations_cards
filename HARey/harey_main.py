@@ -138,7 +138,8 @@ class HAReyMain(StarColorMap):
                                     'STAR_NAMES':False,'ASTERISMS':False, 
                                     'HELPERS':False, 'HAREY_MARKERS':True, 
                                     'GRID':False, 'SIS_SCRIPT':False,
-                                    'SHOW':True, 'SAVE':False, 'ZODIAC':False
+                                    'SHOW':True, 'SAVE':False, 'ZODIAC':False,
+                                    'ECLIPTIC':True
                                     }
 
         self.flags = {}
