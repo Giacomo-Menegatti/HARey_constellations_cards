@@ -1,5 +1,5 @@
 import numpy as np
-from HARey.astro_projection import mag2size
+from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 
@@ -59,9 +59,6 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
                            linewidth=1.5* line_w)
                 ecliptic.set_clip_path(box) 
 
-
-
-        
 
     
     # Stars that are not in a constellation shape are represented with a dot

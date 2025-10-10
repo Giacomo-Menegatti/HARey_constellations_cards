@@ -3,7 +3,6 @@ ASTERISM PLOT MODULE
 This module contains the function plot_asterism, which is used to plot asterisms and helper rays.
 """
 
-
 import numpy as np
 import os
 
@@ -11,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.colors import to_hex
 
-from HARey.astro_projection import project_region
+from HARey.projections import project_region
 from HARey.plot_map import plot_map
 from HARey.polar_map import stereo_radius
 
@@ -32,12 +31,14 @@ def plot_asterism(self, id, figsize = 8, save_name = None, star_size = 100, font
     ASTERISM = not id.startswith('HR')
 
     if ASTERISM:
+        self.is_asterism(id)
         # Get the stars of the asterism and the respective constellations
         asterism_stars = [HIP for lines in self.asterisms[id]['lines'] for HIP in lines]
         cons_list = self.stars.loc[asterism_stars, 'constellation'].to_list()
         cons_list = np.unique(cons_list)
     
     else: 
+        self.is_helper(id)
         # Get the stars of the helper ray and the respective constellations
         helper_stars = [HIP for lines in self.helpers[id]['lines'] for HIP in lines]
         cons_list = self.stars.loc[helper_stars, 'constellation'].to_list()

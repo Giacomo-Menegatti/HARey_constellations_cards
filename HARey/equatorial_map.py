@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_hex
 
-from HARey.astro_projection import ecliptic2radec, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, mag2size
+from HARey.projections import ecliptic2radec, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal
 from HARey.plot_map import plot_map
 
 

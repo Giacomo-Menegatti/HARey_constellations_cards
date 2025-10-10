@@ -14,7 +14,8 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey.astro_projection import radec2altaz, ecliptic2radec, stereo_radius, stereo_polar
+from HARey.astro_functions import radec2altaz, ecliptic2radec
+from HARey.projections import stereo_radius, stereo_polar
 from HARey.plot_map import plot_map
 
 def plot_sky_view(self, observer, FOV = 182, figsize = 8, save_name = None, star_size = 100, font_sizes = (6,7)):

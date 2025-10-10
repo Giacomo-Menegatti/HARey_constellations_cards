@@ -120,14 +120,6 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
         
         self.box_style = 'square, pad=0.0'
 
-    elif format == 'temp':
-
-        self.height = 2.75
-        self.width = 2
-        self.pad = 0.25
-
-        self.box_style = 'square, pad=0.0'
-
     else:
         print('This format is not recognized! Reverting to default format')
         self.set_card_template()   

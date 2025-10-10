@@ -13,7 +13,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey.astro_projection import project_region
+from HARey.projections import project_region
 from HARey.plot_map import plot_map
 
 
@@ -29,6 +29,8 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
         - star_size (float): Relative size of the stars in the plot.
         - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
+
+    self.is_constellation(id)
 
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
     if not save_name == None or self.flags['SIS_SCRIPT']:

@@ -12,7 +12,7 @@ from HARey.card_plot import plot_card
 from HARey.asterism_plot import plot_asterism
 from HARey.print_and_play import print_card_set, print_and_play
 
-from HARey.astro_projection import Observer, is_visible, mag2size
+from HARey.astro_functions import Observer, is_visible, mag2size
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -133,6 +133,7 @@ class HAReyMain(StarColorMap):
                     'cardback_1':  'xkcd:marine blue', 'cardback_2': 'xkcd:blood',
                     'accent_1': 'darkgoldenrod', 'accent_2': 'darkgoldenrod'}
         
+        # Default plot flags
         self.default_plot_flags = {'CON_LINES':False, 'STAR_COLORS':False, 
                                     'CON_NAMES':False,'CON_PARTS':False,
                                     'STAR_NAMES':False,'ASTERISMS':False, 
@@ -183,13 +184,13 @@ class HAReyMain(StarColorMap):
     
     def is_asterism(self, id):
         """ Check if the given id is a valid asterism id, or raise an error. """
-        if id not in self.con_ids:
+        if id not in self.asterisms:
             raise ValueError(f'{id} is not a asterism id. Valid asterism ids are {list(self.asterisms.keys())}')
         return True
     
     def is_helper(self, id):
         """ Check if the given id is a valid helper id, or raise an error. """
-        if id not in self.con_ids:
+        if id not in self.helpers:
             raise ValueError(f'{id} is not a helper id. Valid helpers ids are {list(self.helpers.keys())}')
         return True
 
