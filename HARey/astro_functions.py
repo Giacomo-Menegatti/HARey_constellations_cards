@@ -61,13 +61,14 @@ def date2julian(date):
     Returns:
         JD0 (float): Julian date and time
     """
-    C = np.trunc((date.month-14)/12)
-    JD0 = date.day - 32075 + np.trunc(1461*(date.year+4800+C)/4) + \
-        np.trunc( 367*(date.month - 2 - C*12 )/12 ) - \
-        np.trunc(3*np.trunc(( date.year + 4900 + C )/100 )/4 ) + \
-        (date.hour - 12)/24 + date.minute/1440 + date.second/86400
+    C = np.trunc((14 - date.month)/12)
+    A = np.trunc((date.year-C)/100)
+    B = 2 - A + np.trunc(A/4)
+
+    JD = np.trunc(365.25*(date.year + 4716 - C)) + np.trunc(30.6001*(date.month + C*12 + 1)) + date.day + B - 1524.5
+    print(JD)
     
-    return JD0
+    return JD
 
 
 def radec2altaz(ra_degrees, dec_degrees, observer):
