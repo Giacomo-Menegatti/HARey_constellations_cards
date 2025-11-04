@@ -204,5 +204,3 @@ def plot_asterism(self, id, figsize = 8, save_name = None, star_size = 100, font
         plt.show()
     else:
         plt.close()
-
-    self.reset_flags()

@@ -9,7 +9,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
     ecliptic_x, ecliptic_y = ecliptic_xy
 
     line_w = marker_size * 0.0075
-    star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude)
+    star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size)
 
     # Plot constellation lines
     if self.flags['CON_LINES']:

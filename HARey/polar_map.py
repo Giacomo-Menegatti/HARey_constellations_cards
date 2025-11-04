@@ -260,5 +260,3 @@ def polar_map(self, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_s
 		plt.show()
 	else:
 		plt.close()
-
-	self.reset_flags()

@@ -222,5 +222,3 @@ def plot_sky_view(self, observer, FOV = 182, figsize = 8, save_name = None, star
         plt.show()
     else:
         plt.close()
-
-    self.reset_flags()

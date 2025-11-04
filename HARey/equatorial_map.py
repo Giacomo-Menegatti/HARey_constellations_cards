@@ -286,8 +286,6 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 		plt.show()
 	else:
 		plt.close()
-
-	self.reset_flags()
 	
 
 

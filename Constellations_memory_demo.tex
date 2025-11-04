@@ -1,0 +1,1328 @@
+\documentclass[11pt]{article}
+
+    \usepackage[breakable]{tcolorbox}
+    \usepackage{parskip} % Stop auto-indenting (to mimic markdown behaviour)
+    
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % Keep aspect ratio if custom image width or height is specified
+    \setkeys{Gin}{keepaspectratio}
+    % Maintain compatibility with old templates. Remove in nbconvert 6.0
+    \let\Oldincludegraphics\includegraphics
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionFormat{nocaption}{}
+    \captionsetup{format=nocaption,aboveskip=0pt,belowskip=0pt}
+
+    \usepackage{float}
+    \floatplacement{figure}{H} % forces figures to be placed at the correct location
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+
+    \usepackage{iftex}
+    \ifPDFTeX
+        \usepackage[T1]{fontenc}
+        \IfFileExists{alphabeta.sty}{
+              \usepackage{alphabeta}
+          }{
+              \usepackage[mathletters]{ucs}
+              \usepackage[utf8x]{inputenc}
+          }
+    \else
+        \usepackage{fontspec}
+        \usepackage{unicode-math}
+    \fi
+
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics
+                         % to support a larger range
+    \makeatletter % fix for old versions of grffile with XeLaTeX
+    \@ifpackagelater{grffile}{2019/11/01}
+    {
+      % Do nothing on new versions
+    }
+    {
+      \def\Gread@@xetex#1{%
+        \IfFileExists{"\Gin@base".bb}%
+        {\Gread@eps{\Gin@base.bb}}%
+        {\Gread@@xetex@aux#1}%
+      }
+    }
+    \makeatother
+    \usepackage[Export]{adjustbox} % Used to constrain images to a maximum size
+    \adjustboxset{max size={0.9\linewidth}{0.9\paperheight}}
+
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    % The default LaTeX title has an obnoxious amount of whitespace. By default,
+    % titling removes some of it. It also provides customization options.
+    \usepackage{titling}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage{array}     % table support for pandoc >= 2.11.3
+    \usepackage{calc}      % table minipage width calculation for pandoc >= 2.11.1
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    \usepackage{soul}      % strikethrough (\st) support for pandoc >= 3.0.0
+    \usepackage{mathrsfs}
+    
+
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+    \definecolor{ansi-default-inverse-fg}{HTML}{FFFFFF}
+    \definecolor{ansi-default-inverse-bg}{HTML}{000000}
+
+    % common color for the border for error outputs.
+    \definecolor{outerrorbackground}{HTML}{FFDFDF}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \makeatletter
+    \newsavebox\pandoc@box
+    \newcommand*\pandocbounded[1]{%
+      \sbox\pandoc@box{#1}%
+      % scaling factors for width and height
+      \Gscale@div\@tempa\textheight{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+      \Gscale@div\@tempb\linewidth{\wd\pandoc@box}%
+      % select the smaller of both
+      \ifdim\@tempb\p@<\@tempa\p@
+        \let\@tempa\@tempb
+      \fi
+      % scaling accordingly (\@tempa < 1)
+      \ifdim\@tempa\p@<\p@
+        \scalebox{\@tempa}{\usebox\pandoc@box}%
+      % scaling not needed, use as it is
+      \else
+        \usebox{\pandoc@box}%
+      \fi
+    }
+    \makeatother
+
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatibility definitions
+    \def\gt{>}
+    \def\lt{<}
+    \let\Oldtex\TeX
+    \let\Oldlatex\LaTeX
+    \renewcommand{\TeX}{\textrm{\Oldtex}}
+    \renewcommand{\LaTeX}{\textrm{\Oldlatex}}
+    % Document parameters
+    % Document title
+    \title{Constellations\_memory\_demo}
+    
+    
+    
+    
+    
+    
+    
+% Pygments definitions
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@ges}{\let\PY@bf=\textbf\let\PY@it=\textit}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % For linebreaks inside Verbatim environment from package fancyvrb.
+    \makeatletter
+        \newbox\Wrappedcontinuationbox
+        \newbox\Wrappedvisiblespacebox
+        \newcommand*\Wrappedvisiblespace {\textcolor{red}{\textvisiblespace}}
+        \newcommand*\Wrappedcontinuationsymbol {\textcolor{red}{\llap{\tiny$\m@th\hookrightarrow$}}}
+        \newcommand*\Wrappedcontinuationindent {3ex }
+        \newcommand*\Wrappedafterbreak {\kern\Wrappedcontinuationindent\copy\Wrappedcontinuationbox}
+        % Take advantage of the already applied Pygments mark-up to insert
+        % potential linebreaks for TeX processing.
+        %        {, <, #, %, $, ' and ": go to next line.
+        %        _, }, ^, &, >, - and ~: stay at end of broken line.
+        % Use of \textquotesingle for straight quote.
+        \newcommand*\Wrappedbreaksatspecials {%
+            \def\PYGZus{\discretionary{\char`\_}{\Wrappedafterbreak}{\char`\_}}%
+            \def\PYGZob{\discretionary{}{\Wrappedafterbreak\char`\{}{\char`\{}}%
+            \def\PYGZcb{\discretionary{\char`\}}{\Wrappedafterbreak}{\char`\}}}%
+            \def\PYGZca{\discretionary{\char`\^}{\Wrappedafterbreak}{\char`\^}}%
+            \def\PYGZam{\discretionary{\char`\&}{\Wrappedafterbreak}{\char`\&}}%
+            \def\PYGZlt{\discretionary{}{\Wrappedafterbreak\char`\<}{\char`\<}}%
+            \def\PYGZgt{\discretionary{\char`\>}{\Wrappedafterbreak}{\char`\>}}%
+            \def\PYGZsh{\discretionary{}{\Wrappedafterbreak\char`\#}{\char`\#}}%
+            \def\PYGZpc{\discretionary{}{\Wrappedafterbreak\char`\%}{\char`\%}}%
+            \def\PYGZdl{\discretionary{}{\Wrappedafterbreak\char`\$}{\char`\$}}%
+            \def\PYGZhy{\discretionary{\char`\-}{\Wrappedafterbreak}{\char`\-}}%
+            \def\PYGZsq{\discretionary{}{\Wrappedafterbreak\textquotesingle}{\textquotesingle}}%
+            \def\PYGZdq{\discretionary{}{\Wrappedafterbreak\char`\"}{\char`\"}}%
+            \def\PYGZti{\discretionary{\char`\~}{\Wrappedafterbreak}{\char`\~}}%
+        }
+        % Some characters . , ; ? ! / are not pygmentized.
+        % This macro makes them "active" and they will insert potential linebreaks
+        \newcommand*\Wrappedbreaksatpunct {%
+            \lccode`\~`\.\lowercase{\def~}{\discretionary{\hbox{\char`\.}}{\Wrappedafterbreak}{\hbox{\char`\.}}}%
+            \lccode`\~`\,\lowercase{\def~}{\discretionary{\hbox{\char`\,}}{\Wrappedafterbreak}{\hbox{\char`\,}}}%
+            \lccode`\~`\;\lowercase{\def~}{\discretionary{\hbox{\char`\;}}{\Wrappedafterbreak}{\hbox{\char`\;}}}%
+            \lccode`\~`\:\lowercase{\def~}{\discretionary{\hbox{\char`\:}}{\Wrappedafterbreak}{\hbox{\char`\:}}}%
+            \lccode`\~`\?\lowercase{\def~}{\discretionary{\hbox{\char`\?}}{\Wrappedafterbreak}{\hbox{\char`\?}}}%
+            \lccode`\~`\!\lowercase{\def~}{\discretionary{\hbox{\char`\!}}{\Wrappedafterbreak}{\hbox{\char`\!}}}%
+            \lccode`\~`\/\lowercase{\def~}{\discretionary{\hbox{\char`\/}}{\Wrappedafterbreak}{\hbox{\char`\/}}}%
+            \catcode`\.\active
+            \catcode`\,\active
+            \catcode`\;\active
+            \catcode`\:\active
+            \catcode`\?\active
+            \catcode`\!\active
+            \catcode`\/\active
+            \lccode`\~`\~
+        }
+    \makeatother
+
+    \let\OriginalVerbatim=\Verbatim
+    \makeatletter
+    \renewcommand{\Verbatim}[1][1]{%
+        %\parskip\z@skip
+        \sbox\Wrappedcontinuationbox {\Wrappedcontinuationsymbol}%
+        \sbox\Wrappedvisiblespacebox {\FV@SetupFont\Wrappedvisiblespace}%
+        \def\FancyVerbFormatLine ##1{\hsize\linewidth
+            \vtop{\raggedright\hyphenpenalty\z@\exhyphenpenalty\z@
+                \doublehyphendemerits\z@\finalhyphendemerits\z@
+                \strut ##1\strut}%
+        }%
+        % If the linebreak is at a space, the latter will be displayed as visible
+        % space at end of first line, and a continuation symbol starts next line.
+        % Stretch/shrink are however usually zero for typewriter font.
+        \def\FV@Space {%
+            \nobreak\hskip\z@ plus\fontdimen3\font minus\fontdimen4\font
+            \discretionary{\copy\Wrappedvisiblespacebox}{\Wrappedafterbreak}
+            {\kern\fontdimen2\font}%
+        }%
+
+        % Allow breaks at special characters using \PYG... macros.
+        \Wrappedbreaksatspecials
+        % Breaks at punctuation characters . , ; ? ! and / need catcode=\active
+        \OriginalVerbatim[#1,codes*=\Wrappedbreaksatpunct]%
+    }
+    \makeatother
+
+    % Exact colors from NB
+    \definecolor{incolor}{HTML}{303F9F}
+    \definecolor{outcolor}{HTML}{D84315}
+    \definecolor{cellborder}{HTML}{CFCFCF}
+    \definecolor{cellbackground}{HTML}{F7F7F7}
+
+    % prompt
+    \makeatletter
+    \newcommand{\boxspacing}{\kern\kvtcb@left@rule\kern\kvtcb@boxsep}
+    \makeatother
+    \newcommand{\prompt}[4]{
+        {\ttfamily\llap{{\color{#2}[#3]:\hspace{3pt}#4}}\vspace{-\baselineskip}}
+    }
+    
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+\begin{document}
+    
+    \maketitle
+    
+    
+
+    
+    \hypertarget{harey-constellation-cards}{%
+\section{HARey constellation cards}\label{harey-constellation-cards}}
+
+\textbf{HARey} (pen name of Hans Augusto Reyersbach) was an illustrator
+and author. He took an interest in astronomy and wrote the books
+\emph{The Stars: A New Way to see them} and \emph{Find the
+constellations} to teach children about stargazing. In them he tried to
+redrawn the constellations diagrams to be more similar to the objects
+they are named after, instead of the abstract shapes used in modern
+astronomy.
+
+This project is my personal homage to HARey's work, and it borrows his
+idea of making learning the constellations a challenge by creating a
+Memory-like game to recognize the constellations without the lines.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{26}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+\PY{k+kn}{from} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{font\PYZus{}manager} \PY{k+kn}{import} \PY{n}{FontProperties}
+\PY{k+kn}{from} \PY{n+nn}{datetime} \PY{k+kn}{import} \PY{n}{datetime}
+\PY{k+kn}{import} \PY{n+nn}{pytz}
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \hypertarget{the-project-base}{%
+\subsection{The project base}\label{the-project-base}}
+
+This project borrows a lot from \textbf{Stellarium}, an open source
+planetary software. In the \emph{Sky Culture} section users can see
+different constellations shapes created by different cultures, and among
+them there are HARey's drawings. The \emph{index.json} file provides the
+constellation lines data and asterisms and the Hipparcos catalogues
+provides the stars positions to draw the constellations.
+
+    The \textbf{constellations} dictionary contains each constellations
+lines and stars. The key is an abbreviation of the constellation name
+(e.g., Ori for Orion). Constellations with keys like \textbf{.Orib} are
+a subgroup of stars that are assigned a name by HARey (e.g.~.Orib is
+Orion's belt). The \textbf{main\_ids} list contains the ids of the 88
+IAU constellations.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{27}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{}Load the constellations  }
+\PY{n}{constellations}\PY{p}{,} \PY{n}{main\PYZus{}ids}\PY{p}{,} \PY{n}{asterisms}\PY{p}{,} \PY{n}{helpers}\PY{p}{,} \PY{n}{named\PYZus{}stars} \PY{o}{=} \PY{n}{load\PYZus{}constellations}\PY{p}{(}\PY{p}{)}
+\PY{c+c1}{\PYZsh{} Load the stars positions and the constellations they belong to}
+\PY{n}{stars} \PY{o}{=} \PY{n}{load\PYZus{}stars}\PY{p}{(}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Print the first 10 ids as an example}
+\PY{n+nb}{print}\PY{p}{(}\PY{n}{main\PYZus{}ids}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{:}\PY{l+m+mi}{10}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+['UMi', 'Dra', 'Cas', 'Cep', 'Cam', 'UMa', 'Leo', 'CVn', 'LMi', 'Boo']
+    \end{Verbatim}
+
+    The stars are projected using a \textbf{stereographic} projection, which
+is a projection from spherical surface to plane which conserves the
+angles at which lines meet, locally preserving the shapes (further from
+the center, the stretching distorts the overall diagram). The center of
+the projection is the brightest star of each constellation.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{28}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{stars} \PY{o}{=} \PY{n}{stars}\PY{p}{[}\PY{n}{stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{\PYZlt{}} \PY{l+m+mi}{5}\PY{p}{]}
+\PY{n}{local\PYZus{}stars} \PY{o}{=} \PY{n}{stars}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{n}{constellations}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{UMa}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{stars}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{]}
+
+\PY{c+c1}{\PYZsh{} Take the brightest star of the constellation as the ccenter (zenith) of the projection}
+\PY{n}{brightest\PYZus{}star} \PY{o}{=} \PY{n}{local\PYZus{}stars}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{n}{np}\PY{o}{.}\PY{n}{argmin}\PY{p}{(}\PY{n}{local\PYZus{}stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}\PY{p}{]}
+
+\PY{c+c1}{\PYZsh{} Perform the stereographic projection}
+\PY{n}{stars\PYZus{}x}\PY{p}{,} \PY{n}{stars\PYZus{}y} \PY{o}{=} \PY{n}{stereo\PYZus{}centered}\PY{p}{(}\PY{n}{stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ra}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dec}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{brightest\PYZus{}star}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ra}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{brightest\PYZus{}star}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dec}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Convert the values to  Pandas series by adding the index}
+\PY{n}{stars\PYZus{}x} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{Series}\PY{p}{(}\PY{n}{data} \PY{o}{=} \PY{n}{stars\PYZus{}x}\PY{p}{,} \PY{n}{index}\PY{o}{=}\PY{n}{stars}\PY{o}{.}\PY{n}{index}\PY{p}{)}
+\PY{n}{stars\PYZus{}y} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{Series}\PY{p}{(}\PY{n}{data} \PY{o}{=} \PY{n}{stars\PYZus{}y}\PY{p}{,} \PY{n}{index}\PY{o}{=}\PY{n}{stars}\PY{o}{.}\PY{n}{index}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{29}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{fig}\PY{p}{,} \PY{p}{(}\PY{n}{ax1}\PY{p}{,} \PY{n}{ax2}\PY{p}{)} \PY{o}{=} \PY{n}{plt}\PY{o}{.}\PY{n}{subplots}\PY{p}{(}\PY{n}{facecolor}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{midnightblue}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{ncols} \PY{o}{=} \PY{l+m+mi}{2}\PY{p}{,} \PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{10}\PY{p}{,}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{)}
+\PY{n}{fig}\PY{o}{.}\PY{n}{suptitle}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ursa Major}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fontsize} \PY{o}{=} \PY{l+m+mi}{20}\PY{p}{)}
+\PY{n}{ax1}\PY{o}{.}\PY{n}{set\PYZus{}aspect}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{equal}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{ax1}\PY{o}{.}\PY{n}{set\PYZus{}axis\PYZus{}off}\PY{p}{(}\PY{p}{)}
+\PY{n}{ax1}\PY{o}{.}\PY{n}{set\PYZus{}xlim}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.1}\PY{p}{,}\PY{l+m+mf}{0.3}\PY{p}{)}
+\PY{n}{ax1}\PY{o}{.}\PY{n}{set\PYZus{}ylim}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.2}\PY{p}{,}\PY{l+m+mf}{0.2}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} The stars size is proportional to its brightness}
+\PY{n}{ax1}\PY{o}{.}\PY{n}{scatter}\PY{p}{(}\PY{n}{stars\PYZus{}x}\PY{p}{,} \PY{n}{stars\PYZus{}y}\PY{p}{,} \PY{n}{s}\PY{o}{=}\PY{l+m+mi}{50}\PY{o}{*}\PY{l+m+mi}{10}\PY{o}{*}\PY{o}{*}\PY{p}{(}\PY{n}{stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{/}\PY{o}{\PYZhy{}}\PY{l+m+mf}{2.5}\PY{p}{)}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{n}{ax2}\PY{o}{.}\PY{n}{set\PYZus{}aspect}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{equal}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{ax2}\PY{o}{.}\PY{n}{set\PYZus{}axis\PYZus{}off}\PY{p}{(}\PY{p}{)}
+\PY{n}{ax2}\PY{o}{.}\PY{n}{set\PYZus{}xlim}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.1}\PY{p}{,}\PY{l+m+mf}{0.3}\PY{p}{)}
+\PY{n}{ax2}\PY{o}{.}\PY{n}{set\PYZus{}ylim}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.2}\PY{p}{,}\PY{l+m+mf}{0.2}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Plot the lines of the constellations Ursa Major}
+\PY{k}{for} \PY{n}{line} \PY{o+ow}{in} \PY{n}{constellations}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{UMa}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{lines}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{:}
+    \PY{n}{ax2}\PY{o}{.}\PY{n}{plot}\PY{p}{(}\PY{n}{stars\PYZus{}x}\PY{p}{[}\PY{n}{line}\PY{p}{]}\PY{p}{,} \PY{n}{stars\PYZus{}y}\PY{p}{[}\PY{n}{line}\PY{p}{]}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{y}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{linewidth}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{)}
+    
+\PY{n}{ax2}\PY{o}{.}\PY{n}{scatter}\PY{p}{(}\PY{n}{stars\PYZus{}x}\PY{p}{,} \PY{n}{stars\PYZus{}y}\PY{p}{,} \PY{n}{s}\PY{o}{=}\PY{l+m+mi}{50}\PY{o}{*}\PY{l+m+mi}{10}\PY{o}{*}\PY{o}{*}\PY{p}{(}\PY{n}{stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{/}\PY{o}{\PYZhy{}}\PY{l+m+mf}{2.5}\PY{p}{)}\PY{p}{,} \PY{n}{color}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_7_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{the-hareymain-module}{%
+\section{The HAReyMain module}\label{the-hareymain-module}}
+
+The process of creating the constellations plots is automated by the
+\textbf{HAReyMain} module, which creates plots similar to HARey's
+drawings.
+
+To make cards that can be used by everyone in their native language, I
+added the \textbf{names.csv} file, which contains the keys to identify
+the objects inside the HARey module and the translated names. The
+default language is IAU-EN, which is the standard IAU denomination of
+objects; ENGLISH uses the names that HARey wrote in his book. For now
+only ENGLISH and ITALIAN are supported, but I'd like some help to add
+more languages.
+
+The names also include newlines to wrap around long ones (this works in
+the Matplotlib plots but not in InkScape, see the SIS\_SCRIPT section).
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{30}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k+kn}{from} \PY{n+nn}{HARey}\PY{n+nn}{.}\PY{n+nn}{harey\PYZus{}main} \PY{k+kn}{import} \PY{n}{HAReyMain}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{31}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Read the constellations file, the HIP catalogue and the object names}
+\PY{n}{harey} \PY{o}{=} \PY{n}{HAReyMain}\PY{p}{(}\PY{n}{language}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ENGLISH}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{star\PYZus{}colors}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{helland}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Set two custom fonts for the plots and the cards names}
+\PY{n}{labels\PYZus{}font} \PY{o}{=} \PY{n}{FontProperties}\PY{p}{(}\PY{n}{fname}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fonts/PatrickHand\PYZhy{}Regular.ttf}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{cardback\PYZus{}font} \PY{o}{=} \PY{n}{FontProperties}\PY{p}{(}\PY{n}{fname}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{fonts/TheWalkyr.ttf}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}fonts}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{labels}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{n}{labels\PYZus{}font}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{cardback}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{n}{cardback\PYZus{}font}\PY{p}{\PYZcb{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Loading constellations diagrams{\ldots}     Done!
+Loading star coordinates{\ldots}     Done!
+Computing stars colors{\ldots}     Done!
+Loading custom markers{\ldots}       Done!
+Loading the object names{\ldots}       Done!
+
+
+Using the tarot-round format, 2.75x4.75 in, using the template at
+/home/menegattig/Desktop/HARey/HARey/cardbacks/tarot\_round.png
+    \end{Verbatim}
+
+    \hypertarget{star-sizes-and-colors}{%
+\subsection{Star sizes and colors}\label{star-sizes-and-colors}}
+
+In his books, HARey drew different markers for different magnitudes,
+making it easier to see the magnitude of each star, whereas modern maps
+all use round stars.
+
+The size of a star depends on its brightness, which is computed from its
+magnitude \(M\) as \(B=B_0\cdot 10 ^{-0.4M}\).
+
+Different functions are used by many softwares depending on the
+objective. Most set the size equal to the brightness, but digging a lot
+into the math I found that the visual size of a star is given by the
+Airy disk, in which case it is \(\propto (M-M_l)\), where \(M_l\), the
+limit magnitude, is the faintest magnitude visible.
+
+The python library Skyfield uses \(\propto (M-M_l)^2\), and I finally
+settled for \(\propto (M-M_l)^{1.5}\), which I felt was a good
+compromise considering that the different symbols already help
+distinguishing the bright stars.
+
+The faintest stars in the Hipparcos catalogue are of magnitude 13, but
+the naked eye cannot see beyond 6-6.5, and depending on the light
+pollution the value could be much lower. The default value used by the
+harey library is 6.0, to prioritize a clear plot instead of a fancy one.
+It can be changed wit \texttt{harey.set\_limiting\_magnitude()}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{32}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{fig} \PY{o}{=} \PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}legend}\PY{p}{(}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_12_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    For a bit of flare, each star has its own color, defined by the B-V
+color index. This value is converted in a RGB color using a colormap
+present in the Stellarium software.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{33}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{fig} \PY{o}{=} \PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}star\PYZus{}cmap}\PY{p}{(}\PY{p}{)}
+\PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_14_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    The colors used in the plots are shared by all the plotting functions
+and can be changed with
+\texttt{harey.set\_colors(\{\textquotesingle{}name\textquotesingle{}:color\})}.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{34}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n+nb}{print}\PY{p}{(}\PY{n}{harey}\PY{o}{.}\PY{n}{colors}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+\{'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 'ecliptic':
+'crimson', 'horizon': 'white', 'cardinal\_markers': 'darkred', 'grid': 'yellow',
+'asterisms': 'limegreen', 'helpers': 'coral', 'starmap\_border': 'xkcd:gold',
+'star\_labels': 'gold', 'constellation\_labels': 'cyan', 'ecliptic\_label':
+'crimson', 'asterism\_labels': 'lime', 'constellation\_parts': 'violet',
+'horizon\_label': 'white', 'mater': 'xkcd:light blue', 'cardback\_1': 'xkcd:marine
+blue', 'cardback\_2': 'xkcd:blood', 'accent\_1': 'darkgoldenrod', 'accent\_2':
+'darkgoldenrod'\}
+    \end{Verbatim}
+
+    \hypertarget{plotting-options}{%
+\subsubsection{Plotting options}\label{plotting-options}}
+
+The plotting functions share most of these boolean flags to enable or
+disable plotting options. They are saved in the \texttt{harey.flags}
+dictionary. They can be changed before a plot with
+\texttt{harey.set\_flags\_\_(\{\textquotesingle{}flag\textquotesingle{}:value\})},
+then they are reset to default values automatically after the plot.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{CON\_LINES} (\emph{default False}) : Plot the constellation
+  lines
+\item
+  \textbf{STAR\_COLORS} (\emph{default False}): Use the real star colors
+  in the plots. Otherwise, all the stars will be white
+  \textbf{CON\_NAMES} (\emph{default False}): Show the constellation
+  names
+\item
+  \textbf{CON\_PARTS} (\emph{default False}): Show the constellation
+  parts (e.g.~feet, head, body, ecc.) from the HARey diagrams
+\item
+  \textbf{STAR\_NAMES} (\emph{default False}): Plot the brightest stars
+  names
+\item
+  \textbf{ASTERISMS} (\emph{default False}): Plot the asterisms lines.
+  Asterisms are patterns of stars that are easy to recognize but not a
+  constellation (e.g.~the Big Dipper)
+\item
+  \textbf{HELPERS} (\emph{default False}): Plot the helper lines. These
+  are imaginary lines that connect stars to each other and make it
+  easier to find features in the sky
+\item
+  \textbf{GRID} (\emph{default False}): Plot the RA-dec grid in
+  equatorial and polar maps
+\item
+  \textbf{HAREY\_MAERKERS} (\emph{default True}): Use the HARey markers
+  instead of points
+\item
+  \textbf{SIS\_SCRIPT} (\emph{default False}): Creates a Simple InkScape
+  Script for the labels. See the next section.
+\item
+  \textbf{SHOW} (\emph{default True}): Show the image (default True)
+\item
+  \textbf{SAVE} (\emph{default False}): Save the figure with a default
+  name. If a different \textbf{save\_name} is provided, the plot is
+  saved automatically
+\end{itemize}
+
+In a similar ways, the default color used are saved in the
+\textbf{harey\_colors} dictionary, and changed with
+\textbf{harey.set\_colors()}.
+
+    \hypertarget{the-sis_script-option}{%
+\subsubsection{The SIS\_SCRIPT option}\label{the-sis_script-option}}
+
+Plotting the labels proved a more difficult task than expected as there
+is no simple way to put the labels without overlapping other labels or
+objects. I've tried the python libraries \emph{adjustText} and
+\emph{textalloc} that fix this issue by moving each label away and then
+try to dynamically simulate their movement towards their initial
+position while avoiding everything else, but found that it took too long
+to simulate the movements and the result was not satisfactory (also,
+there is no way to rotate the labels, which drastically improve
+readability).
+
+For this reason I decided to manually fix the labels before printing the
+cards. To simplify this tedious task, I used InkScape with the extension
+\textbf{Simple Inkscape Scripting}, which enables python-like scripts to
+perform repetitive tasks in InkScape.
+
+To do this, enable the SIS\_SCRIPT flag and a new \emph{image\_name.py}
+file will be created inside the folder inkscape\_scripts containing the
+labels informations. Now open the image (saved without labels) in
+Inkscape and resize the canvas to the image (file → Document Properties
+→ Resize to content). Then go to Extensions → Render → Simple InkScape
+Scripting and select the \emph{image\_name.py} file and launch it with
+Apply.
+
+All the labels will appear in the image in the right position and color,
+and fixing them will hopefully require only some resizing and a small
+translation. Text on newlines will be split in two text windows.
+
+    \hypertarget{constellations-cards}{%
+\subsection{Constellations cards}\label{constellations-cards}}
+
+The constellations are projected around the brightest star using a
+stereographic projection that preserves the shapes.
+
+When the \textbf{BEST\_AR} option is enabled, the stars are rotated to
+minimize the aspect ratio (x-spread over y-spread) and fill as much as
+possible the card space. Otherwise, the card is plotted North up. Stars
+that are not part of the constellations are plotted with a little
+transparency to make it easier to see the constellation.
+
+The card size is set by \texttt{harey.set\_card\_template()}. Right now,
+the format supported are poker-round (2.5x3.5 in), tarot-round
+(2.75x4.75 in), jumbo-round (3.5x5.5 in) and their square variants.
+
+Here is shown how to plot the constellation of Orion (ID `Ori')
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{35}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Using a card template different than the default one}
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}card\PYZus{}template}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{poker\PYZhy{}round}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}card}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ori}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{n}{BEST\PYZus{}AR}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Using the poker-round format, 2.50x3.50 in, using the template at
+/home/menegattig/Desktop/HARey/HARey/cardbacks/poker\_round.png
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_20_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Another plot of orion, but with no lines and colored stars
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{36}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}COLORS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}card}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ori}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{BEST\PYZus{}AR}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_22_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    orion again, but disabling the Harey markers and using simple points to
+plot the constellation. Also the limiting magnitude is set to 10.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{37}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}limiting\PYZus{}magnitude}\PY{p}{(}\PY{l+m+mi}{10}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HAREY\PYZus{}MARKERS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{False}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}COLORS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}card}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ori}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{BEST\PYZus{}AR}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{star\PYZus{}size}\PY{o}{=}\PY{l+m+mi}{70}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_24_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Orion again, constellation line, names of the constellation parts and
+names of the stars. The labels position is set to be in the middle,
+which does not look good, so I recommend to manually adjust the lables
+in InkScape when printing a card set.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{38}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}limiting\PYZus{}magnitude}\PY{p}{(}\PY{l+m+mi}{6}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}PARTS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}COLORS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}card}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ori}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{BEST\PYZus{}AR}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_26_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \texttt{plot\_cardback} creates the cardback for the constellations,
+colorizing the black\_and\_white image of the cardback and adding the
+name of the constellation to the image.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{39}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}cardback}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ori}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_28_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{printing-the-cards}{%
+\subsubsection{Printing the cards}\label{printing-the-cards}}
+
+The actual print is done by first creating all the sets inside a folder,
+the using the print-and-play method to arrange all the cards inside a
+pdf. \texttt{print\_card\_set()} creates a card set for one
+constellation (an image of the constellation without lines, one with
+lines, and two different cardbacks).
+
+Here SIS\_SCRIPT is enabled, so cards will be saved without names and a
+new \textbf{inkscape\_scripts} folder will be created containing the
+\emph{.py} scripts to create the labels in inkscape.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{40}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}card\PYZus{}template}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{jumbo\PYZhy{}round}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{plot\PYZus{}constellations} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Ori}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Gem}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+
+\PY{k}{for} \PY{n+nb}{id} \PY{o+ow}{in} \PY{n}{plot\PYZus{}constellations}\PY{p}{:}
+	\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}COLORS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}PARTS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{SIS\PYZus{}SCRIPT}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{False}\PY{p}{\PYZcb{}}\PY{p}{)}
+	\PY{n}{harey}\PY{o}{.}\PY{n}{print\PYZus{}card\PYZus{}set}\PY{p}{(}\PY{n+nb}{id}\PY{p}{,} \PY{n}{save\PYZus{}folder}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Card\PYZus{}output}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{BEST\PYZus{}AR}\PY{o}{=}\PY{k+kc}{True}\PY{p}{,} \PY{n}{bleed}\PY{o}{=}\PY{l+m+mf}{0.0}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Using the jumbo-round format, 3.50x5.50 in, using the template at
+/home/menegattig/Desktop/HARey/HARey/cardbacks/jumbo\_round.png
+Created card set for Ori
+Created card set for Gem
+    \end{Verbatim}
+
+    \texttt{print\_and\_play()} arranges the cards inside the folder in a
+pdf document ready to print. The print is intended to be 2-sided, and to
+avoid small misalignement between the fronts and the backs of the cards,
+the formers have been saved with a bleed of 0.1 inches, aa small extra
+area to completely cover the card backs, where the cutting should take
+place.
+
+The print process can drastically change the color of the cards, so
+doing several trials before printing more cards is recommended.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{41}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{print\PYZus{}and\PYZus{}play}\PY{p}{(}\PY{n}{folder} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Card\PYZus{}output}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{filename}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Cards.pdf}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{bleed}\PY{o}{=}\PY{l+m+mf}{0.0}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+
+32 cards have been printed in the file Cards.pdf
+
+    \end{Verbatim}
+
+    \hypertarget{asterisms-and-helper-lines}{%
+\subsection{Asterisms and Helper
+lines}\label{asterisms-and-helper-lines}}
+
+Aterisms and helper lines are plotted by the function
+\texttt{harey.asterism\_plot()}. Asterism are group of stars that are
+easy to recognize in the sky but are not constellation by themselves.
+Helper rays, with IDs from `HR01' to `HR14', are lines that connect
+bright stars and make it easier to find stars in the sky, the most
+famous one of which is the one that connects the Big Dipper Guardians
+stars to the North Star.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{42}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Print asterism names}
+\PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Asterism IDs and names}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{k}{for} \PY{n+nb}{id} \PY{o+ow}{in} \PY{n}{harey}\PY{o}{.}\PY{n}{asterisms}\PY{o}{.}\PY{n}{keys}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+    \PY{n+nb}{print}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+si}{\PYZob{}}\PY{n+nb}{id}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s1}{ : }\PY{l+s+si}{\PYZob{}}\PY{n}{harey}\PY{o}{.}\PY{n}{names}\PY{p}{[}\PY{n+nb}{id}\PY{p}{]}\PY{o}{.}\PY{n}{replace}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{+w}{ }\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ }\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Asterism IDs and names
+BigD : Big Dipper
+VirD : Virgin's Diamond
+GSq : Great Square
+GHx : Great Hexagon
+SerCd : Serpent's tail
+SerCp : Serpent's head
+SumT : Summer Triangle
+CruF : False Cross
+    \end{Verbatim}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{43}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}asterism}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HR01}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_35_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{44}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ZODIAC}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}asterism}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{VirD}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_36_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{sky-view}{%
+\subsection{Sky View}\label{sky-view}}
+
+The \texttt{plot\_sky\_view} method creates an alt-az view of the sky at
+a given time and location, with the same plotting options as before.
+
+In the sky views and sky maps, changes in the font and the overall size
+of the plot may change dramatically the stars and labels appearance. It
+may be necessary to change the \texttt{star\_size} and
+\texttt{font\_sizes} options to achieve a good result.
+
+The sky view here is plot with aterism kines (green) and helper lines
+(orange)
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{45}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{datetime\PYZus{}str} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{27\PYZhy{}3\PYZhy{}2025 21:30}\PY{l+s+s1}{\PYZsq{}}
+
+\PY{n}{date} \PY{o}{=} \PY{n}{datetime}\PY{o}{.}\PY{n}{strptime}\PY{p}{(}\PY{n}{datetime\PYZus{}str}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+si}{\PYZpc{}d}\PY{l+s+s1}{\PYZhy{}}\PY{l+s+s1}{\PYZpc{}}\PY{l+s+s1}{m\PYZhy{}}\PY{l+s+s1}{\PYZpc{}}\PY{l+s+s1}{Y }\PY{l+s+s1}{\PYZpc{}}\PY{l+s+s1}{H:}\PY{l+s+s1}{\PYZpc{}}\PY{l+s+s1}{M}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{c+c1}{\PYZsh{} Observer takes as input the latitude and longitude in decimal format (not sessagesimal)}
+\PY{n}{observer} \PY{o}{=} \PY{n}{harey}\PY{o}{.}\PY{n}{Observer}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{45 N}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{11 E}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{c+c1}{\PYZsh{} Set the observation time and timezone}
+\PY{n}{observer}\PY{o}{.}\PY{n}{at\PYZus{}time}\PY{p}{(}\PY{n}{date}\PY{p}{,} \PY{n}{pytz}\PY{o}{.}\PY{n}{timezone}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Europe/Rome}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}\PY{p}{)}
+
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}COLORS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ASTERISMS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}sky\PYZus{}view}\PY{p}{(}\PY{n}{observer}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_38_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    The same sky view, but with constellation lines, names and parts.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{46}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}PARTS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}COLORS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{plot\PYZus{}sky\PYZus{}view}\PY{p}{(}\PY{n}{observer}\PY{p}{,} \PY{n}{font\PYZus{}sizes}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{7}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_40_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{polar-map-of-the-sky}{%
+\subsection{Polar map of the sky}\label{polar-map-of-the-sky}}
+
+The polar map uses either a stereographic projection, which preserves
+angles but deforms areas moving away from the center, or an azimuthal
+projection, which limits the enlargement of constellations but deforms
+the shapes.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{47}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{GRID}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ASTERISMS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{SIS\PYZus{}SCRIPT}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ADD CALENDAR}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{polar\PYZus{}map}\PY{p}{(}\PY{n}{pole} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{N}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_42_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    A polar map of the southern polar sky, using the azimuthal projection.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{48}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{GRID}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ASTERISMS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{STAR\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{polar\PYZus{}map}\PY{p}{(}\PY{n}{pole} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{S}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{FOV}\PY{o}{=} \PY{l+m+mi}{110}\PY{p}{,} \PY{n}{mode}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{azimuth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_44_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{equatorial-map}{%
+\subsection{Equatorial map}\label{equatorial-map}}
+
+The equatorial maps shows the sky around the equator while distorting
+the poles. it uses the Gall stereographic projection, which compromises
+between preserving the shapes and limit the enlargement of
+constellations near the poles.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{49}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{GRID}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ASTERISMS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HELPERS}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{n}{harey}\PY{o}{.}\PY{n}{equatorial\PYZus{}map}\PY{p}{(}\PY{n}{max\PYZus{}dims}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{10}\PY{p}{,}\PY{l+m+mi}{8}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_46_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{astrolabes-and-planispheres}{%
+\subsection{Astrolabes and
+planispheres}\label{astrolabes-and-planispheres}}
+
+Astrolabes and planispheres are instruments used to see the stars
+visible from a given location during the whole year.
+
+For a complete explanation of how they work, read the
+\emph{Astrolabe.ipynb} notebook.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{50}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{harey}\PY{o}{.}\PY{n}{set\PYZus{}flags}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}LINES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CON\PYZus{}NAMES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}\PY{k+kc}{True}\PY{p}{\PYZcb{}}\PY{p}{)}
+\PY{c+c1}{\PYZsh{}harey.set\PYZus{}colors(\PYZob{}\PYZsq{}sky\PYZsq{}:\PYZsq{}white\PYZsq{}, \PYZsq{}constellations\PYZsq{}:\PYZsq{}k\PYZsq{}, \PYZsq{}star\PYZsq{}:\PYZsq{}k\PYZsq{}, \PYZsq{}constellation\PYZus{}labels\PYZsq{}:\PYZsq{}red\PYZsq{}\PYZcb{})}
+\PY{n}{harey}\PY{o}{.}\PY{n}{create\PYZus{}planisphere}\PY{p}{(}\PY{n}{lat}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{45 N}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{save\PYZus{}folder}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{planisphere}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{FOV}\PY{o}{=}\PY{l+m+mi}{220}\PY{p}{,} \PY{n}{MARK\PYZus{}CENTER}\PY{o}{=}\PY{k+kc}{True}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_48_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{Constellations_memory_demo_files/Constellations_memory_demo_48_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{which-constellations-should-you-print}{%
+\section{Which constellations should you
+print?}\label{which-constellations-should-you-print}}
+
+Not all constellations are the same, both in size and ease of
+recognition. Like HARey, I decided to focus on the ones that are bright
+and visible from where I live (45° N). Here I made a comparison between
+all the constellations, ordering them by visibility.
+\textbf{is\_visible()} classify a constellation by where it can be seen.
+It considers a ground obstruction/limited visibility zone of 5°.
+
+Constellations are divided in
+
+\begin{itemize}
+\tightlist
+\item
+  visible (during part of the year it is completely above the horizon)
+\item
+  not visible (always below the horizon during the whole year),
+\item
+  circumpolar (always visible during the whole year),
+\item
+  mostly visible (at its highest point, part of the constellation is
+  close to the horizon, and light pollution fog and obstacles make it
+  difficult to see),
+\item
+  partly visible (part of the constellation is below the horizon),
+\item
+  hardly\_visible (part of it is below the horizon, and it never rises
+  much from the horizon).
+\end{itemize}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{51}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{df} \PY{o}{=} \PY{n}{harey}\PY{o}{.}\PY{n}{stars}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{n}{harey}\PY{o}{.}\PY{n}{stars}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{constellation}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{!=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{none}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{constellation}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ra}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dec}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{]}
+\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{name}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{constellation}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{map}\PY{p}{(}\PY{n}{harey}\PY{o}{.}\PY{n}{names}\PY{p}{)}
+\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{name}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{name}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{str}\PY{o}{.}\PY{n}{replace}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ }\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{n+nb}{print}\PY{p}{(}\PY{n}{df}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+
+\PY{n}{grouped} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{groupby}\PY{p}{(}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{constellation}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+\PY{n}{brightest} \PY{o}{=} \PY{n}{grouped}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{min}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{brightest star}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{mean\PYZus{}luminosity} \PY{o}{=} \PY{n}{grouped}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{magnitude}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mean brightness}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{n\PYZus{}stars} \PY{o}{=} \PY{n}{grouped}\PY{o}{.}\PY{n}{size}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{n\PYZus{}stars}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{name} \PY{o}{=} \PY{n}{grouped}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{name}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{first}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{name}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{n}{visibility} \PY{o}{=} \PY{n}{grouped}\PY{o}{.}\PY{n}{apply}\PY{p}{(}\PY{k}{lambda} \PY{n}{g} \PY{p}{:} \PY{n}{pd}\PY{o}{.}\PY{n}{Series}\PY{p}{(}\PY{n}{harey}\PY{o}{.}\PY{n}{is\PYZus{}visible}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{45 N}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{g}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ra}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{g}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dec}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{LVZ} \PY{o}{=} \PY{l+m+mi}{5}\PY{p}{)}\PY{p}{,} \PY{n}{index}\PY{o}{=}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Visibility}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Best Period}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}\PY{p}{,} \PY{n}{include\PYZus{}groups}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}
+
+\PY{n}{constellation\PYZus{}df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{concat}\PY{p}{(}\PY{p}{[}\PY{n}{name}\PY{p}{,} \PY{n}{brightest}\PY{p}{,} \PY{n}{mean\PYZus{}luminosity}\PY{p}{,} \PY{n}{n\PYZus{}stars}\PY{p}{,} \PY{n}{visibility}\PY{p}{]}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{constellation\PYZus{}df}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{l+m+mi}{10}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+     constellation  magnitude        ra        dec        name
+hip
+677            And       2.07  2.096542  29.090833   Andromeda
+746            Cas       2.28  2.292042  59.150222  Cassiopeia
+765            Phe       3.88  2.352250 -45.747000     Phoenix
+1067           Peg       2.83  3.308958  15.183611     Pegasus
+1411           And       9.09  4.418625  37.537861   Andromeda
+    \end{Verbatim}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{51}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+                        name  brightest star  mean brightness  n\_stars  \textbackslash{}
+constellation
+And                Andromeda            2.07         3.998333       18
+Ant                     Pump            4.28         4.280000        1
+Aps                      Bee            3.83         4.150000        4
+Aql                    Eagle            0.76         3.324545       11
+Aqr            Water Carrier            2.90         4.068571       21
+Ara                    Altar            2.84         3.506667        6
+Ari                      Ram            2.01         4.031000       10
+Aur                   Auriga            0.08         2.617500        8
+Boo                   Bootes           -0.05         3.493333       15
+CMa                  Big dog           -1.44         3.005625       16
+
+                  Visibility           Best Period
+constellation
+And                  visible       July - December
+Ant                  visible        December - May
+Aps            never visible                     -
+Aql                  visible         May - October
+Aqr                  visible       June - November
+Ara            never visible                     -
+Ari                  visible      August - January
+Aur                  visible  September - February
+Boo                  visible       February - July
+CMa                  visible       October - March
+\end{Verbatim}
+\end{tcolorbox}
+        
+    Finally, I tried to order the constellations by how easy they are to be
+recognized. I created a simple scoring system based on how many stars
+are in the constellation, how bright is the brightest star and the
+overall brightness. I decided to weight more the last two scores to
+compute the overall score, but this is just my preference.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{52}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c+c1}{\PYZsh{} Create scoring function to assign scores between 0 and 1}
+
+\PY{k}{def} \PY{n+nf}{score}\PY{p}{(}\PY{n}{x}\PY{p}{)}\PY{p}{:}
+    \PY{k}{return} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZhy{}} \PY{n+nb}{min}\PY{p}{(}\PY{n}{x}\PY{p}{)}\PY{p}{)}\PY{o}{/}\PY{p}{(}\PY{n+nb}{max}\PY{p}{(}\PY{n}{x}\PY{p}{)}\PY{o}{\PYZhy{}}\PY{n+nb}{min}\PY{p}{(}\PY{n}{x}\PY{p}{)}\PY{p}{)}
+
+\PY{n}{size\PYZus{}score} \PY{o}{=} \PY{n}{score}\PY{p}{(}\PY{n}{constellation\PYZus{}df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{n\PYZus{}stars}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+\PY{c+c1}{\PYZsh{} Remap the size score to penalize constellations which are too big or too small}
+\PY{n}{size\PYZus{}score} \PY{o}{=} \PY{l+m+mi}{4}\PY{o}{*}\PY{n}{size\PYZus{}score}\PY{o}{*}\PY{p}{(}\PY{l+m+mi}{1}\PY{o}{\PYZhy{}}\PY{n}{size\PYZus{}score}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Mean brightness score, as similar stars are easier to find}
+\PY{n}{importance\PYZus{}score} \PY{o}{=} \PY{l+m+mi}{1}\PY{o}{\PYZhy{}}\PY{n}{score}\PY{p}{(}\PY{n}{constellation\PYZus{}df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mean brightness}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+\PY{c+c1}{\PYZsh{} Brightest star score}
+\PY{n}{brightness\PYZus{}score} \PY{o}{=} \PY{l+m+mi}{1}\PY{o}{\PYZhy{}}\PY{n}{score}\PY{p}{(}\PY{n}{constellation\PYZus{}df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{brightest star}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Combine the three scores (I chose to give less importance to the size score)}
+\PY{n}{constellation\PYZus{}df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{score}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{importance\PYZus{}score} \PY{o}{+} \PY{n}{brightness\PYZus{}score} \PY{o}{+} \PY{l+m+mf}{0.8}\PY{o}{*}\PY{n}{size\PYZus{}score}
+
+\PY{c+c1}{\PYZsh{} Keep only the constellations that are visible }
+\PY{n}{constellation\PYZus{}df} \PY{o}{=} \PY{n}{constellation\PYZus{}df}\PY{p}{[}\PY{o}{\PYZti{}}\PY{n}{constellation\PYZus{}df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Visibility}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{isin}\PY{p}{(}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{never visible}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{hardly visible}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}\PY{p}{]}
+\PY{c+c1}{\PYZsh{} Order the constellation by their score}
+\PY{n}{constellation\PYZus{}df}\PY{o}{.}\PY{n}{sort\PYZus{}values}\PY{p}{(}\PY{n}{by} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{score}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{ascending}\PY{o}{=}\PY{k+kc}{False}\PY{p}{,} \PY{n}{ignore\PYZus{}index}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{l+m+mi}{40}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{52}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+                         name  brightest star  mean brightness  n\_stars  \textbackslash{}
+constellation
+CMa                   Big dog           -1.44         3.005625       16
+Pup                     Stern           -0.62         3.291000       10
+Aur                    Auriga            0.08         2.617500        8
+Boo                    Bootes           -0.05         3.493333       15
+Sco                  Scorpion            1.06         2.910500       20
+Aql                     Eagle            0.76         3.324545       11
+Cyg                      Swan            1.25         3.386000       15
+Lyr                      Lyre            0.03         3.714000       10
+Vir                    Maiden            0.98         3.562667       15
+Gem                     testa            1.16         3.345556       18
+Leo                      Lion            1.36         3.361250       16
+UMa                  Big Bear            1.76         2.991579       19
+CMi                Little dog            0.40         1.645000        2
+Tau                      Bull            0.87         3.571000       20
+Sgr                    Archer            1.79         3.313333       18
+Ori                     Orion            0.18         3.410435       23
+Hya                     Hydra            1.99         3.585333       15
+Dra                    Dragon            2.24         3.522667       15
+Gru                     Crane            1.73         3.444444        9
+Peg                   Pegasus            2.38         3.645882       17
+Oph            Serpent bearer            2.08         3.742222       18
+Cet                     Whale            2.04         3.866154       13
+Cas                Cassiopeia            2.15         2.771667        6
+Cep                   Cepheus            2.45         3.648182       11
+Lep                      Hare            2.58         3.618182       11
+And                 Andromeda            2.07         3.998333       18
+PsA             Southern Fish            1.17         4.021250        8
+Ari                       Ram            2.01         4.031000       10
+UMi              Little  Bear            1.97         3.548571        7
+Per                   Preseus            1.79         3.649130       23
+Ser                   Serpent            2.63         3.789500       20
+Cap                 Capricorn            2.85         4.010000       13
+Crv                     Raven            2.58         3.530000        7
+Lib                    Scales            2.61         3.296667        6
+Col                      Dove            2.65         3.738571        7
+CrB            Northern Crown            2.22         3.760000        6
+Cen                   Centaur           -0.01         3.330345       29
+Aqr             Water Carrier            2.90         4.068571       21
+Her                  Hercules            2.78         3.753913       23
+Lup                      Wolf            2.30         3.856667       24
+
+                   Visibility           Best Period     score
+constellation
+CMa                   visible       October - March  2.392003
+Pup            partly visible       October - March  2.086273
+Aur                   visible  September - February  2.074486
+Boo                   visible       February - July  2.042749
+Sco            mostly visible        March - August  1.937943
+Aql                   visible         May - October  1.901712
+Cyg                   visible         May - October  1.874205
+Lyr                   visible     April - September  1.865028
+Vir                   visible        January - June  1.864850
+Gem                   visible       October - March  1.862896
+Leo                   visible        December - May  1.860364
+UMa                   visible        December - May  1.844017
+CMi                   visible       October - March  1.815064
+Tau                   visible  September - February  1.777285
+Sgr            mostly visible     April - September  1.775529
+Ori                   visible  September - February  1.770069
+Hya                   visible        December - May  1.703428
+Dra               circumpolar                Always  1.683092
+Gru            partly visible       June - November  1.636852
+Peg                   visible       June - November  1.609887
+Oph                   visible        March - August  1.607807
+Cet                   visible      August - January  1.598738
+Cas               circumpolar                Always  1.582088
+Cep               circumpolar                Always  1.549510
+Lep                   visible     September - March  1.538192
+And                   visible       July - December  1.535746
+PsA                   visible       June - November  1.503932
+Ari                   visible      August - January  1.470255
+UMi               circumpolar                Always  1.455835
+Per                   visible      August - January  1.454546
+Ser                   visible        March - August  1.444559
+Cap                   visible         May - October  1.433169
+Crv                   visible        January - June  1.367613
+Lib                   visible       February - July  1.360674
+Col            mostly visible       October - March  1.296943
+CrB                   visible        March - August  1.287348
+Cen            partly visible        January - June  1.283449
+Aqr                   visible       June - November  1.278057
+Her                   visible        March - August  1.272596
+Lup            partly visible       February - July  1.247301
+\end{Verbatim}
+\end{tcolorbox}
+        
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+\end{document}

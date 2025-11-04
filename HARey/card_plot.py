@@ -223,5 +223,3 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
         plt.show()
     else:
         plt.close()
-
-    self.reset_flags()

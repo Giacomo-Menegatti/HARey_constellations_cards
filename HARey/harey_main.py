@@ -121,6 +121,7 @@ class HAReyMain(StarColorMap):
        
         #Initialize graphical parameters to default values
         self.limiting_magnitude = 6.0 # Maximum magnitude of plotted stars
+        self.limit_size=0
 
         # Colors used in the plots
         self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
@@ -195,13 +196,15 @@ class HAReyMain(StarColorMap):
         return True
 
     # Function to set the limiting magnitude
-    def set_limiting_magnitude(self, limiting_magnitude=6.5):
+    def set_limiting_magnitude(self, limiting_magnitude=6.5, limit_size=0.0):
         """
         Set the limiting magnitude of the stars. Higher values will plot more dim stars.
+        The limit_size is the size of stars with limiting magnitude, to avoid having small points in the plots.
         
         The HIP catalogue reaches up to 13, but 6.5 is a good compromise between a fancy plot and a readable one.
         """
         self.limiting_magnitude = limiting_magnitude
+        self.limit_size = limit_size
 
 
     # Function to set the fonts that will be used

@@ -191,7 +191,7 @@ class Observer():
 #  FUNCTION
 
 
-def is_visible(lat_str, stars_ra, stars_dec, LVZ = 5):
+def is_visible(lat_str, stars_ra, stars_dec, LVZ = 5.0):
     """
     Compute the visibility of a constellation from a given latitude.
 
@@ -285,8 +285,8 @@ def best_visibility_period(mean_RA):
 
 ############ STAR SIZE FROM MAGNITUDE ##########
 
-def mag2size(mag, lim_mag):
-    """Compute the star size from its magnitude. lim_mag is the magnitude of the brightest star not visible in the plot"""
+def mag2size(mag, lim_mag, lim_mag_size=0.0):
+    """Compute the star size from its magnitude. lim_mag is the magnitude of the brightest star not visible in the plot, lim_mag_size a parameter to avoid having stars too small."""
 
     # Brightness scaling (works for brighter stars, but dim ones are all too small and difficult to distinguish)
     # return 10**(0.4*mag)
@@ -298,4 +298,4 @@ def mag2size(mag, lim_mag):
     # return (1 - mag/lim_mag )**2
 
     # Custom scaling (intermediate between the previous two, works well in the plots)
-    return (1 - mag/lim_mag )**1.5
+    return (1 - mag/lim_mag )**1.5 + lim_mag_size

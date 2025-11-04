@@ -199,8 +199,6 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
     else:
         plt.close()
 
-    self.reset_flags()
-
 
 def create_planisphere(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth', 
                         SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50):
