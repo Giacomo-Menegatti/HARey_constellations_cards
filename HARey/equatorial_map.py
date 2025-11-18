@@ -59,7 +59,6 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, font_size, label
 		buff.seek(0)
 		image = plt.imread(buff)
 		
-	print(width, height)
 	plt.close()
 	return image
 
@@ -131,8 +130,6 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 	ax.set_axis_off()
 
 	width, height = map.shape[1], map.shape[0]
-
-	print(width, height)
 
 	# Plot the grid
 	if self.flags['GRID']:
