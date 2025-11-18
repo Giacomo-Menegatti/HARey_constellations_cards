@@ -34,7 +34,6 @@ def print_card_set(self, id, save_folder=None, BEST_AR=True, bleed = 0.1):
 
     # Save the cards but do not show them
     self.flags.update({'SAVE':True, 'SHOW':False})
-    flags.update(self.flags)
 
     # Create the two cardbacks
     self.bleed = bleed
@@ -42,11 +41,9 @@ def print_card_set(self, id, save_folder=None, BEST_AR=True, bleed = 0.1):
     self.plot_cardback(id, self.colors['cardback_2'], self.colors['accent_2'], save_name=f'{dir}/{id}_back_2.png')
     
     # Plot the constellations, one with CON_LINES and one without
-    self.flags.update(flags)
     self.flags.update({'CON_LINES':False})
     self.plot_card(id, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_bare_3.png')
     
-    self.flags.update(flags)
     self.flags.update({'CON_LINES':True})
     self.plot_card(id, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_lines_4.png')
     

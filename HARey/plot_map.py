@@ -1,9 +1,12 @@
+from threading import main_thread
 import numpy as np
+from pygments import highlight
 from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
+from matplotlib.collections import LineCollection
 from matplotlib.markers import MarkerStyle
 
-def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False, font_size=15):
+def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, labels={}, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False, font_size=15):
 
     stars_x, stars_y = stars_xy
     ecliptic_x, ecliptic_y = ecliptic_xy
@@ -11,58 +14,83 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
     line_w = marker_size * 0.0075
     star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size)
 
+    mask_inside = not_outside(stars_x, stars_y)
+
     # Plot constellation lines
     if self.flags['CON_LINES']:
+        # Create a list for faint lines and for highlighted lines
+        faint_lines = []
+        main_lines = []
+
         for constellation_id in self.con_ids:
-            # if there are constellation to highlight, make the other less evident
-            alpha = 0.5 if len(con_highlight)>0 and not constellation_id in con_highlight else 1
 
             for line in [line for line in self.cons[constellation_id]['lines']]:
                 # Divide the line in individual segments
-                for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-                    if not_outside(stars_x[segment], stars_y[segment]):
-                        plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['constellations'],\
-                                                linewidth=line_w, alpha=alpha)
-                        plot_line.set_clip_path(box)
+                for a,b in zip(line[1:], line[:-1]):
+                    # if at least a point is inside of the plot, plot the line (avoid lines that have no points inside the plot)
+                    if mask_inside[a] or mask_inside[b]:
+                        # If there are highlighted constellations and this is not one of these, put it in the faint list
+                        if len(con_highlight)>0 and constellation_id not in con_highlight:
+                            faint_lines.append(((stars_x[a], stars_y[a]), (stars_x[b], stars_y[b])))                            
+                        else:
+                            main_lines.append(((stars_x[a], stars_y[a]), (stars_x[b], stars_y[b])))
+
+        # Plot highlighted lines (alpha=1)
+        faint_lc = LineCollection(faint_lines, colors=self.colors['constellations'], linewidths=line_w, alpha=0.5)
+        ax.add_collection(faint_lc)
+        # Plot faint lines (alpha=0.5)
+
+        shadow_lc = LineCollection(main_lines, colors=self.colors['shadow'], linewidths=2.0*line_w, alpha=1)
+        ax.add_collection(shadow_lc)
+
+        high_lc = LineCollection(main_lines, colors=self.colors['constellations'], linewidths=line_w, alpha=1)
+        ax.add_collection(high_lc)
 
     #Plot asterisms
     if self.flags['ASTERISMS'] or len(asterism_highlight)>0:
-        
+        # create a list for asterism lines
+        asterism_lines = []
+
+        # If there is only one asterism to highlight pick it, otherwise plot all asterisms
         asterism_ids = self.asterisms.keys() if len(asterism_highlight)==0 else asterism_highlight
 
         for line in [line for id in asterism_ids for line in self.asterisms[id]['lines']]:
             # Divide the line in individual segments
-                for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-                    if not_outside(stars_x[segment], stars_y[segment]):
-                        plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['asterisms'],\
-                                        linestyle='solid', linewidth=line_w)
-                    plot_line.set_clip_path(box)
+                for a,b in zip(line[1:], line[:-1]):
+                    # if at least a point is inside of the plot, plot the line (avoid lines that have no points inside the plot)
+                    if mask_inside[a] or mask_inside[b]:
+                        asterism_lines.append(((stars_x[a], stars_y[a]), (stars_x[b], stars_y[b]))) 
+        
+        asterism_lc = LineCollection(asterism_lines, color=self.colors['asterisms'], linestyle='solid', linewidth=line_w)
+        ax.add_collection(asterism_lc)
 
     #Plot helpers
     if self.flags['HELPERS'] or len(helper_highlight)>0:
-
+        helper_lines = []
         helper_ids = self.helpers.keys() if len(helper_highlight)==0 else helper_highlight
 
         for line in [line for id in helper_ids for line in self.helpers[id]['lines']]: 
             # Divide the line in individual segments
-            for segment in [[a,b] for a, b in zip(line[1:], line[:-1])]:
-                if not_outside(stars_x[segment], stars_y[segment]):
-                    plot_line, = ax.plot(stars_x[segment], stars_y[segment], color=self.colors['helpers'], \
-                                linestyle='dashed', linewidth=0.7*line_w)
-                    plot_line.set_clip_path(box)
+            for a,b in zip(line[1:], line[:-1]):
+                    # if at least a point is inside of the plot, plot the line (avoid lines that have no points inside the plot)
+                    if mask_inside[a] or mask_inside[b]:
+                        helper_lines.append(((stars_x[a], stars_y[a]), (stars_x[b], stars_y[b]))) 
+
+        helper_lc = LineCollection(helper_lines, color=self.colors['helpers'], linestyle='dashed', linewidth=0.7*line_w)
+        ax.add_collection(helper_lc)
 
     #Draw ecliptic 
     if self.flags['CON_LINES'] and self.flags['ECLIPTIC']:
-        for i in range(0,361,10):
-            if not_outside(ecliptic_x[i:i+11], ecliptic_y[i:i+11]):
-                ecliptic, = ax.plot(ecliptic_x[i:i+11], ecliptic_y[i:i+11], color=self.colors['ecliptic'], linestyle='dotted', \
-                           linewidth=1.5* line_w)
-                ecliptic.set_clip_path(box) 
+        mask = not_outside(ecliptic_x, ecliptic_y)
+        
+        ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=self.colors['ecliptic'], linestyle='dotted', \
+                    linewidth=1.5* line_w)
+        ecliptic.set_clip_path(box) 
 
 
     
     # Stars that are not in a constellation shape are represented with a dot
-    bkg_stars = np.logical_and(self.stars.constellation == 'none', self.stars.magnitude <= self.limiting_magnitude)        
+    bkg_stars = (self.stars.constellation == 'none') & (self.stars.magnitude <= self.limiting_magnitude) & (mask_inside)        
     color = self.stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
 
     # Plot bkg stars
@@ -72,39 +100,41 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
     star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
 
     # Plot a blank circle around the main stars to make them more evident
-    main_stars = self.stars.constellation != 'none'
+    main_stars = (self.stars.constellation != 'none') & mask_inside
+
     ax.scatter(stars_x[main_stars], stars_y[main_stars], marker='o', s=1.15*star_sizes[main_stars], color=self.colors['sky'], linewidths=0, zorder=2)
+
+    if len(con_highlight) > 0:
+        faint_mask = ~self.stars.constellation.isin(con_highlight)
+    else:
+        faint_mask = np.zeros_like(main_stars, dtype=bool)
                    
-        
+    offset = 8e-4 
+
     for i, m in enumerate(star_markers):
-         # Get the stars that are part of a constellation shape
-        mask = np.logical_and(self.stars.mag_class == i, main_stars)
 
-        if len(con_highlight) > 0:
-            # If there are constellations to highlight, plot the stars in the highlighted constellation with a different alpha
-            
-            highlight_mask = self.stars.constellation.isin(con_highlight)
-            mask_highlight = np.logical_and(mask, highlight_mask) 
+        # Plot faint stars
+        mask = main_stars & faint_mask & (self.stars.mag_class == i)
 
-            # Plot the highlighted stars
-            color = self.stars[mask_highlight]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-            ax.scatter(stars_x[mask_highlight], stars_y[mask_highlight], marker=m, s=star_sizes[mask_highlight],\
-                        color=color, linewidths=0.001*star_sizes[mask_highlight], edgecolor=self.colors['sky'], zorder=2) 
-            
-            mask_others = np.logical_and(mask, ~highlight_mask)
+        # Plot stars
+        color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+        ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask],\
+                    color=color, linewidths=0.0, edgecolor=self.colors['sky'], zorder=2)
 
-            # Plot the other stars
-            color = self.stars[mask_others]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-            ax.scatter(stars_x[mask_others], stars_y[mask_others], marker=m,  \
-                       s=star_sizes[mask_others], color=color, linewidths=0, edgecolor=self.colors['sky'], zorder=2, alpha=0.6) 
+        # Plot highlighted stars
+        mask = main_stars & ~faint_mask & (self.stars.mag_class == i)
 
+        # Add a shadow effect
+        off = offset*np.sqrt(star_sizes[mask])
+        ax.scatter(stars_x[mask]-off, stars_y[mask]-off, \
+                    marker=m, s=1.1*star_sizes[mask],\
+                    color=self.colors['shadow'], linewidths=0.01*star_sizes[mask], edgecolor=self.colors['shadow'], zorder=2)
 
+        # Plot stars
+        color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+        ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask],\
+                    color=color, linewidths=0.0, edgecolor=self.colors['sky'], zorder=2)
 
-        else:
-            color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
-            ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask], \
-                       color=color, linewidths=0.001*star_sizes[mask], edgecolor=self.colors['sky'], zorder=2)
-            
     # Draw the zodiac
     if self.flags['ZODIAC']:
         c = -1 if is_inverted else 1
@@ -122,4 +152,30 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, con
                     ax.scatter(ecliptic_x[30*i+15], ecliptic_y[30*i+15], marker='o', s=3*font_size**2, color=self.colors['sky'], linewidths=0, zorder=2)
                     ax.annotate( symbol, xy = (ecliptic_x[30*i+15],(ecliptic_y[30*i+15])), color=self.colors['ecliptic'], ha='center', va='center', fontsize= 1.5*font_size, zorder=2)
 
-    
+
+    def compute_label_pos(id, indexes, font_size, color, ha, va):
+        label_x = np.mean(stars_x[indexes])
+        label_y = np.mean(stars_y[indexes])
+        if not_outside(label_x, label_y):
+            labels[self.names[id]] = {'x': label_x, 'y': label_y, 'font_size': font_size, 'color': color, 'ha':ha, 'va':va}
+            
+    # Constellation labels
+    if self.flags['CON_NAMES']:
+        for id in self.con_ids:
+            compute_label_pos(id, self.cons[id]['stars'], font_size='l', color=self.colors['constellation_labels'], ha='center', va='center')
+
+    # Minor labels
+    if self.flags['CON_PARTS']:
+        for id in [id for id in self.cons.keys() if id.startswith('.')]:
+            compute_label_pos(id, self.cons[id]['stars'], font_size='s', color=self.colors['constellation_parts'], ha='center', va='center')
+
+    # Asterisms labels  
+    if self.flags['ASTERISMS'] :           
+        for id in self.asterisms.keys():
+            compute_label_pos(id, [star for line in self.asterisms[id]['lines'] for star in line], font_size='l', color=self.colors['asterisms'], ha='center', va='center')
+
+    # Named stars
+    if self.flags['STAR_NAMES']:
+        for star in self.named_stars:
+            # The star index is a string
+            compute_label_pos(star, int(star), font_size='s', color=self.colors['star_labels'], ha='left', va='top')

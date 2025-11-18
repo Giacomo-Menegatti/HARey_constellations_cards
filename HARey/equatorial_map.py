@@ -10,7 +10,7 @@ from HARey.projections import ecliptic2radec, Gall_projection, Gall_dims, Gall_v
 from HARey.plot_map import plot_map
 
 
-def plot_within_borders(self, borders, FOV, scale, marker_size, font_size):
+def plot_within_borders(self, borders, FOV, scale, marker_size, font_size, labels):
 	'''Plot the sky near the equator between the borders (in degrees) and with vertical height [-FOV, FOV],
 		and return the image generated.
 		The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
@@ -44,38 +44,10 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, font_size):
 	ax.add_patch(box)
 
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
-	not_outside = lambda x,y: not (np.any(x<left_border) and np.any(x>right_border)) 
+	not_outside = lambda x,y: (x>left_border) & (x<right_border) & (y < height/2) & (y > -height/2)
 
 	plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside, is_inverted=True, font_size=font_size)
-
-	# Compute the labels positions
-	def compute_label_pos(id, indexes):
-		label_x = np.mean(stars_x[indexes])
-		label_y = np.mean(stars_y[indexes])
-		if (label_x > left_border and label_x < right_border and label_y > -height/2 and label_y < height/2):
-			self.labels_pos[id] = (label_x/scale, label_y/scale)
-	
-	# Constellation labels
-	if self.flags['CON_NAMES']:
-		for id in self.con_ids:
-			compute_label_pos(id, indexes=self.cons[id]['stars'])
-
-	# Minor labels
-	if self.flags['CON_PARTS']:
-		for id in [id for id in self.cons.keys() if id.startswith('.')]:
-			compute_label_pos(id, indexes = self.cons[id]['stars'])
-
-	# Asterisms labels  
-	if self.flags['ASTERISMS'] :           
-		for id in self.asterisms.keys():
-			compute_label_pos(id, indexes = [star for line in self.asterisms[id]['lines'] for star in line])
-
-	# Named stars
-	if self.flags['STAR_NAMES']:
-		for star in self.named_stars:
-			# The star index is a string
-			compute_label_pos(star, indexes = int(star))
+             marker_size=marker_size, not_outside=not_outside, is_inverted=True, font_size=font_size, labels=labels)
 	
 	#Restrict everything to the bounding box
 	for col in ax.collections:
@@ -87,6 +59,7 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, font_size):
 		buff.seek(0)
 		image = plt.imread(buff)
 		
+	print(width, height)
 	plt.close()
 	return image
 
@@ -130,7 +103,7 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 
 	# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 	# i.e., a label around the origin is plotted near the mean value in the center of the plot
-	self.labels_pos = {}
+	labels = {}
 
 	
 	# Plotting the whole sky has some lines that go around the plot. To avoid this, the stars are plotted locally
@@ -143,11 +116,11 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 
 	self.stars['ra'] = (self.stars['ra']+180)%360 -180 # Angles from -180 to 180
 	self.ecliptic_ra = (self.ecliptic_ra+180)%360 -180
-	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, font_size=font_sizes['l'])
+	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, font_size=font_sizes['l'], labels=labels)
 
 	self.stars['ra'] = self.stars['ra']%360	# Angle coordinates from 0 to 360
 	self.ecliptic_ra = self.ecliptic_ra%360
-	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, font_size=font_sizes['l'])
+	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, font_size=font_sizes['l'], labels=labels)
 
 	# Join the images and plot it
 	map = np.concatenate((border, center, border), axis=1)
@@ -158,6 +131,8 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 	ax.set_axis_off()
 
 	width, height = map.shape[1], map.shape[0]
+
+	print(width, height)
 
 	# Plot the grid
 	if self.flags['GRID']:
@@ -190,51 +165,18 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 	if self.flags['SIS_SCRIPT']: # Save the image before adding the labels
 		plt.savefig(save_name, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
-	def plot_label(ax, label, xy, color, fontsize, ha='center', va = 'center'):
-		# Remap the labels
-		label_x =  width * (Gall_horizontal(375) - xy[0])/(Gall_horizontal(375) - Gall_horizontal(-15))
-		label_y = height * (0.5 - xy[1]/(2*Gall_vertical(dec_FOV/2)))			
-		ax.text(label_x, label_y, label, color=color, fontsize=font_sizes[fontsize], ha = ha, va = va, font=self.fonts['labels'])
+	# Plot all labels
+	for name in labels:
+		label = labels[name]
+		label_x =  (Gall_horizontal(360 + half_overlap) - label['x']/scale)/(Gall_horizontal(360 + half_overlap) - Gall_horizontal(-half_overlap)) * width
+		label_y = (0.5 - label['y']/map_height) * height
+		ax.text(label_x, label_y, name, color=label['color'], fontsize=font_sizes[label['font_size']], font=self.fonts['labels'], ha=label['ha'], va=label['va'])
 
-	# Plot the labels
-	if self.flags['CON_NAMES']:
-		for id in self.cons:
-			if id in self.labels_pos.keys():
-				plot_label(ax, self.names[id], self.labels_pos[id], fontsize='l', color=self.colors['constellation_labels'], ha='center',va='center')  
-				
-	#Plot minor labels
-	if self.flags['CON_PARTS']:
-		for id in [id for id in self.cons.keys() if id.startswith('.')]:
-			if id in self.labels_pos.keys():
-				plot_label(ax, self.names[id], self.labels_pos[id], fontsize='s', color=self.colors['constellation_parts'], ha='center',va='center')
-
-	#Plot asterisms labels  
-	if self.flags['ASTERISMS'] :      
-		for id in self.asterisms.keys():
-			if id in self.labels_pos.keys():
-				plot_label(ax, self.names[id], self.labels_pos[id], fontsize='l', color=self.colors['asterism_labels'], ha='center',va='center')
-
-	# Plot named stars
-	if self.flags['STAR_NAMES']:
-		for star in self.named_stars:
-			if star in self.labels_pos.keys():
-				plot_label(ax, self.names[star], self.labels_pos[star], fontsize='s', color=self.colors['star_labels'], ha='center',va='bottom')
 
 	if self.flags['SIS_SCRIPT']:
 		# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
 		# To make the position consistent with different settings of Inkscape, 
 		# the coordinates are fractions of the canvas width and height, starting from top left
-
-		def write_sis(file, label, xy, color, fontsize):
-			# The newline character does not work in inkscape. The label must be fixed by hand
-			label = label.replace('\n', ' ')
-			# Remap the labels
-			label_x =  (Gall_horizontal(375) - xy[0])/(Gall_horizontal(375) - Gall_horizontal(-15))
-			label_y = 0.5 - xy[1]/(2*Gall_vertical(dec_FOV/2))		
-			# Write the SIS line
-			s = f'text("{label}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[fontsize]}pt", '\
-				f' text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(color)}")\n'
-			file.write(s)
 
 		dir = 'inkscape_scripts'    # Folder of the scripts
 
@@ -245,32 +187,14 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 		file_name = save_name.replace('.png', '.py')
 		with open(f'{dir}/{file_name}', 'w') as f:
 
-			#Plot constellation labels
-			if self.flags['CON_NAMES']:
-				f.write('# Constellation names \n')
-				for id in self.cons:
-					if id in self.labels_pos.keys():
-						write_sis(f, self.names[id], self.labels_pos[id], color=self.colors['constellation_labels'], fontsize='l')      
-
-			# Plot constellation parts labels
-			if self.flags['CON_PARTS']:
-				f.write('\n# Constellation parts labels\n')
-				for id in [id for id in self.cons.keys() if id.startswith('.')]:
-					if id in self.labels_pos.keys():
-						write_sis(f, self.names[id], self.labels_pos[id], color=self.colors['constellation_parts'], fontsize='s')
-
-			#Plot asterisms labels
-			if self.flags['ASTERISMS'] :            
-				for id in self.asterisms.keys():
-					if id in self.labels_pos.keys():
-						write_sis(f, self.names[id], self.labels_pos[id], color=self.colors['asterism_labels'], fontsize='l')            
-
-			# Plot named stars labels  
-			if self.flags['STAR_NAMES']: 
-				f.write('\n# Named stars labels\n')
-				for star in self.named_stars:
-					if star in self.labels_pos.keys():
-						write_sis(f, self.names[star], self.labels_pos[star], color=self.colors['star_labels'], fontsize='s')       
+			for name in labels:
+				for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
+					label = labels[name]
+					label_x =  (Gall_horizontal(360 + half_overlap) - label['x']/scale)/(Gall_horizontal(360 + half_overlap) - Gall_horizontal(-half_overlap))
+					label_y = (0.5 - label['y']/map_height)
+					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label['font_size']]}pt", ' \
+						f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
+					f.write(s)        
 
 			# Plot ecliptic label (always present)
 			f.write('\n# Ecliptic label\n')
