@@ -104,7 +104,7 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
     # Condition for plotting lines to avoid crossing the plot.
     if self.box_style == 'circle, pad=0.0':
         # If the map is clipped to a circle, stars in the clipped regions could still be connected
-        not_outside = lambda x,y: x**2 + y**2 > height**2
+        not_outside = lambda x,y: x**2 + y**2 < height**2
     else: 
         # In the other cases, check if at least a point is inside the borders
         not_outside = lambda x,y: (x > -width) & (x < width) & (y > -height) & (y<height)
