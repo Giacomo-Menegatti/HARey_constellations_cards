@@ -64,7 +64,7 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, font_size, label
 
 
 
-def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name = None, font_sizes=(7,10), star_size=20):
+def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV=150.0, save_name = None, font_sizes=(7,10), star_size=10.0):
 	'''Plot an equatorial Gall stereographic projection of the whole sky.
 
 	Arguments:
@@ -76,12 +76,14 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 		star_size (float): the relative size of the stars in the plot. 
 
 		'''	
-	# If the save_name is not None or self.flags['SIS_SCRIPT'] is enabled, save automatically the plot
-	if not save_name == None or self.flags['SIS_SCRIPT']:
-		self.flags['SAVE'] = True
+	self.FLAGS = self.flags.resolve(*flags)
+
+	# If the save_name is not None or self.FLAGS['sis_script'] is enabled, save automatically the plot
+	if not save_name == None or self.FLAGS['sis_script']:
+		self.FLAGS['save'] = True
 
 	# Default file name
-	if self.flags['SAVE'] and save_name==None:
+	if self.FLAGS['save'] and save_name==None:
 		save_name = 'Equatorial_map.png'
 	
 	# Compute the scaling based on the max dimensions
@@ -132,7 +134,7 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 	width, height = map.shape[1], map.shape[0]
 
 	# Plot the grid
-	if self.flags['GRID']:
+	if self.FLAGS['grid']:
 		# Plot the RA grid
 		for ra in np.arange(25):
 			x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
@@ -159,7 +161,7 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 			ax.text(0, y_s, s=f'  {dec}° S  ', color=self.colors['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=self.fonts['labels'])
 
-	if self.flags['SIS_SCRIPT']: # Save the image before adding the labels
+	if self.FLAGS['sis_script']: # Save the image before adding the labels
 		plt.savefig(save_name, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
 	# Plot all labels
@@ -170,7 +172,7 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 		ax.text(label_x, label_y, name, color=label['color'], fontsize=font_sizes[label['font_size']], font=self.fonts['labels'], ha=label['ha'], va=label['va'])
 
 
-	if self.flags['SIS_SCRIPT']:
+	if self.FLAGS['sis_script']:
 		# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
 		# To make the position consistent with different settings of Inkscape, 
 		# the coordinates are fractions of the canvas width and height, starting from top left
@@ -200,10 +202,10 @@ def equatorial_map(self, max_dims = (11,8), overlap = 40, dec_FOV=150, save_name
 				f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
 			f.write(s)
 
-	if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:
+	if self.FLAGS['save'] and not self.FLAGS['sis_script']:
 		plt.savefig(save_name, dpi=self.dpi, pad_inches=0)
 	
-	if self.flags['SHOW']:
+	if self.FLAGS['show']:
 		plt.show()
 	else:
 		plt.close()

@@ -17,7 +17,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
     mask_inside = not_outside(stars_x, stars_y)
 
     # Plot constellation lines
-    if self.flags['CON_LINES']:
+    if self.FLAGS['con_lines']:
         # Create a list for faint lines and for highlighted lines
         faint_lines = []
         main_lines = []
@@ -47,7 +47,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         ax.add_collection(high_lc)
 
     #Plot asterisms
-    if self.flags['ASTERISMS'] or len(asterism_highlight)>0:
+    if self.FLAGS['asterisms'] or len(asterism_highlight)>0:
         # create a list for asterism lines
         asterism_lines = []
 
@@ -65,7 +65,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         ax.add_collection(asterism_lc)
 
     #Plot helpers
-    if self.flags['HELPERS'] or len(helper_highlight)>0:
+    if self.FLAGS['helpers'] or len(helper_highlight)>0:
         helper_lines = []
         helper_ids = self.helpers.keys() if len(helper_highlight)==0 else helper_highlight
 
@@ -80,7 +80,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         ax.add_collection(helper_lc)
 
     #Draw ecliptic 
-    if self.flags['CON_LINES'] and self.flags['ECLIPTIC']:
+    if self.FLAGS['con_lines'] and self.FLAGS['ecliptic']:
         mask = not_outside(ecliptic_x, ecliptic_y)
         
         ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=self.colors['ecliptic'], linestyle='dotted', \
@@ -91,13 +91,13 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
     
     # Stars that are not in a constellation shape are represented with a dot
     bkg_stars = (self.stars.constellation == 'none') & (self.stars.magnitude <= self.limiting_magnitude) & (mask_inside)        
-    color = self.stars[bkg_stars]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+    color = self.stars[bkg_stars]['color'] if self.FLAGS['star_colors'] else self.colors['star']
 
     # Plot bkg stars
     ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker=".", linewidths=0, zorder=2, alpha=0.5)  # type: ignore
 
     # If HAREY, use the custom star markers, else use simple dots
-    star_markers = self.harey_markers if self.flags['HAREY_MARKERS'] else ['.']*len(self.harey_markers)
+    star_markers = self.harey_markers if self.FLAGS['harey_stars'] else ['.']*len(self.harey_markers)
 
     # Plot a blank circle around the main stars to make them more evident
     main_stars = (self.stars.constellation != 'none') & mask_inside
@@ -117,7 +117,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         mask = main_stars & faint_mask & (self.stars.mag_class == i)
 
         # Plot stars
-        color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+        color = self.stars[mask]['color'] if self.FLAGS['star_colors'] else self.colors['star']
         ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask],\
                     color=color, linewidths=0.0, edgecolor=self.colors['sky'], zorder=2)
 
@@ -131,12 +131,12 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
                     color=self.colors['shadow'], linewidths=0.01*star_sizes[mask], edgecolor=self.colors['shadow'], zorder=2)
 
         # Plot stars
-        color = self.stars[mask]['color'] if self.flags['STAR_COLORS'] else self.colors['star']
+        color = self.stars[mask]['color'] if self.FLAGS['star_colors'] else self.colors['star']
         ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask],\
                     color=color, linewidths=0.0, edgecolor=self.colors['sky'], zorder=2)
 
     # Draw the zodiac
-    if self.flags['ZODIAC']:
+    if self.FLAGS['zodiac']:
         c = -1 if is_inverted else 1
         for i, symbol in enumerate(self.zodiac_symbols):
                 # Place triangular markers to indicate the start and end of zodiacal signs 
@@ -160,22 +160,22 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
             labels[self.names[id]] = {'x': label_x, 'y': label_y, 'font_size': font_size, 'color': color, 'ha':ha, 'va':va}
             
     # Constellation labels
-    if self.flags['CON_NAMES']:
+    if self.FLAGS['con_names']:
         for id in self.con_ids:
             compute_label_pos(id, self.cons[id]['stars'], font_size='l', color=self.colors['constellation_labels'], ha='center', va='center')
 
     # Minor labels
-    if self.flags['CON_PARTS']:
+    if self.FLAGS['con_parts']:
         for id in [id for id in self.cons.keys() if id.startswith('.')]:
             compute_label_pos(id, self.cons[id]['stars'], font_size='s', color=self.colors['constellation_parts'], ha='center', va='center')
 
     # Asterisms labels  
-    if self.flags['ASTERISMS'] :           
+    if self.FLAGS['asterisms'] :           
         for id in self.asterisms.keys():
             compute_label_pos(id, [star for line in self.asterisms[id]['lines'] for star in line], font_size='l', color=self.colors['asterisms'], ha='center', va='center')
 
     # Named stars
-    if self.flags['STAR_NAMES']:
+    if self.FLAGS['star_names']:
         for star in self.named_stars:
             # The star index is a string
             compute_label_pos(star, int(star), font_size='s', color=self.colors['star_labels'], ha='left', va='top')

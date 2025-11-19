@@ -16,7 +16,7 @@ from HARey.projections import project_region
 from HARey.plot_map import plot_map
 
 
-def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font_size = 10):
+def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 200, font_size = 10):
     """
     Plot the constellation card inside the card template.    
 	Font and star sizes are relative to the card area and FOV, so that the plot looks similar with different FOVs and templates.
@@ -28,16 +28,16 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
         - star_size (float): Relative size of the stars in the plot.
         - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
-
+    self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
     self.is_constellation(id)
 
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-    if not save_name == None or self.flags['SIS_SCRIPT']:
-        self.flags['SAVE'] = True
+    if not save_name == None or self.FLAGS['sis_script']:
+        self.FLAGS['save'] = True
 
     # Default file name
-    if self.flags['SAVE'] and save_name==None:
-        save_name = f'{id}_{'lines' if self.flags['CON_LINES'] else 'bare'}.png'
+    if self.FLAGS['save'] and save_name==None:
+        save_name = f'{id}_{'lines' if self.FLAGS['con_lines'] else 'bare'}.png'
 
     # Project the sky around the constellation
     (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, id, BEST_AR=BEST_AR)     
@@ -110,8 +110,8 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
         not_outside = lambda x,y: (x > -width) & (x < width) & (y > -height) & (y<height)
 
     # Plot the map using the shared plot_map function
-    plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y),\
-             marker_size=marker_size, not_outside=not_outside, labels=labels, con_highlight=[id], font_size=font_size)
+    plot_map(self, ax, box, (stars_x,stars_y), (ecliptic_x, ecliptic_y),\
+             marker_size, not_outside, labels=labels, con_highlight=[id], font_size=font_size)
 
     #Plot the North indicator as last thing
     if BEST_AR: 
@@ -146,7 +146,7 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
     for col in ax.collections:
         col.set_clip_path(box)
 
-    if self.flags['SIS_SCRIPT']:  # Save the iamge before adding labels
+    if self.FLAGS['sis_script']:  # Save the iamge before adding labels
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
         
     # Plot all labels
@@ -154,7 +154,7 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
         label = labels[name]
         ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_size, font=self.fonts['labels'], ha=label['ha'], va=label['va'])
 
-    if self.flags['SIS_SCRIPT']:  
+    if self.FLAGS['sis_script']:  
         # Create a script to plot interactive labels in Inkscape, to manually adjust their positions                
         # To make the position consistent with different settings of Inkscape, 
         # the coordinates are fractions of the card self.width and self.height, starting from top left       
@@ -174,7 +174,7 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
                         f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
                     f.write(s) 
 
-            if self.flags['CON_LINES']:
+            if self.FLAGS['con_lines']:
                 f.write('\n# Ecliptic label\n')
                 # Add a label close to the ecliptic if it is inside the constellation
                 mask = not_outside(ecliptic_x, ecliptic_y)
@@ -186,10 +186,10 @@ def plot_card(self, id, BEST_AR = False, save_name = None, star_size = 200, font
                         f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
                     f.write(s)
 
-    if self.flags['SAVE'] and not self.flags['SIS_SCRIPT']:            
+    if self.FLAGS['save'] and not self.FLAGS['sis_script']:            
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
 
-    if self.flags['SHOW']:
+    if self.FLAGS['show']:
         plt.show()
     else:
         plt.close()
