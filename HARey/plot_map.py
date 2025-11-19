@@ -1,3 +1,4 @@
+from math import nan
 from threading import main_thread
 import numpy as np
 from pygments import highlight
@@ -80,10 +81,11 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         ax.add_collection(helper_lc)
 
     #Draw ecliptic 
-    if self.FLAGS['con_lines'] and self.FLAGS['ecliptic']:
+    if self.FLAGS['ecliptic']:
         mask = not_outside(ecliptic_x, ecliptic_y)
-        
-        ecliptic, = ax.plot(ecliptic_x[mask], ecliptic_y[mask], color=self.colors['ecliptic'], linestyle='dotted', \
+        # The line ouside of the plot is set to nan so the line is broken
+        ecliptic_x[~mask] = nan
+        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.colors['ecliptic'], linestyle='dotted', \
                     linewidth=1.5* line_w)
         ecliptic.set_clip_path(box) 
 

@@ -174,7 +174,7 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
                         f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
                     f.write(s) 
 
-            if self.FLAGS['con_lines']:
+            if self.FLAGS['con_lines'] & self.FLAGS['ecliptic']:
                 f.write('\n# Ecliptic label\n')
                 # Add a label close to the ecliptic if it is inside the constellation
                 mask = not_outside(ecliptic_x, ecliptic_y)

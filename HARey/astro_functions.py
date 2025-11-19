@@ -66,9 +66,12 @@ def date2julian(date):
     B = 2 - A + np.trunc(A/4)
 
     JD = np.trunc(365.25*(date.year + 4716 - C)) + np.trunc(30.6001*(date.month + C*12 + 1)) + date.day + B - 1524.5
-    print(JD)
+    # Add fractiona day
+    JD = JD + date.hour/24 + date.minute/1440
     
     return JD
+
+
 
 
 def radec2altaz(ra_degrees, dec_degrees, observer):
@@ -91,7 +94,6 @@ def radec2altaz(ra_degrees, dec_degrees, observer):
     lat, long = observer.lat, observer.long
     s_lat, c_lat = np.sin(lat), np.cos(lat)
     ra, dec = np.deg2rad(ra_degrees), np.deg2rad(dec_degrees)
-
     h = -ra + long + ERA   #Hour angle    
 
     Az = np.arctan2(np.sin(h), np.cos(h)*s_lat - np.tan(dec)*c_lat )
