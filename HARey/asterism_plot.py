@@ -27,6 +27,7 @@ def plot_asterism(self, id, *flags, figsize = 8, save_name = None, star_size = 1
 		- font_sizes (float, float): the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterisms)		
     """ 
     self.FLAGS = self.flags.resolve(*flags)
+    self.COLORS = self.colors.colors
 
     # Check if the id is of an asterism or a helper ray (which starts with HR)
     ASTERISM = not id.startswith('HR')
@@ -83,7 +84,7 @@ def plot_asterism(self, id, *flags, figsize = 8, save_name = None, star_size = 1
     map_radius = map_radius*scale
 
     # Draw the circle patch
-    box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
+    box = Circle((0, 0), map_radius, color=self.COLORS['sky'], fill=True)
     ax.add_patch(box)
 
     # Rescale the ecliptic and star positions
@@ -145,7 +146,7 @@ def plot_asterism(self, id, *flags, figsize = 8, save_name = None, star_size = 1
                     label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
                     label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
                     s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['s']}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
+                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
                     f.write(s)
 
 

@@ -35,6 +35,8 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
         MARK_CENTER (bool): If True, marks the center of the mater with a cross
     """
 
+    self.COLORS = self.colors.colors
+
     # If the save_name is not None save automatically the plot
     if not save_name == None:
         self.flags['SAVE'] = True
@@ -126,7 +128,7 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
 
     # If SOLID_FILL is selected, fill the mask with a solid color instead of a hatch pattern
     if SOLID_FILL:
-        mask = PathPatch(mask, facecolor=self.colors['mater'], edgecolor='k')
+        mask = PathPatch(mask, facecolor=self.COLORS['mater'], edgecolor='k')
     else:
         mask = PathPatch(mask, hatch='.....', facecolor='none', edgecolor='k')
         

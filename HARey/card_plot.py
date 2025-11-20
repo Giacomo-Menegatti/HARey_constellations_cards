@@ -29,6 +29,8 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
         - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
     self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
+    self.COLORS = self.colors.colors
+
     self.is_constellation(id)
 
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
@@ -94,7 +96,7 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
 
     # Apply the card template patch
     box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
-                        fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)    
+                        fill=True, facecolor=self.COLORS['sky'], edgecolor=None, linewidth=0)    
     ax.add_patch(box)
 
     # Rescale the ecliptic and star positions
@@ -140,7 +142,7 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
                 (x,y) = ((plot_height)*np.tan(north_angle), plot_height)    
 
         t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
-        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.colors['cardinal_markers'], markeredgewidth=0)
+        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.COLORS['cardinal_markers'], markeredgewidth=0)
 
     # Clip everything to the box plot
     for col in ax.collections:
@@ -183,7 +185,7 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
                     label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
                     label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
                     s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_size}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
+                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
                     f.write(s)
 
     if self.FLAGS['save'] and not self.FLAGS['sis_script']:            

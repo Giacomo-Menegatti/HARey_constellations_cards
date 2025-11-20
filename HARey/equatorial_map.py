@@ -40,7 +40,7 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, font_size, label
 	ax.set_axis_off()
 	ax.invert_xaxis()
 
-	box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=self.colors['sky'], edgecolor=None, linewidth=0)
+	box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=self.COLORS['sky'], edgecolor=None, linewidth=0)
 	ax.add_patch(box)
 
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
@@ -77,6 +77,7 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 
 		'''	
 	self.FLAGS = self.flags.resolve(*flags)
+	self.COLORS = self.colors.colors
 
 	# If the save_name is not None or self.FLAGS['sis_script'] is enabled, save automatically the plot
 	if not save_name == None or self.FLAGS['sis_script']:
@@ -138,27 +139,27 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 		# Plot the RA grid
 		for ra in np.arange(25):
 			x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
-			ax.axvline(x, height, 0, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(x, height, s=f'{ra} h', color=self.colors['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			ax.axvline(x, height, 0, color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.text(x, height, s=f'{ra} h', color=self.COLORS['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		# Plot the 0 dec line
-		ax.axhline(height/2, 0, width, color=self.colors['grid'], linestyle='solid', linewidth=0.8*line_w)
-		ax.text(0, height/2, s=f'  {0}° N  ', color=self.colors['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
-		#ax.text(width, height/2, s=f'  {0}° N  ', color=self.colors['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+		ax.axhline(height/2, 0, width, color=self.COLORS['grid'], linestyle='solid', linewidth=0.8*line_w)
+		ax.text(0, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+		#ax.text(width, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		y_scale = height/(2*Gall_vertical(dec_FOV/2))
 
 		for dec in np.arange(10, 75, 10):
 			# Plot the north grid lines
 			y_n = height/2 - Gall_vertical(dec)*y_scale	
-			ax.axhline(y_n, 0, width, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(0, y_n, s=f'  {dec}° N  ', color=self.colors['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
-			#ax.text(width, y_n, s=f'  {dec}° N  ', color=self.colors['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			ax.axhline(y_n, 0, width, color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.text(0, y_n, s=f'  {dec}° N  ', color=self.COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			#ax.text(width, y_n, s=f'  {dec}° N  ', color=self.COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 			# Plot the south grid lines
 			y_s = height/2 + Gall_vertical(dec)*y_scale
-			ax.axhline(y_s, 0, width, color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(0, y_s, s=f'  {dec}° S  ', color=self.colors['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			ax.axhline(y_s, 0, width, color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.text(0, y_s, s=f'  {dec}° S  ', color=self.COLORS['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=self.fonts['labels'])
 
 	if self.FLAGS['sis_script']: # Save the image before adding the labels
@@ -199,7 +200,7 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 			f.write('\n# Ecliptic label\n')
 			# Write the label at the center of the plot
 			s = f"text('{self.names['ecl']}', (0.5*canvas.width, 0.5*canvas.height), font_size='{font_sizes['s']}pt'," \
-				f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
+				f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
 			f.write(s)
 
 	if self.FLAGS['save'] and not self.FLAGS['sis_script']:

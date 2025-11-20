@@ -156,7 +156,7 @@ def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
     """
 
     flags = self.flags
-    colors = self.colors
+    self.COLORS = self.colors.colors
     names = self.names
     fonts = self.fonts
 
@@ -167,8 +167,8 @@ def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
 
     dpi = self.dpi 
             
-    main_color = colors['cardback_1'] if main_color == None else main_color
-    accent_color = colors['accent_1'] if accent_color == None else accent_color
+    main_color = self.COLORS['cardback_1'] if main_color == None else main_color
+    accent_color = self.COLORS['accent_1'] if accent_color == None else accent_color
 
     # Alpha mask
     alpha_mask = self.template[:,:,3]==0

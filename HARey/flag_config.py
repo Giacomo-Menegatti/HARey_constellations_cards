@@ -35,3 +35,24 @@ class FlagConfig:
         for k,v in self.flags.items():
             str = str + f'{k} : {v}\n'
         return str
+    
+
+class ColorConfig:
+    def __init__(self, **colors):
+        # initial parameters
+        self.colors = colors
+
+    # Set defaults parameters
+    def set(self, colors):
+
+        for key, value in colors.items():
+            if key not in self.colors:
+                raise ValueError(f"unknown color: '{key}'. Allowed colors are {list(self.colors.keys())}")
+            self.colors.update(colors)
+
+    def __str__(self):
+        str = 'Colors used :\n\n'
+
+        for k,v in self.colors.items():
+            str = str + f'{k} : {v}\n'
+        return str

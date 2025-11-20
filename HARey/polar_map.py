@@ -42,6 +42,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	"""
 
 	self.FLAGS = self.flags.resolve(*flags)
+	self.COLORS = self.colors.colors
 
 	# If the save_name is not None or sis_script is enabled, save automatically the plot
 	if not save_name == None or self.FLAGS['sis_script']:
@@ -77,7 +78,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	map_radius = scale*map_radius
 
 	# Add the circular patch
-	box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
+	box = Circle((0, 0), map_radius, color=self.COLORS['sky'], fill=True)
 	ax.add_patch(box)
 	
 	# Depending on the value of the pole, invert the dec values
@@ -110,17 +111,17 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 		theta = np.pi/12
 
 		for ra in np.arange(1,25):
-			ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.colors['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
 			ax.text(0.97*map_radius*np.cos(ra*theta), 0.97*map_radius*np.sin(ra*theta), s=f'{ra} h', font = self.fonts['labels'],
-					color=self.colors['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
+					color=self.COLORS['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
 
 		for fov in np.arange(10, FOV/2, 10):
 
 			radius = azimuthal_radius(2*fov) if mode == 'azimuth' else stereo_radius(2*fov)
 
-			grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.colors['grid'], fill=False, \
+			grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.COLORS['grid'], fill=False, \
 						linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.colors['grid'], \
+			ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.COLORS['grid'], \
 		   		ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			ax.add_patch(grid_circle)
 
@@ -156,7 +157,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 
 	if _MARK_CENTER:
 		# Add a marker at the center of the plot
-		ax.plot(0,0, '+', color=self.colors['grid'], markersize=3, lw=0)
+		ax.plot(0,0, '+', color=self.COLORS['grid'], markersize=3, lw=0)
 
 	# Clip everything to the box plot
 	for col in ax.collections:
@@ -202,7 +203,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 					label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
 					label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
 					s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['s']}pt'," \
-						f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
+						f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
 					f.write(s)
 
 

@@ -13,7 +13,7 @@ from HARey.asterism_plot import plot_asterism
 from HARey.print_and_play import print_card_set, print_and_play
 
 from HARey.astro_functions import Observer, is_visible, mag2size
-from HARey.flag_config import FlagConfig
+from HARey.flag_config import FlagConfig, ColorConfig
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -125,16 +125,16 @@ class HAReyMain(StarColorMap):
         self.limit_size=0
 
         # Colors used in the plots
-        self.colors = {'star': 'white', 'constellations': 'white', 'sky': 'xkcd:midnight', 
-                    'ecliptic':  'crimson', 'horizon': 'white', 'cardinal_markers': 'darkred', 
-                    'grid' : 'yellow', 'asterisms': 'limegreen', 'helpers': 'coral', 
-                    'starmap_border': 'xkcd:gold', 'star_labels': 'gold', 'constellation_labels' : 'cyan',
-                    'ecliptic_label' : 'crimson', 'asterism_labels': 'lime', 'constellation_parts' : 'violet',
-                    'horizon_label' : 'white', 'mater':'xkcd:light blue',
-                    
-                    'cardback_1':  'xkcd:marine blue', 'cardback_2': 'xkcd:blood',
-                    'accent_1': 'darkgoldenrod', 'accent_2': 'darkgoldenrod'}
-        
+        self.colors = ColorConfig(
+            stars = 'white', con_lines = 'white', con_names = 'cyan', con_parts = 'violet',
+            asterisms = 'limegreen', asterism_labels = 'lime', helpers = 'coral', star_names = 'gold',
+            grid = 'yellow', ecliptic = 'crimson', ecliptic_label = 'crimson', zodiac = 'orange',
+            sky = 'xkcd:midnight', horizon = 'white', horizon_label = 'white', cardinals = 'darkred', 
+            border = 'gold', mater = 'xkcd:light blue', 
+            cardback_1 = 'xkcd:marine blue', cardback_2 = 'xkcd:blood', 
+            accent_1 = 'darkgoldenrod', accent_2 = 'darkgoldenrod', shadow = 'black'
+        )
+
         # Default plot flags
         self.flags = FlagConfig(
             con_lines = False, con_names = False, con_parts = False,
@@ -162,6 +162,10 @@ class HAReyMain(StarColorMap):
 
     def set_flags(self, *flags):
         self.flags.set(*flags)
+
+    def set_colors(self, **colors):
+        print(colors)
+        self.colors.set(colors)
 
 
     def is_constellation(self, id):
@@ -203,12 +207,6 @@ class HAReyMain(StarColorMap):
         - dict: the dictionary that will overwrite the default one, of the type {'labels':Fontproperties(...), 'cardback':..., 'calendar':...}        
         """
         self.fonts.update(dict)
-
-
-    # Function to set the colors palette used in the plots
-    def set_colors(self, dict):
-        """Set the colors used by the HARey module. Take a dictionary as input {color_key: color}."""
-        self.colors.update(dict)
 
     def plot_legend(self, USE_HAREY_MARKERS=True):
         """Plot the legend of the star markers and magnitudes."""
