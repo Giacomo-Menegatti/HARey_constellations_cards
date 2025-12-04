@@ -4,7 +4,7 @@ import os
 from fpdf import FPDF
 
 # Function to plot a card set
-def print_card_set(self, id = 'Gem', *flags, save_folder=None, BEST_AR=True, bleed = 0.1):
+def print_card_set(self, *flags, id = 'Gem', save_folder=None, BEST_AR=True, bleed = 0.1):
     """
     Print a set of memory cards for one constellation.
 
@@ -35,14 +35,14 @@ def print_card_set(self, id = 'Gem', *flags, save_folder=None, BEST_AR=True, ble
 
     # Create the two cardbacks
     self.bleed = bleed
-    self.plot_cardback(id, *flags, main_color = self.COLORS['cardback_1'], accent_color = self.COLORS['accent_1'],save_name=f'{dir}/{id}_back_1.png')
-    self.plot_cardback(id, *flags, main_color =self.COLORS['cardback_2'], accent_color = self.COLORS['accent_2'], save_name=f'{dir}/{id}_back_2.png')
+    self.plot_cardback(id = id, *flags, main_color = self.COLORS['cardback_1'], accent_color = self.COLORS['accent_1'],save_name=f'{dir}/{id}_back_1.png')
+    self.plot_cardback(id = id, *flags, main_color =self.COLORS['cardback_2'], accent_color = self.COLORS['accent_2'], save_name=f'{dir}/{id}_back_2.png')
 
     # Plot the constellations, one with CON_LINES and one without
     flags = (*flags, '-con_lines')
-    self.plot_card(id, *flags, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_bare_3.png')
+    self.plot_card(id = id, *flags, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_bare_3.png')
     flags = (*flags, 'con_lines')
-    self.plot_card(id, *flags, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_lines_4.png')
+    self.plot_card(id = id, *flags, BEST_AR=BEST_AR, save_name=f'{dir}/{id}_lines_4.png')
 
     # reset the bleed after completing the cards
     self.bleed = 0
@@ -107,45 +107,43 @@ def print_and_play(self, folder = './', filename = 'constellations_cards.pdf', C
         pdf.page = 2*(index//cards_per_page) + (n%4)//2 + 1
         
         # When plotting the card fronts, remember to add the bleed
-        if is_back:
-            pdf.image(f'{folder}/{card}', margin_w + x*cwb + bleed, margin_h + y*chb + bleed, cw, ch)
-        else:
-            pdf.image(f'{folder}/{card}', margin_w + x*cwb, margin_h + y*chb, cwb, chb)
+        
+        pdf.image(f'{folder}/{card}', margin_w + x*cwb, margin_h + y*chb, cwb, chb)
             
     if CUTTING_HELPERS:
 
         # draw the helpers only on the cardbacks pages (fronts are joined together by the bleed)
         for page in range(1, n_pages+1, 2):
             pdf.page = page       
-            pdf.set_draw_color(100)
+            pdf.set_draw_color(50)
 
             for i in range(grid):
                 # Left margin lines
-                pdf.line(0, margin_h + i*chb + bleed, 0.8*margin_w, margin_h + i*chb + bleed)
-                pdf.line(0, margin_h + i*chb + bleed + ch, 0.8*margin_w, margin_h + i*chb + bleed + ch)
+                pdf.line(0, margin_h + i*chb + bleed, 0.5*margin_w, margin_h + i*chb + bleed)
+                pdf.line(0, margin_h + i*chb + bleed + ch, 0.5*margin_w, margin_h + i*chb + bleed + ch)
 
                 # Right margin lines
-                pdf.line(pdf.w, margin_h + i*chb + bleed, pdf.w - 0.8*margin_w, margin_h + i*chb + bleed)
-                pdf.line(pdf.w, margin_h + i*chb + bleed + ch, pdf.w - 0.8*margin_w, margin_h + i*chb + bleed + ch)
+                pdf.line(pdf.w, margin_h + i*chb + bleed, pdf.w - 0.5*margin_w, margin_h + i*chb + bleed)
+                pdf.line(pdf.w, margin_h + i*chb + bleed + ch, pdf.w - 0.5*margin_w, margin_h + i*chb + bleed + ch)
 
                 # Top margin lines
-                pdf.line(margin_w + i*cwb + bleed, 0 , margin_w + i*cwb + bleed, 0.8*margin_h)
-                pdf.line(margin_w + i*cwb + bleed + cw, 0 , margin_w + i*cwb + bleed + cw, 0.8*margin_h)
+                pdf.line(margin_w + i*cwb + bleed, 0 , margin_w + i*cwb + bleed, 0.5*margin_h)
+                pdf.line(margin_w + i*cwb + bleed + cw, 0 , margin_w + i*cwb + bleed + cw, 0.5*margin_h)
 
                 # Bottom margin lines
-                pdf.line(margin_w + i*cwb + bleed, pdf.h , margin_w + i*cwb + bleed, pdf.h - 0.8*margin_h)
-                pdf.line(margin_w + i*cwb + bleed + cw, pdf.h , margin_w + i*cwb + bleed + cw, pdf.h - 0.8*margin_h)
+                pdf.line(margin_w + i*cwb + bleed, pdf.h , margin_w + i*cwb + bleed, pdf.h - 0.5*margin_h)
+                pdf.line(margin_w + i*cwb + bleed + cw, pdf.h , margin_w + i*cwb + bleed + cw, pdf.h - 0.5*margin_h)
 
             # Internal helpers
             for i in range(grid+1):
                 for j in range(grid):
-                    pdf.line(margin_w + i*cwb - 0.8*bleed, margin_h + j*chb + bleed, margin_w + i*cwb + 0.8*bleed, margin_h + j*chb + bleed)
-                    pdf.line(margin_w + i*cwb - 0.8*bleed, margin_h + j*chb + bleed + ch, margin_w + i*cwb + 0.8*bleed, margin_h + j*chb + bleed + ch)
+                    pdf.line(margin_w + i*cwb - 0.5*bleed, margin_h + j*chb + bleed, margin_w + i*cwb + 0.5*bleed, margin_h + j*chb + bleed)
+                    pdf.line(margin_w + i*cwb - 0.5*bleed, margin_h + j*chb + bleed + ch, margin_w + i*cwb + 0.5*bleed, margin_h + j*chb + bleed + ch)
 
             for i in range(grid):
                 for j in range(grid+1):
-                    pdf.line(margin_w + i*cwb + bleed, margin_h + j*chb - 0.8*bleed, margin_w + i*cwb + bleed, margin_h + j*chb + 0.8*bleed)
-                    pdf.line(margin_w + i*cwb + bleed + cw, margin_h + j*chb - 0.8*bleed, margin_w + i*cwb + bleed + cw, margin_h + j*chb + 0.8*bleed)
+                    pdf.line(margin_w + i*cwb + bleed, margin_h + j*chb - 0.5*bleed, margin_w + i*cwb + bleed, margin_h + j*chb + 0.5*bleed)
+                    pdf.line(margin_w + i*cwb + bleed + cw, margin_h + j*chb - 0.5*bleed, margin_w + i*cwb + bleed + cw, margin_h + j*chb + 0.5*bleed)
                 
 
     print(f'\n{n_cards} cards have been printed in the file {filename}\n')

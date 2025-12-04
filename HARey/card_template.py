@@ -142,7 +142,7 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
 
 
 # Function to color the cardback and write the name
-def plot_cardback(self, id, *flags, main_color=None, accent_color=None, save_name=None):
+def plot_cardback(self, *flags, id='Ori', main_color=None, accent_color=None, save_name=None):
     """
     Plots the recolored card back image, and write the constellation name on it.
     
@@ -176,24 +176,39 @@ def plot_cardback(self, id, *flags, main_color=None, accent_color=None, save_nam
     bright = self.template[:,:,:3].sum(axis=2)/3
     bright = bright[:,:,np.newaxis]
     image = to_rgba(main_color)*bright + to_rgba(accent_color)*(1.0-bright)
+
+    # Clip the values to 0-1 (sometimes there are overflows with the operations)
+    image = np.clip(image, 0, 1)
     # Clip with the transparecny mask
-    image[alpha_mask] = (1,1,1,0)        
+    image[alpha_mask] = (1,1,1,0) 
+
+ 
 
         #figure with correct aspect ratio
-    fig,ax = plt.subplots(figsize = (image.shape[1]/dpi, image.shape[0]/dpi), dpi=dpi)
+
+    fig,ax = plt.subplots(figsize = (self.width + 2 * self.bleed, self.height + 2 * self.bleed), dpi=dpi)
     fig.subplots_adjust(0,0,1,1)
-    ax.imshow(np.clip(image, 0, 1))
+
+    if self.bleed > 0:
+        self.bleed_patch = Rectangle(xy=(0,0), width = self.width + 2 * self.bleed, height = self.height + 2 * self.bleed, facecolor = main_color, edgecolor='none', clip_on=False, zorder=1)
+        ax.add_patch(self.bleed_patch)
+
+    ax.imshow(image, extent=(self.bleed, self.bleed + self.width, self.bleed, self.bleed + self.height), zorder=2)
+    
+    ax.set_xlim(0, self.width + 2*self.bleed)
+    ax.set_ylim(0, self.height + 2*self.bleed)
     ax.set_axis_off()
 
+
     #Text window (set linewidth to 1 to make it visible during debugging)
-    text_box = Rectangle(xy=(self.text_x*dpi, self.text_y*dpi), width=dpi*self.box_width, height=dpi*self.box_height, 
+    text_box = Rectangle(xy=(self.text_x, self.height - self.text_y), width=self.box_width, height=self.box_height, 
                             fill=False, edgecolor='red', linewidth=0)
     ax.add_patch(text_box)
 
     r = text_box.get_window_extent()        
 
     name = names[id]  
-    text_x, text_y = (self.text_x+self.box_width/2)*dpi, (self.text_y+self.box_height/2)*dpi
+    text_x, text_y = (self.text_x+self.box_width/2), (self.height - self.text_y - self.box_height/2)
 
     text = ax.text(text_x, text_y, color=accent_color, s=name, ha='center', va='center', font=fonts['cardback'], 
                     bbox = dict(boxstyle=self.text_box_style, fill=False, edgecolor=accent_color, linewidth=1.5))
@@ -211,7 +226,6 @@ def plot_cardback(self, id, *flags, main_color=None, accent_color=None, save_nam
     if self.FLAGS['save']:
         if save_name == None:
             save_name = f'{id}_cardback.png'
-
             plt.savefig(save_name, format='png', dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
         else:
