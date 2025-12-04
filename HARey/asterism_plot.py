@@ -14,7 +14,7 @@ from HARey.projections import project_region
 from HARey.plot_map import plot_map
 from HARey.polar_map import stereo_radius
 
-def plot_asterism(self, id, *flags, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7)):
+def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7)):
     """
     Plot the asterism or the helper ray, highlighting the constellations involved.
 	Font and star sizes are relative to the map area and FOV, so that the plot looks similar with different FOVs and figure sizes.

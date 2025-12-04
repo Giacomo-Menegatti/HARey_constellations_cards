@@ -30,7 +30,7 @@ class FlagConfig:
         return params
 
     def __str__(self):
-        str = 'Boolean flags used :\n\n'
+        str = 'Boolean flags :\n\n'
 
         for k,v in self.flags.items():
             str = str + f'{k} : {v}\n'
@@ -48,7 +48,7 @@ class ColorConfig:
         for key, value in colors.items():
             if key not in self.colors:
                 raise ValueError(f"unknown color: '{key}'. Allowed colors are {list(self.colors.keys())}")
-            self.colors.update(colors)
+            self.colors[key] = value
 
     def __str__(self):
         str = 'Colors used :\n\n'

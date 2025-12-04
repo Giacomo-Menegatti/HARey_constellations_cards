@@ -9,9 +9,7 @@ It contains the following functions:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.text import TextPath
 from matplotlib.path import Path
-from matplotlib.transforms import Affine2D
 from matplotlib.patches import Circle, PathPatch
 import os
 
@@ -19,7 +17,7 @@ from HARey.projections import local2polarmap, stereo_polar,  azimuthal_polar
 from HARey.curved_text import curved_text
 
 
-def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', face='front', SOLID_FILL=True, MARK_CENTER=True):
+def plot_mater(self, *flags, lat=45, FOV=210, figsize=8, save_name = None, mode='azimuth', face='front', SOLID_FILL=True, MARK_CENTER=True, calendar_width=0.10):
     """ Class to plot the mater (the local sky dome projected on the equatorial plane).
     
     Args: 
@@ -36,18 +34,16 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
     """
 
     self.COLORS = self.colors.colors
+    self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
 
     # If the save_name is not None save automatically the plot
     if not save_name == None:
-        self.flags['SAVE'] = True
+        self.FLAGS['save'] = True
 
     # Default file name
-    if self.flags['SAVE'] and save_name==None:
+    if self.FLAGS['save'] and save_name==None:
         pole = 'N' if lat > 0 else 'S'
         save_name = f'mater_{lat}{pole}.png'
-
-    # Convert latitude string to float
-    lat = float(lat[:-1])*(-1 if lat[-1]=='S' else 1)
 
     if lat == 0:
         # The equator breaks the projection, so instead of 0 a very small value is used
@@ -104,8 +100,8 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
     if sign<0:
         n_y, n_angle, s_y, s_angle =  s_y, s_angle, n_y, n_angle  
 
-    int_r = 0.85
-    ext_r = 0.99
+    int_r = 1 - calendar_width
+    ext_r = 1.00
     scale = int_r/circle_radius
 
     # Create the shape
@@ -172,7 +168,7 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
     # Create the hour and calendar rings
     spacing = (ext_r-int_r)/3
     for i in range(1,4):
-        ax.add_patch(Circle((0,0), int_r + i*spacing, facecolor='none', edgecolor='k', lw=0.8))
+        ax.add_patch(Circle((0,0), int_r + i*spacing, facecolor='none', edgecolor='k', lw=0.5))
 
     # Fill the hour ring
     hour_r = int_r + spacing/2
@@ -180,30 +176,30 @@ def plot_mater(self, lat, FOV=210, figsize=8, save_name = None, mode='azimuth', 
 
     for hour in range(1,25):
         angle = - sign * np.pi/12*hour        
-        curved_text(ax, f'{hour:02}', r = hour_r, angle_offset=angle, font_size=0.035, font_prop=self.fonts['calendar'])
+        curved_text(ax, f'{hour:02}', r = hour_r, angle_offset=angle, font_size=0.8*spacing, font_prop=self.fonts['calendar'])
 
     for angle in np.linspace(0,2*np.pi,49):
-        ax.plot([circle_r*np.sin(angle), int_r*np.sin(angle)], [circle_r*np.cos(angle), int_r*np.cos(angle)], color='k', ls='-.', lw=0.7)
+        ax.plot([circle_r*np.sin(angle), int_r*np.sin(angle)], [circle_r*np.cos(angle), int_r*np.cos(angle)], color='k', ls='-.', lw=0.3)
 
     if MARK_CENTER:
         ax.plot(0,0,'kx', lw=0, markersize=3)
-    ax.set_xlim(-1,1)
-    ax.set_ylim(-1,1)
+    ax.set_xlim(-1.01, 1.01)
+    ax.set_ylim(-1.01, 1.01)
     ax.set_aspect('equal')
     ax.set_axis_off()
 
     # Save the image
-    if self.flags['SAVE']:
+    if self.FLAGS['save']:
         plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
 
-    if self.flags['SHOW']:
+    if self.FLAGS['show']:
         plt.show()
     else:
         plt.close()
 
 
-def create_planisphere(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth', 
-                        SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50):
+def create_planisphere(self, *flags, lat='45 N', FOV=200, save_folder = None, figsize=8, mode='azimuth', 
+                        SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50, calendar_width=0.10):
     """Create a one-sided planisphere set by plotting the mater and the polar map.
     
     Args:
@@ -228,25 +224,21 @@ def create_planisphere(self, lat, FOV=200, save_folder = None, figsize=8, mode='
     if not os.path.exists(dir):
         os.mkdir(dir)
 
-    # Save the current flags (as after each call to the plot functions they are reset)
-    flags = {}
-    flags.update(self.flags)
+    
+    pole  = lat[-1]
+    lat = float(lat[:-1])
+    lat = lat if pole == 'N' else -lat
 
     # Plot and save the mater       
-    self.plot_mater(lat, FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL)        
+    self.plot_mater(*flags, lat=lat, FOV=FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL, calendar_width=calendar_width)     
 
-
-    self.flags.update(flags)
-    # Plot and save the polar map
-
-    pole = lat[-1]
     name = 'North' if pole == 'N' else 'South'
-    self.polar_map(pole, FOV, figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
-                    _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
+    self.polar_map(*flags, pole=pole, FOV=FOV, figsize=figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
+                    _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes, calendar_width=calendar_width)
 
 
-def create_planisphere_2sided(self, lat, FOV=200, save_folder = None, figsize=8, mode='azimuth',
-                                SOLID_FILL=False, MARK_CENTER=True, star_size=50, font_sizes=(5,7)):
+def create_planisphere_2sided(self, *flags, lat='45 N', FOV=200, save_folder = None, figsize=8, mode='azimuth', 
+                        SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50, calendar_width=0.1):
     """Create a 2-sided planisphere set, with two maters (front and back) and two polar maps (north and south).
     
     Args: 
@@ -263,27 +255,20 @@ def create_planisphere_2sided(self, lat, FOV=200, save_folder = None, figsize=8,
         star_size (int): Size of the stars in the polar map (default is 50).        
     """
     
-            # Directory in which the cards are saved
+    # Directory in which the cards are saved
     dir = save_folder if not save_folder == None else '.'
 
     #Check if the directory already exists, if not make it
     if not os.path.exists(dir):
         os.mkdir(dir)
 
-    # Save the current flags (as after each call to the plot functions they are reset)
-    flags = {}
-    flags.update(self.flags)
 
     # Plot and save the front mater
-    self.plot_mater(lat, FOV, figsize=figsize, mode=mode, face='front', SOLID_FILL=SOLID_FILL, MARK_CENTER=MARK_CENTER)
-    self.flags.update(flags)
+    self.plot_mater(*flags, lat=lat, FOV=FOV, figsize=figsize, mode=mode, face='front', SOLID_FILL=SOLID_FILL, MARK_CENTER=MARK_CENTER, calendar_width=calendar_width)
 
     # Plot and save the back mater
-    self.plot_mater(lat, FOV, figsize=figsize, mode=mode, face='back', SOLID_FILL=SOLID_FILL, MARK_CENTER=MARK_CENTER)
-    self.flags.update(flags)
+    self.plot_mater(*flags, lat=lat, FOV=FOV, figsize=figsize, mode=mode, face='back', SOLID_FILL=SOLID_FILL, MARK_CENTER=MARK_CENTER, calendar_width=calendar_width)
 
     # Plot and save the polar maps
-    self.flags.update(flags)
-    self.polar_map('N', FOV, figsize, mode=mode, _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
-    self.flags.update(flags)
-    self.polar_map('S', FOV, figsize, mode=mode, _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes)
+    self.polar_map(pole='N', *flags, FOV=FOV, figsize=figsize, mode=mode, _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes, calendar_width=calendar_width)
+    self.polar_map(pole='S', *flags, FOV=FOV, figsize=figsize, mode=mode, _ADD_CALENDAR=True, _MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes, calendar_width=calendar_width)

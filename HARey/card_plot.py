@@ -16,7 +16,7 @@ from HARey.projections import project_region
 from HARey.plot_map import plot_map
 
 
-def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 200, font_size = 10):
+def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_size = 200, font_size = 10):
     """
     Plot the constellation card inside the card template.    
 	Font and star sizes are relative to the card area and FOV, so that the plot looks similar with different FOVs and templates.
@@ -48,7 +48,7 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
     if self.box_style == 'circle, pad=0.0':
         # If the plot is in a circle, compute the radius on the corner of the plot
         map_radius = np.sqrt(x_span**2 + y_span**2)
-        x_span = (1 + 2 * (self.pad + self.bleed)/self.height)*map_radius
+        x_span = (1 + 2 * (self.pad + self.bleed)/self.height) * map_radius
         y_span = x_span
     else:
         #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
@@ -142,13 +142,13 @@ def plot_card(self, id, *flags, BEST_AR = False, save_name = None, star_size = 2
                 (x,y) = ((plot_height)*np.tan(north_angle), plot_height)    
 
         t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
-        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.COLORS['cardinal_markers'], markeredgewidth=0)
+        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.COLORS['cardinals'], markeredgewidth=0)
 
     # Clip everything to the box plot
     for col in ax.collections:
         col.set_clip_path(box)
 
-    if self.FLAGS['sis_script']:  # Save the iamge before adding labels
+    if self.FLAGS['sis_script']:  # Save the image before adding labels
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
         
     # Plot all labels

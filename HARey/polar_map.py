@@ -24,7 +24,7 @@ from HARey.plot_map import plot_map
 from HARey.curved_text import curved_text
 
 
-def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7), mode='stereo', _ADD_CALENDAR=False, _MARK_CENTER=False):
+def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7), mode='stereo', _ADD_CALENDAR=False, _MARK_CENTER=False, calendar_width = 0.1):
 	"""
 	Plot a stereographic map of the stars near the celestial poles. Uses either a stereographic or an azimuthal projection:
 	the first preserves shapes but enlarges further objects more, the second distorts shapes but prevents extreme enlargements.
@@ -74,7 +74,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	# Scale the coordinates
 	map_radius = azimuthal_radius(FOV) if mode == 'azimuth' else stereo_radius(FOV) 
 	# Restrict the plotting area a bit to avoid clipping the circle near the borders
-	scale = 0.85*figsize/map_radius if _ADD_CALENDAR else figsize/map_radius	
+	scale = (1-calendar_width)*figsize/map_radius if _ADD_CALENDAR else figsize/map_radius	
 	map_radius = scale*map_radius
 
 	# Add the circular patch
@@ -127,7 +127,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 
 	if _ADD_CALENDAR:
 		# Add the calendar ring outside of the plot to use it in a planisphere
-		int_r, ext_r = 0.85*figsize, figsize
+		int_r, ext_r = (1-calendar_width) * figsize, figsize
 		spacing = (ext_r-int_r)/3
 
 		for i in range(4):
@@ -147,13 +147,13 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 				# Get the angle as a fraction of the whole year
 				angle = c*(datetime(2001, m, day).timetuple().tm_yday/365 - equinox_offest)
 				a = 2*np.pi*angle + np.pi
-				curved_text(ax, f'{day}', r_days, angle_offset=a, font_size=figsize*0.0225, font_prop=self.fonts['calendar'])
+				curved_text(ax, f'{day}', r_days, angle_offset=a, font_size=0.65*spacing, font_prop=self.fonts['calendar'])
 
 			# Plot the month label
 			angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
 			a = 2*np.pi*angle + np.pi
 			month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
-			curved_text(ax, month_name, r_months, angle_offset=a, font_size=figsize*0.03, font_prop=self.fonts['calendar'])
+			curved_text(ax, month_name, r_months, angle_offset=a, font_size=0.85*spacing, font_prop=self.fonts['calendar'])
 
 	if _MARK_CENTER:
 		# Add a marker at the center of the plot

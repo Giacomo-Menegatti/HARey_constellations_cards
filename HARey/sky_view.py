@@ -33,6 +33,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
 	"""
     
     self.FLAGS = self.flags.resolve(*flags)
+    self.COLORS = self.colors.colors
 
     # If the save_name is not None or the self.FLAGS['sis_script'] is enabled, save automatically the plot
     if not save_name == None or self.FLAGS['sis_script']:
@@ -41,6 +42,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     # Default file name
     if self.FLAGS['save'] and save_name==None:
         save_name = 'Sky_view.png'
+
 
     # Scale the star sizes and the text labels based on the plot area and the FOV
     marker_scale = (figsize/8)*np.sqrt(stereo_radius(180)/stereo_radius(FOV))
@@ -70,11 +72,11 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     map_radius = scale*stereo_radius(FOV)
 
     #Draw the circle patch
-    box = Circle((0, 0), map_radius, color=self.colors['sky'], fill=True)
+    box = Circle((0, 0), map_radius, color=self.COLORS['sky'], fill=True)
     ax.add_patch(box)
 
     # Draw the horizon circle
-    horizon_line = Circle((0,0), radius=stereo_radius(180)*scale, linestyle='--', color=self.colors['horizon'], fill=False, lw = line_w)
+    horizon_line = Circle((0,0), radius=stereo_radius(180)*scale, linestyle='--', color=self.COLORS['horizon'], fill=False, lw = line_w)
     ax.add_patch(horizon_line)
 
     # Compute the ecliptic positions
@@ -102,7 +104,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     
 
     #Plot the compass ring   
-    compass = Annulus((0,0), r=0.99*figsize, width=(0.04*figsize), color=self.colors['starmap_border'], transform=ax.transData)
+    compass = Annulus((0,0), r=0.99*figsize, width=(0.04*figsize), color=self.COLORS['border'], transform=ax.transData)
     ax.add_patch(compass)
 
 	# Clip everything to the box plot
@@ -116,7 +118,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
         t = Affine2D().rotate_deg(90*i)
         theta = np.deg2rad(90*i)
         ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(empty_marker, transform=t), markersize=7, color='white', markeredgewidth=0)
-        ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(marker, transform=t), markersize=8, color=self.colors['cardinal_markers'], markeredgewidth=0)
+        ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(marker, transform=t), markersize=8, color=self.COLORS['cardinals'], markeredgewidth=0)
 
     if self.FLAGS['sis_script']:
         # Save the image before adding the labels
@@ -158,14 +160,14 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
                     label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
                     label_y = -np.mean(ecliptic_y[mask])/self.height + 0.5
                     s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['s']}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.colors['ecliptic_label'])}')\n"
+                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
                     f.write(s)
 
             # Plot horizon label (always present)
             f.write("\n# Horizon label\n")
             label_x, label_y = 0.5, 0.5 + stereo_radius(178)*scale/(2*map_radius)
             s = f'text("{self.names["hor"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.colors["horizon_label"])}")\n'
+                f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.COLORS["horizon_label"])}")\n'
             f.write(s)                     
             
     # Save the image with all the labels

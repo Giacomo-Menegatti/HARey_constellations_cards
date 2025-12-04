@@ -164,7 +164,6 @@ class HAReyMain(StarColorMap):
         self.flags.set(*flags)
 
     def set_colors(self, **colors):
-        print(colors)
         self.colors.set(colors)
 
 
@@ -210,14 +209,14 @@ class HAReyMain(StarColorMap):
 
     def plot_legend(self, USE_HAREY_MARKERS=True):
         """Plot the legend of the star markers and magnitudes."""
-        fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors['sky'])
+        fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors.colors['sky'])
         ax.set_title('Star magnitude', color='w', fontsize=20)
-        ax.set_facecolor(self.colors['sky'])
+        ax.set_facecolor(self.colors.colors['sky'])
 
         for i in range(6):
             marker = self.harey_markers[i] if USE_HAREY_MARKERS else '.'
-            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude), linewidths=0, color=self.colors['star'])
-            ax.text(i, -0.35, f'{i}', color=self.colors['star'], horizontalalignment='center', fontsize=12)
+            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude), linewidths=0, color=self.colors.colors['stars'])
+            ax.text(i, -0.35, f'{i}', color=self.colors.colors['stars'], horizontalalignment='center', fontsize=12)
 
         ax.set_axis_off()
         ax.set_ylim(-0.4,0.2)

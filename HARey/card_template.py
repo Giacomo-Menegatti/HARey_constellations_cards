@@ -2,7 +2,6 @@
 and the plot_cardback function, which handles coloring the bw cardback image and adding text to it
 """
 
-from sys import flags
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_rgba
@@ -143,7 +142,7 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
 
 
 # Function to color the cardback and write the name
-def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
+def plot_cardback(self, id, *flags, main_color=None, accent_color=None, save_name=None):
     """
     Plots the recolored card back image, and write the constellation name on it.
     
@@ -155,15 +154,15 @@ def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
     
     """
 
-    flags = self.flags
+    self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
     self.COLORS = self.colors.colors
+
     names = self.names
     fonts = self.fonts
 
-
     # If the save_name is not None, save automatically the plot
     if not save_name == None:
-        flags['SAVE'] = True
+        self.FLAGS['save'] = True
 
     dpi = self.dpi 
             
@@ -209,7 +208,7 @@ def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
     # Add a fancy box around the text
     #text.set_bbox(dict(boxstyle='round', fill=False, edgecolor='green', linewidth=1))
 
-    if flags['SAVE']:
+    if self.FLAGS['save']:
         if save_name == None:
             save_name = f'{id}_cardback.png'
 
@@ -218,7 +217,7 @@ def plot_cardback(self, id, main_color=None, accent_color=None, save_name=None):
         else:
             plt.savefig(save_name, dpi = dpi, transparent=True)            
 
-    if flags['SHOW']:
+    if self.FLAGS['show']:
         plt.show()
     else:
         plt.close()

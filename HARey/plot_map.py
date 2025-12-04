@@ -164,7 +164,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
     # Constellation labels
     if self.FLAGS['con_names']:
         for id in self.con_ids:
-            compute_label_pos(id, self.cons[id]['stars'], font_size='l', color=self.COLORS['con_labels'], ha='center', va='center')
+            compute_label_pos(id, self.cons[id]['stars'], font_size='l', color=self.COLORS['con_names'], ha='center', va='center')
 
     # Minor labels
     if self.FLAGS['con_parts']:
