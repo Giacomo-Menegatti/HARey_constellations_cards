@@ -184,8 +184,8 @@ class Observer():
     def __str__(self):
         """Return the string representation of the observer object.
         """
-        lat_str = f'{np.abs(np.rad2deg(self.lat)):.4f} {'N' if self.lat>0 else 'S'}'
-        long_str = f'{np.abs(np.rad2deg(self.long)):.4f} {'E' if self.long>0 else 'O'}'
+        lat_str = f"{np.abs(np.rad2deg(self.lat)):.4f} {'N' if self.lat>0 else 'S'}"
+        long_str = f"{np.abs(np.rad2deg(self.long)):.4f} {'E' if self.long>0 else 'O'}"
         date_str = self.datetime_utc.strftime('%d-%m-%Y  %H:%M')
         return f'Observer position \n {lat_str}, {long_str}, \n time of observation \n {date_str} UTC '
     

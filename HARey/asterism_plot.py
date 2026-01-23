@@ -52,7 +52,7 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
 
     # Default file name
     if self.FLAGS['save'] and save_name==None:
-        save_name = f'{id}_{'asterism' if ASTERISM else 'helper'}.png'
+        save_name = f'{id}_{"asterism" if ASTERISM else "helper"}.png'
 
     # Project the region of sky including the constellations part of the asterism or helper ray
     (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), _ = project_region(self, cons_list)
@@ -133,7 +133,7 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
                 for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
                     label = labels[name]
                     label_x, label_y = 0.5 + label['x']/self.width, 0.5 - label['y']/self.height + off
-                    s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label['font_size']]}pt", ' \
+                    s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label["font_size"]]}pt", ' \
                         f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
                     f.write(s) 
 
@@ -145,8 +145,8 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
                 if np.any(mask):
                     label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
                     label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
-                    s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['s']}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
+                    s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                        f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["ecliptic_label"])}")\n'
                     f.write(s)
 
 

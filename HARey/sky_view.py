@@ -127,7 +127,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     # Plot all labels
     for name in labels:
         label = labels[name]
-        ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_sizes[label['font_size']], font=self.fonts['labels'], ha=label['ha'], va=label['va'])
+        ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_sizes[label['font_size']], font=self.fonts["labels"], ha=label['ha'], va=label['va'])
         
         
     if self.FLAGS['sis_script']:
@@ -147,7 +147,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
                 for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
                     label = labels[name]
                     label_x, label_y = 0.5 + label['x']/self.width, 0.5 - label['y']/self.height + off
-                    s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label['font_size']]}pt", ' \
+                    s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label["font_size"]]}pt", ' \
                         f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
                     f.write(s) 
 
@@ -159,15 +159,15 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
                 if np.any(mask):
                     label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
                     label_y = -np.mean(ecliptic_y[mask])/self.height + 0.5
-                    s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['s']}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
+                    s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                        f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["ecliptic_label"])}")\n'
                     f.write(s)
 
             # Plot horizon label (always present)
             f.write("\n# Horizon label\n")
             label_x, label_y = 0.5, 0.5 + stereo_radius(178)*scale/(2*map_radius)
             s = f'text("{self.names["hor"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                f'text_anchor="middle", font_family="{self.fonts['labels'].get_name()}", fill="{to_hex(self.COLORS["horizon_label"])}")\n'
+                f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["horizon_label"])}")\n'
             f.write(s)                     
             
     # Save the image with all the labels

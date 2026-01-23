@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SVG Color Picker with Palette</title>
+<style>
+  body { font-family: sans-serif; margin: 20px; }
+  #main { display: flex; gap: 20px; }
+  #svgContainer { border: 1px solid #ccc; width: 400px; height: 400px; overflow: auto; }
+  #controls { flex: 1; }
+  .picker { margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+  input[type="text"] { width: 120px; }
+  #debugLog { white-space: pre-wrap; background:#f0f0f0; padding:10px; margin-top:20px; max-height: 150px; overflow: auto; }
+  button { margin-top: 10px; padding: 5px 10px; }
+</style>
+</head>
+<body>
+<h2>SVG Color Picker with Palette</h2>
+<input type="file" id="fileInput" accept=".svg"><br><br>
+
+<div id="main">
+  <div id="svgContainer"></div>
+  <div id="controls">
+    <div id="colorPickers"></div>
+    <button id="savePalette">Save Palette</button>
+    <div id="paletteOutput"></div>
+  </div>
+</div>
+
+<div id="debugLog"></div>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const colorPickersDiv = document.getElementById("colorPickers");
+const debugLog = document.getElementById("debugLog");
+const svgContainer = document.getElementById("svgContainer");
+const savePaletteBtn = document.getElementById("savePalette");
+const paletteOutput = document.getElementById("paletteOutput");
+
+let svgText = "";
+let svgDoc = null;
+let colorMap = new Map(); // originalColor -> {color, name}
+
+function log(msg) { debugLog.textContent += msg + "\n"; }
+
+fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    debugLog.textContent = "";
+    colorPickersDiv.innerHTML = "";
+    svgContainer.innerHTML = "";
+    paletteOutput.innerHTML = "";
+    log("---- FILE SELECTED ----");
+    log("File name: " + file.name);
+    log("File size: " + file.size + " bytes");
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        svgText = reader.result;
+        log("SVG text length: " + svgText.length);
+        parseSVG(svgText);
+    };
+    reader.readAsText(file);
+});
+
+function parseSVG(text) {
+    const parser = new DOMParser();
+    svgDoc = parser.parseFromString(text, "image/svg+xml");
+    svgContainer.innerHTML = "";
+    svgContainer.appendChild(svgDoc.documentElement.cloneNode(true));
+
+    const allElems = svgDoc.querySelectorAll("*");
+    colorMap.clear();
+
+    allElems.forEach(el => {
+        ["fill", "stroke"].forEach(attr => {
+            const val = el.getAttribute(attr);
+            if (val && val !== "none" && !colorMap.has(val)) {
+                colorMap.set(val, { color: val, name: val });
+            }
+        });
+        const style = el.getAttribute("style");
+        if (style) {
+            style.split(";").forEach(rule => {
+                const [prop, value] = rule.split(":").map(s => s.trim());
+                if ((prop === "fill" || prop === "stroke") && value && value !== "none" && !colorMap.has(value)) {
+                    colorMap.set(value, { color: value, name: value });
+                }
+            });
+        }
+    });
+
+    log("Total unique colors: " + colorMap.size);
+    buildColorPickers();
+}
+
+function buildColorPickers() {
+    colorPickersDiv.innerHTML = "";
+    colorMap.forEach((obj, original) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "picker";
+
+        const colorInput = document.createElement("input");
+        colorInput.type = "color";
+        colorInput.value = toHex(obj.color);
+        colorInput.addEventListener("input", () => updateColor(original, colorInput.value));
+
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = obj.name;
+        nameInput.addEventListener("input", () => { colorMap.get(original).name = nameInput.value; });
+
+        const label = document.createElement("span");
+        label.textContent = original + ": ";
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(colorInput);
+        wrapper.appendChild(nameInput);
+        colorPickersDiv.appendChild(wrapper);
+    });
+}
+
+function updateColor(original, newColor) {
+    const allElems = svgContainer.querySelectorAll("*");
+    allElems.forEach(el => {
+        ["fill", "stroke"].forEach(attr => {
+            if (el.getAttribute(attr) === original) el.setAttribute(attr, newColor);
+        });
+        const style = el.getAttribute("style");
+        if (style) {
+            let newStyle = style.replace(new RegExp(`(fill|stroke)\\s*:\\s*${escapeRegExp(original)}`, "g"), `$1:${newColor}`);
+            el.setAttribute("style", newStyle);
+        }
+    });
+    colorMap.get(original).color = newColor;
+}
+
+savePaletteBtn.addEventListener("click", () => {
+    const palette = [];
+    colorMap.forEach((obj, original) => {
+        palette.push({ name: obj.name, color: obj.color });
+    });
+    const json = JSON.stringify(palette, null, 2);
+    paletteOutput.innerHTML = `<pre>${json}</pre>`;
+});
+
+function toHex(c) {
+    if (c.startsWith("#") && (c.length === 7 || c.length === 4)) return c;
+    const m = c.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (m) return "#" + [1,2,3].map(i => parseInt(m[i]).toString(16).padStart(2,'0')).join('');
+    return "#000000";
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+</script>
+</body>
+</html>

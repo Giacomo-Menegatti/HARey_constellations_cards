@@ -47,7 +47,7 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
             self.box_style = f'round, pad=0.0, rounding_size=0.2'                 
             self.text_box_style = "round, pad = 0.2, rounding_size=0.3" 
             # Default cardback style
-            self.default_cardback_file = 'cardbacks/tarot_round.png' 
+            self.default_cardback_file = 'cardbacks/tarot_round.png'
             
         # Tarot square specific data
         else: 
@@ -134,8 +134,8 @@ def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300)
     self.dpi = dpi
 
 
-    cardback_file = get_file(cardback_file, default=self.default_cardback_file)
-    self.template = plt.imread(cardback_file)
+    #cardback_file = get_file(cardback_file, default=self.default_cardback_file)
+    #self.template = plt.imread(cardback_file)
 
         
     print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')    

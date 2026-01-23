@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SVG Advanced Color & Opacity Picker</title>
+<style>
+  body { font-family: sans-serif; display: flex; flex-direction: column; padding: 10px; }
+  #mainContainer { display: flex; gap: 20px; margin-top: 20px; }
+  #svgContainer { border: 1px solid #ccc; overflow: auto; width: 50%; }
+  #controls { width: 50%; display: flex; flex-direction: column; gap: 10px; }
+  .pickerRow, .alphaRow { display: flex; align-items: center; gap: 10px; margin-bottom:5px; }
+  #colorPickers, #alphaSliders { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; }
+  #scaleSlider { width: 100%; }
+  .pickerLabel { width: 80px; }
+  .alphaLabel { width: 120px; }
+</style>
+
+<!-- Pickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/>
+</head>
+<body>
+
+<h2>SVG Advanced Color & Opacity Picker</h2>
+
+<input type="file" id="fileInput" accept=".svg">
+<div id="mainContainer">
+  <div id="svgContainer"></div>
+  <div id="controls">
+    <label>Scale SVG: <span id="scaleValue">100%</span></label>
+    <input type="range" id="scaleSlider" min="10" max="300" value="100">
+    
+    <h4>Colors</h4>
+    <div id="colorPickers"></div>
+
+    <h4>Opacities</h4>
+    <div id="alphaSliders"></div>
+
+    <div style="display:flex; gap:5px; margin-top:5px;">
+      <input type="text" id="paletteName" placeholder="Palette name">
+      <button id="saveBothBtn">Save Palette & SVG</button>
+    </div>
+
+    <pre id="debugLog" style="white-space: pre-wrap; background:#f0f0f0; padding:10px;"></pre>
+  </div>
+</div>
+
+<!-- Pickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const colorPickersDiv = document.getElementById("colorPickers");
+const alphaSlidersDiv = document.getElementById("alphaSliders");
+const debugLog = document.getElementById("debugLog");
+const svgContainer = document.getElementById("svgContainer");
+const scaleSlider = document.getElementById("scaleSlider");
+const scaleValue = document.getElementById("scaleValue");
+const saveBothBtn = document.getElementById("saveBothBtn");
+const paletteNameInput = document.getElementById("paletteName");
+
+let svgText = "";
+let svgDoc = null;
+let colorMap = new Map();
+let alphaMap = new Map();
+
+function log(msg) { debugLog.textContent += msg + "\n"; }
+
+fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    debugLog.textContent = "";
+    colorPickersDiv.innerHTML = "";
+    alphaSlidersDiv.innerHTML = "";
+    svgContainer.innerHTML = "";
+    colorMap.clear();
+    alphaMap.clear();
+
+    log("---- FILE SELECTED ----");
+    log("File name: " + file.name);
+    log("File size: " + file.size + " bytes");
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        svgText = reader.result;
+        log("SVG text length: " + svgText.length);
+        parseSVG(svgText);
+    };
+    reader.readAsText(file);
+});
+
+function parseSVG(text) {
+    const parser = new DOMParser();
+    svgDoc = parser.parseFromString(text, "image/svg+xml");
+    const svgClone = svgDoc.documentElement.cloneNode(true);
+    svgClone.style.width = "100%";
+    svgClone.style.height = "auto";
+    svgContainer.appendChild(svgClone);
+
+    // Scan all elements for fill/stroke and opacity
+    const allElems = svgDoc.querySelectorAll("*");
+    allElems.forEach(el => {
+        ["fill","stroke"].forEach(attr => {
+            const val = el.getAttribute(attr);
+            if (val && val !== "none") colorMap.set(val, {currentColor: val});
+        });
+
+        // Inline styles
+        const style = el.getAttribute("style");
+        if(style){
+            style.split(";").forEach(rule => {
+                const [prop, value] = rule.split(":").map(s=>s.trim());
+                if ((prop==="fill" || prop==="stroke") && value && value!=="none") colorMap.set(value, {currentColor: value});
+                if ((prop==="fill-opacity" || prop==="stroke-opacity") && value) alphaMap.set(parseFloat(value), []);
+            });
+        }
+
+        // Attributes
+        ["fill-opacity","stroke-opacity"].forEach(op => {
+            const val = el.getAttribute(op);
+            if(val) alphaMap.set(parseFloat(val), []);
+        });
+    });
+
+    log("Total unique colors: " + colorMap.size);
+    log("Total unique opacities: " + alphaMap.size);
+
+    buildColorPickers();
+    buildAlphaSliders();
+}
+
+// Build color pickers
+function buildColorPickers() {
+    colorPickersDiv.innerHTML = "";
+    colorMap.forEach((info, key) => {
+        const row = document.createElement("div");
+        row.className = "pickerRow";
+
+        const label = document.createElement("span");
+        label.className = "pickerLabel";
+        label.textContent = key;
+
+        const inputName = document.createElement("input");
+        inputName.type = "text";
+        inputName.placeholder = "Custom name";
+
+        const colorDiv = document.createElement("div");
+        colorDiv.style.width = "30px";
+        colorDiv.style.height = "30px";
+        colorDiv.style.border = "1px solid #000";
+
+        row.appendChild(label);
+        row.appendChild(colorDiv);
+        row.appendChild(inputName);
+        colorPickersDiv.appendChild(row);
+
+        const pickr = Pickr.create({
+            el: colorDiv,
+            theme: 'classic',
+            default: info.currentColor,
+            components: { preview:true, opacity:true, hue:true, interaction:{ input:true, save:true } }
+        });
+
+        pickr.on('change', color => {
+            const newColor = color.toHEXA().toString();
+            updateColor(key, newColor);
+            colorDiv.style.background = newColor;
+        });
+
+        info.pickr = pickr;
+    });
+}
+
+// Update color
+function updateColor(original,newColor){
+    const info = colorMap.get(original);
+    if(!info) return;
+    const oldColor = info.currentColor;
+    svgContainer.querySelectorAll("*").forEach(el=>{
+        ["fill","stroke"].forEach(attr=>{
+            if(el.getAttribute(attr)===oldColor) el.setAttribute(attr,newColor);
+        });
+        const style = el.getAttribute("style");
+        if(style){
+            el.setAttribute("style", style.replace(new RegExp(`(fill|stroke)\\s*:\\s*${escapeRegExp(oldColor)}`,"g"), `$1:${newColor}`));
+        }
+    });
+    info.currentColor = newColor;
+}
+
+function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// Build alpha sliders
+function buildAlphaSliders(){
+    alphaSlidersDiv.innerHTML = "";
+    alphaMap.clear();
+
+    const allElems = svgContainer.querySelectorAll("*");
+    allElems.forEach(el=>{
+        ["fill-opacity","stroke-opacity"].forEach(op=>{
+            const val = el.getAttribute(op);
+            if(val) {
+                const fval = parseFloat(val);
+                if(!alphaMap.has(fval)) alphaMap.set(fval, []);
+                alphaMap.get(fval).push({element:el,type:op});
+            }
+        });
+        // Inline style
+        const style = el.getAttribute("style");
+        if(style){
+            ["fill-opacity","stroke-opacity"].forEach(op=>{
+                const regex = new RegExp(`${op}\\s*:\\s*([0-9.]+)`);
+                const match = style.match(regex);
+                if(match){
+                    const fval=parseFloat(match[1]);
+                    if(!alphaMap.has(fval)) alphaMap.set(fval, []);
+                    alphaMap.get(fval).push({element:el,type:op});
+                }
+            });
+        }
+    });
+
+    alphaMap.forEach((items, val)=>{
+        const row = document.createElement("div");
+        row.className="alphaRow";
+        const label = document.createElement("span");
+        label.className="alphaLabel";
+        label.textContent="Opacity " + val;
+
+        const slider = document.createElement("input");
+        slider.type="range";
+        slider.min=0; slider.max=1; slider.step=0.01; slider.value=val;
+
+        const valueIndicator = document.createElement("span");
+        valueIndicator.textContent = val;
+
+        slider.addEventListener("input", ()=>{
+            const newAlpha=parseFloat(slider.value);
+            valueIndicator.textContent = newAlpha.toFixed(2);
+            items.forEach(({element,type})=>{
+                element.setAttribute(type,newAlpha);
+                const style = element.getAttribute("style");
+                if(style && style.includes(type)){
+                    const newStyle = style.replace(new RegExp(`${type}\\s*:\\s*([0-9.]+)`,"g"), `${type}:${newAlpha}`);
+                    element.setAttribute("style", newStyle);
+                }
+            });
+        });
+
+        row.appendChild(label);
+        row.appendChild(slider);
+        row.appendChild(valueIndicator);
+        alphaSlidersDiv.appendChild(row);
+    });
+}
+
+// SVG scaling
+scaleSlider.addEventListener("input", () => {
+    const scale = scaleSlider.value;
+    scaleValue.textContent = scale + "%";
+    svgContainer.firstChild.style.width = scale + "%";
+});
+
+// Save both palette and SVG
+saveBothBtn.addEventListener("click", () => {
+    const paletteName = paletteNameInput.value || "palette";
+
+    const palette = {};
+    colorMap.forEach((info,key)=>{
+        palette[info.pickr ? info.pickr._color.toHEXA().toString() : key] = info.currentColor;
+    });
+
+    const paletteBlob = new Blob([JSON.stringify(palette,null,2)], {type:"application/json"});
+    const paletteUrl = URL.createObjectURL(paletteBlob);
+    const a1 = document.createElement("a");
+    a1.href=paletteUrl; a1.download=paletteName+".json"; a1.click();
+    URL.revokeObjectURL(paletteUrl);
+
+    if(svgContainer.firstChild){
+        const svgData=svgContainer.firstChild.outerHTML;
+        const svgBlob = new Blob([svgData], {type:"image/svg+xml"});
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const a2 = document.createElement("a");
+        a2.href=svgUrl; a2.download=paletteName+".svg"; a2.click();
+        URL.revokeObjectURL(svgUrl);
+    }
+
+    alert(`Palette JSON and SVG saved as '${paletteName}'!`);
+});
+</script>
+
+</body>
+</html>

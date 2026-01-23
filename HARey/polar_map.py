@@ -152,7 +152,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 			# Plot the month label
 			angle = c*((datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365 - equinox_offest)
 			a = 2*np.pi*angle + np.pi
-			month_name = f'{datetime(2001,m,1).strftime('%B').upper()}'
+			month_name = f'{datetime(2001,m,1).strftime("%B").upper()}'
 			curved_text(ax, month_name, r_months, angle_offset=a, font_size=0.85*spacing, font_prop=self.fonts['calendar'])
 
 	if _MARK_CENTER:
@@ -190,7 +190,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 				for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
 					label = labels[name]
 					label_x, label_y = 0.5 + label['x']/self.width, 0.5 - label['y']/self.height + off
-					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label['font_size']]}pt", ' \
+					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label["font_size"]]}pt", ' \
 						f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
 					f.write(s) 
 
@@ -202,8 +202,8 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 				if np.any(mask):
 					label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
 					label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
-					s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_sizes['s']}pt'," \
-						f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
+					s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+                        f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["ecliptic_label"])}")\n'
 					f.write(s)
 
 

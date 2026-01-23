@@ -161,6 +161,12 @@ class HAReyMain(StarColorMap):
         self.zodiac_symbols = ['\u2648', '\u2649', '\u264A', '\u264B', '\u264C', '\u264D','\u264E', '\u264F', '\u2650', '\u2651', '\u2652', '\u2653']
 
     def set_flags(self, *flags):
+        '''
+        Set the flags to be in this and the next plots. To set the flag True, write "flag", to set it False, write "-flag".
+
+        The available flags are:
+        - 
+        '''
         self.flags.set(*flags)
 
     def set_colors(self, **colors):

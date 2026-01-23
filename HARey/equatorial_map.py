@@ -192,15 +192,15 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 					label = labels[name]
 					label_x =  (Gall_horizontal(360 + half_overlap) - label['x']/scale)/(Gall_horizontal(360 + half_overlap) - Gall_horizontal(-half_overlap))
 					label_y = (0.5 - label['y']/map_height)
-					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label['font_size']]}pt", ' \
+					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label["font_size"]]}pt", ' \
 						f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
 					f.write(s)        
 
 			# Plot ecliptic label (always present)
 			f.write('\n# Ecliptic label\n')
 			# Write the label at the center of the plot
-			s = f"text('{self.names['ecl']}', (0.5*canvas.width, 0.5*canvas.height), font_size='{font_sizes['s']}pt'," \
-				f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
+			s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
+				f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["ecliptic_label"])}")\n'
 			f.write(s)
 
 	if self.FLAGS['save'] and not self.FLAGS['sis_script']:

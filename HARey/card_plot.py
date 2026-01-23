@@ -39,7 +39,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
 
     # Default file name
     if self.FLAGS['save'] and save_name==None:
-        save_name = f'{id}_{'lines' if self.FLAGS['con_lines'] else 'bare'}.png'
+        save_name = f'{id}_{"lines" if self.FLAGS["con_lines"] else "bare"}.png'
 
     # Project the sky around the constellation
     (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle = project_region(self, id, BEST_AR=BEST_AR)     
@@ -189,7 +189,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
                     f.write(s)
 
     if self.FLAGS['save'] and not self.FLAGS['sis_script']:            
-        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0, format='svg')
 
     if self.FLAGS['show']:
         plt.show()
