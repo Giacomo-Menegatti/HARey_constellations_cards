@@ -76,6 +76,8 @@ The `HAReyMain` creates flash cards with the method `plot_card()`. Card sizes ar
   
 </p>
 
+Also, as a personal challenge of "How much astronomical information can I fit on an astrolabe" I created the volvella, which also computes the positions of the SUn and the Moon in the Sky.
+
 ## Inkscape Scripts 
 
 When the labels are added to images, they often end up overlapping and being difficult to see. I tried to use the adjustText library to get a better result, but never got a satisfactory plot. For this reason I decided to focus on manually adjusting the labels in InkScape, where I did all the rest of the graphical work. 
