@@ -189,7 +189,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
                     f.write(s)
 
     if self.FLAGS['save'] and not self.FLAGS['sis_script']:            
-        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0, format='svg')
+        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
 
     if self.FLAGS['show']:
         plt.show()

@@ -45,11 +45,11 @@ if not os.path.exists(folder):
     # Fill it with the constellations (this may take a while)
     for ID in to_print[0:NUMBER_OF_CONSTELLATIONS]:
 
-        harey.set_flags({'CON_LINES':True, 'STAR_COLORS':True, 'SHOW':False})
-        harey.plot_card(ID, save_name=f'{folder}/{ID}_lines.png')
+        flags = ('con_lines', 'star_colors', '-show')
+        harey.plot_card(id=ID, save_name=f'{folder}/{ID}_lines.png', *flags)
         
-        harey.set_flags({'STAR_COLORS':True, 'SHOW':False})
-        harey.plot_card(ID, save_name=f'{folder}/{ID}_bare.png')
+        flags = ('-con_lines', 'star_colors', 'star_names', '-show')
+        harey.plot_card(id=ID, save_name=f'{folder}/{ID}_bare.png', *flags)
         print(f'Creating cards for {names[ID]} ({ID})')
 
 
@@ -149,18 +149,21 @@ def next_question():
     else:
         # If quiz is finished, disable buttons and show the final message
         final_message = f"Quiz Finished!\n\n\n"
+        
 
         if len(guessed_right)> 0:
             final_message += f"You guessed correctly:\n"
             for id in guessed_right:
-                final_message += f"{names[id].replace('\n', ' ')}\n"
+                con_name = names[id].replace("\n", " ")
+                final_message += f'{con_name}\n'
 
         if len(guessed_wrong) > 0:
             final_message += f"\nYou did not recognize:\n"
             for id in guessed_wrong:
-                final_message += f"{names[id].replace('\n', ' ')}\n"
+                con_name = names[id].replace("\n", " ")
+                final_message += f'{con_name}\n'
 
-        image_label.config(anchor='center', image="", text=final_message, font=("Arial", 24), bg="black", fg="white")
+        image_label.config(anchor="center", image="", text=final_message, font=("Arial", 24), bg="black", fg="white")
         button_frame.pack_forget()
 
 button_style = {

@@ -1,7 +1,5 @@
 from math import nan
-from threading import main_thread
 import numpy as np
-from pygments import highlight
 from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
 from matplotlib.collections import LineCollection
