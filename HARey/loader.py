@@ -204,3 +204,19 @@ def load_markers(markers_folder=None):
     star_markers.append('.')
 
     return markers, star_markers
+
+### Load Milky Way shapes ####################
+
+def load_mw(mw_file=None):
+    file_name = get_file(mw_file, default='mw_clean_1.json')
+
+    with open(file_name, 'r') as json_file:
+        milky_way = json.load(json_file)
+
+    for level in milky_way:
+        for i, shape in enumerate(milky_way[level]):
+
+            shape = np.array(shape)
+            milky_way[level][i] = shape
+
+    return milky_way

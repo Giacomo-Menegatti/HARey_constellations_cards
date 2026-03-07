@@ -1,6 +1,6 @@
 """HARey main module. This module inherits from all the others."""
 
-from HARey.loader import load_stars, load_constellations, load_markers, load_names
+from HARey.loader import load_stars, load_constellations, load_markers, load_names, load_mw
 from HARey.star_colormap import StarColorMap
 
 from HARey.card_template import set_card_template, plot_cardback
@@ -70,8 +70,8 @@ class HAReyMain(StarColorMap):
     print_and_play = print_and_play
 
 
-    def __init__(self,hip_file = None, index_file = None,
-                 names_file = None, language = 'IAU-EN', star_colors = 'stellarium'):
+    def __init__(self,hip_file = None, index_file = None, 
+                 names_file = None, mw_file=None, language = 'IAU-EN', star_colors = 'stellarium'):
         """
         Initialize the HARey class. This function loads the stars, constellations, markers and language automatically.
         
@@ -118,6 +118,11 @@ class HAReyMain(StarColorMap):
         # Load the names from the names.csv file
         self.names = load_names(names_file, language)
 
+        print('Done!\nLoading the milky way shape....      ', end=' ')
+        # Load the milky way shapes for each luminosity level
+        self.milky_way = load_mw(mw_file)
+        self.mw_strength = 0.15
+
         print('Done!\n\n')
        
         #Initialize graphical parameters to default values
@@ -128,9 +133,9 @@ class HAReyMain(StarColorMap):
         self.colors = ColorConfig(
             stars = 'white', con_lines = 'white', con_names = 'cyan', con_parts = 'violet',
             asterisms = 'limegreen', asterism_labels = 'lime', helpers = 'coral', star_names = 'gold',
-            grid = 'yellow', ecliptic = 'crimson', ecliptic_label = 'crimson', zodiac = 'orange',
+            grid = 'yellow', ecliptic = 'red', ecliptic_label = 'red', zodiac = 'orange',
             sky = 'xkcd:midnight', horizon = 'white', horizon_label = 'white', cardinals = 'darkred', 
-            border = 'gold', mater = 'xkcd:light blue', 
+            border = 'gold', mater = 'xkcd:light blue', milky_way='white',
             cardback_1 = 'xkcd:marine blue', cardback_2 = 'xkcd:blood', 
             accent_1 = 'darkgoldenrod', accent_2 = 'darkgoldenrod', shadow = 'black'
         )
@@ -139,14 +144,14 @@ class HAReyMain(StarColorMap):
         self.flags = FlagConfig(
             con_lines = False, con_names = False, con_parts = False,
             asterisms = False, helpers = False, star_names = False,
-            grid = False, ecliptic = True, zodiac = False,
+            grid = False, ecliptic = True, zodiac = False, milky_way=False,
             harey_stars = True, show = True, save = False,
             sis_script = False, galaxy = True, star_colors = False
         )
 
         self.dpi = 300
 
-        self.N_ecliptic = 361
+        self.N_ecliptic = 3601
         
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,

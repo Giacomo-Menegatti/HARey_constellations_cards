@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.colors import to_hex
 
-from HARey.projections import project_region
+from HARey.projections import project_region, project_milkyway
 from HARey.plot_map import plot_map
 from HARey.polar_map import stereo_radius
 
@@ -55,7 +55,7 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
         save_name = f'{id}_{"asterism" if ASTERISM else "helper"}.png'
 
     # Project the region of sky including the constellations part of the asterism or helper ray
-    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), _ = project_region(self, cons_list)
+    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), _, milky_way = project_region(self, cons_list)
 
     # Get the map radius
     map_radius = np.sqrt(x_span**2 + y_span**2) 
@@ -90,17 +90,20 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
     # Rescale the ecliptic and star positions
     stars_x, stars_y = stars_x*scale, stars_y*scale
     ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
+    # Apply a mask to the points far outside the projection to avoid shapes that close on themselves
+    milky_way = project_milkyway(milky_way, lambda x,y: (x[x**2 + y**2 < 10], y[x**2 + y**2 < 10]))
+    milky_way = project_milkyway(milky_way, lambda x,y: (scale*x, scale*y))
 
     # Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
     not_outside = lambda x,y: x**2 + y**2 < map_radius**2
 
     # Plot the map using the shared plot_map function
     if ASTERISM:
-        plot_map(self, ax, box, (stars_x,stars_y), (ecliptic_x, ecliptic_y),\
-             marker_size, not_outside, con_highlight=cons_list, asterism_highlight=[id], font_size=font_sizes['l'], labels=labels)
+        plot_map(self, ax, box, (stars_x,stars_y), (ecliptic_x, ecliptic_y), milky_way,\
+             marker_size, not_outside, con_highlight=cons_list, asterism_highlight=[id], labels=labels)
     else:
-        plot_map(self, ax, box, (stars_x,stars_y), (ecliptic_x, ecliptic_y),\
-             marker_size, not_outside, con_highlight=cons_list, helper_highlight=[id], font_size=font_sizes['l'], labels=labels)
+        plot_map(self, ax, box, (stars_x,stars_y), (ecliptic_x, ecliptic_y), milky_way,\
+             marker_size, not_outside, con_highlight=cons_list, helper_highlight=[id], labels=labels)
 
 	# Clip everything to the box plot
     for col in ax.collections:

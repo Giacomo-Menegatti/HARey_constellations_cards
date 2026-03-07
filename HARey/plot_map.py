@@ -4,14 +4,26 @@ from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
 from matplotlib.collections import LineCollection
 from matplotlib.markers import MarkerStyle
+from matplotlib.patches import Polygon, PathPatch
+from matplotlib.text import TextPath
 
-def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, labels={}, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False, font_size=15):
+def plot_map(self, ax, box, stars_xy, ecliptic_xy, milky_way, marker_size, not_outside, labels={}, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False):
 
     stars_x, stars_y = stars_xy
     ecliptic_x, ecliptic_y = ecliptic_xy
 
     line_w = marker_size * 0.0075
     star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size)
+
+    if self.FLAGS['milky_way']:
+        # Plot the Milky Way on the background
+        for level in milky_way:
+            for shape in milky_way[level]:
+                
+                patch = Polygon(shape, closed=True, ec='none', fc=self.COLORS['milky_way'], alpha=self.mw_strength, clip_path=box)
+
+                ax.add_patch(patch)
+                patch.set_clip_path(box)
 
     mask_inside = not_outside(stars_x, stars_y)
 
@@ -79,7 +91,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         ax.add_collection(helper_lc)
 
     #Draw ecliptic 
-    if self.FLAGS['ecliptic']:
+    if self.FLAGS['ecliptic'] & ~self.FLAGS['zodiac']:
         mask = not_outside(ecliptic_x, ecliptic_y)
         # The line ouside of the plot is set to nan so the line is broken
         ecliptic_x[~mask] = nan
@@ -128,7 +140,7 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
         off = offset*np.sqrt(star_sizes[mask])
         ax.scatter(stars_x[mask]-off, stars_y[mask]-off, \
                     marker=m, s=1.1*star_sizes[mask],\
-                    color=self.COLORS['shadow'], linewidths=0.01*star_sizes[mask], edgecolor=self.COLORS['shadow'], zorder=2)
+                    color=self.COLORS['shadow'], linewidths=0.01*star_sizes[mask], edgecolor=self.COLORS['shadow'], zorder=1)
 
         # Plot stars
         color = self.stars[mask]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
@@ -138,19 +150,58 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, marker_size, not_outside, lab
     # Draw the zodiac
     if self.FLAGS['zodiac']:
         c = -1 if is_inverted else 1
-        for i, symbol in enumerate(self.zodiac_symbols):
-                # Place triangular markers to indicate the start and end of zodiacal signs 
-                if not_outside(ecliptic_x[30*i], ecliptic_y[30*i]):
-                    angle = np.rad2deg( np.atan2( ecliptic_y[30*i+1]-ecliptic_y[30*i],  c*(ecliptic_x[30*i+1]-ecliptic_x[30*i])))
-                    t = Affine2D().rotate_deg(angle)
-                    marker = ax.scatter((ecliptic_x[30*i]), (ecliptic_y[30*i]), marker=MarkerStyle('>', transform=t), color = self.COLORS['ecliptic'], s =0.2*marker_size, linewidths=0)
-                    marker.set_clip_path(box)
+        n_points = self.N_ecliptic - 1
+        d = int(n_points/360*10)
 
-                # Place the zodiacal sign
-                if not_outside(ecliptic_x[30*i+15], ecliptic_y[30*i+15]):
+        dx, dy  = np.gradient(ecliptic_x), np.gradient(ecliptic_y)
+        l = np.sqrt(dx**2 + dy**2)
+        nx, ny = dy/l, -dx/l
+        # Get the width in data coordinates from the marker_size (in points)
+        w = 0.4*np.sqrt(marker_size) / 72 * ax.figure.dpi / ax.transData.get_matrix()[0,0]
 
-                    ax.scatter(ecliptic_x[30*i+15], ecliptic_y[30*i+15], marker='o', s=3*font_size**2, color=self.COLORS['sky'], linewidths=0, zorder=2)
-                    ax.annotate( symbol, xy = (ecliptic_x[30*i+15],(ecliptic_y[30*i+15])), color=self.COLORS['ecliptic'], ha='center', va='center', fontsize= 1.5*font_size, zorder=2)
+        x1, x2 = ecliptic_x + w*nx, ecliptic_x - w*nx
+        y1, y2 = ecliptic_y + w*ny, ecliptic_y - w*ny
+
+        for i in range(int(360/10)):
+            alpha = 0.75 if i%2==0 else 0.2
+            x_up, x_down = x1[i*d:i*d+d+1], x2[i*d:i*d+d+1][::-1]
+            y_up, y_down = y1[i*d:i*d+d+1], y2[i*d:i*d+d+1][::-1]
+            # If at least apart of the segment is inside
+            if np.any(not_outside(x_up, y_up)) or np.any(not_outside(x_down, y_down)):                            
+                patch_path = np.vstack([np.column_stack((x_up, y_up)), np.column_stack((x_down, y_down))])
+                patch = Polygon(patch_path, fc=self.COLORS['ecliptic'], alpha=alpha, ec='none', clip_path=box, zorder=2)
+                ax.add_patch(patch)
+
+
+        mask = not_outside(x1, y1)
+        x1[~mask], y1[~mask] = np.nan, np.nan
+        up, = ax.plot(x1, y1, color=self.COLORS['ecliptic'], lw=0.8*line_w)
+        up.set_clip_path(box)
+
+        mask = not_outside(x2, y2)
+        x2[~mask], y2[~mask] = np.nan, np.nan
+        down, = ax.plot(x2, y2, color=self.COLORS['ecliptic'], lw=0.8*line_w)
+        down.set_clip_path(box)
+
+        for i, (text, t) in enumerate(zip(self.zodiac_symbols, range(int(n_points/360*15), n_points, int(n_points/360*30)))):
+            #circle = Circle((ecliptic_x[t], ecliptic_y[t]), radius=2, edgecolor='r', facecolor = 'w', fill=True)
+            #ax.add_patch(circle)
+            text_path = TextPath((0, 0), text, size=2.0*w)
+            bb = text_path.get_extents()
+            # Center the text path
+            text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
+            theta = np.atan2(dy[t], dx[t])
+            theta = theta if np.cos(theta)>0 else theta + np.pi
+            text_rotated = Affine2D().rotate(theta).transform_path(text_centered)
+
+            text_translated = Affine2D().translate(ecliptic_x[t], ecliptic_y[t]).transform_path(text_rotated)
+            color = self.COLORS['ecliptic'] if i%2==0 else self.COLORS['sky']
+            patch = PathPatch(text_translated, color=color, linewidth=0, clip_path=box, zorder=4)
+            ax.add_patch(patch)
+
+        for i in range(0, n_points, int(n_points/360*30)):
+            t = Affine2D().rotate(np.atan2(dy[i], c*dx[i]))
+            ax.scatter(ecliptic_x[i], ecliptic_y[i], s=0.15*marker_size, marker=MarkerStyle('D', transform=t), ec=self.COLORS['ecliptic'], fc=self.COLORS['sky'], lw=0.8*line_w, zorder=3)
 
 
     def compute_label_pos(id, indexes, font_size, color, ha, va):

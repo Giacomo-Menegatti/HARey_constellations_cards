@@ -214,6 +214,7 @@ def local2polarmap(phi, theta, lat, pole='N', mode='azimuth'):
     # x and y are in the south:east direction. Rotate the coordinates to have west:north
     return -y, -x
 
+### PROJECT REGION #######################################
 
 def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
     """
@@ -229,8 +230,10 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
         - borders (tuple): Vertical and horizontal borders of the constellation.
         - (ecliptic_x, ecliptic_y) (tuple) : Coordinates of the ecliptic in the projection.
         - north_angle (float): Angle of the north direction, in radians
+        - milky_way (dict): a new milky way object with the projected coordinates
     """
     stars = self.stars
+    milky_way = self.milky_way
 
     # If constellation_ids is a string, convert it to a list
     if isinstance(constellation_ids, str):
@@ -259,12 +262,16 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
     stars_y = pd.Series(data = stars_y, index=stars.index)
 
     #Project the ecliptic
-    (ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0,360, 361), np.zeros(361))
+    (ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0,360, self.N_ecliptic), np.zeros(self.N_ecliptic))
     ecliptic_x, ecliptic_y = stereo_centered(ecliptic_ra, ecliptic_dec, center_ra, center_dec)
 
     # Project the north pole. This is done because the north pole is not infinitely distant on the sphere, so 
     # just choosing up as north direction creates mistakes for constellations near the pole.
     north_x, north_y = stereo_centered(0, 90, center_ra,center_dec)
+
+    # Project the Milky Way
+    projected_mw = project_milkyway(milky_way, lambda ra, dec : stereo_centered(ra,dec, center_ra, center_dec))
+
 
     # Center the constellation after the projection
     local_stars_x = stars_x[local_stars_mask]
@@ -278,6 +285,8 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
 
     ecliptic_x = ecliptic_x - center_x
     ecliptic_y = ecliptic_y - center_y
+
+    projected_mw = project_milkyway(projected_mw, lambda x,y: (x-center_x, y-center_y))
 
     # Recompute the north direction relative to the center and not the projection point
     north_x = north_x - center_x 
@@ -326,6 +335,8 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
 
     ecliptic_x, ecliptic_y = rotate(ecliptic_x, ecliptic_y, rot_angle) 
 
+    projected_mw = project_milkyway(projected_mw, lambda x,y: rotate(x,y, rot_angle))
+
     north_x, north_y = rotate(north_x, north_y, rot_angle) 
     
     if BEST_AR:
@@ -343,6 +354,8 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
         ecliptic_x = ecliptic_x - center_x
         ecliptic_y = ecliptic_y - center_y
 
+        projected_mw = project_milkyway(projected_mw, lambda x,y: (x-center_x, y-center_y))
+
         north_x = north_x - center_x
         north_y = north_y - center_y
         
@@ -357,4 +370,35 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
     min_distance = stereo_radius(min_FOV)
     borders = (max(borders_x, min_distance), max(borders_y, min_distance))
     
-    return (stars_x, stars_y), borders, (ecliptic_x, ecliptic_y), north_angle
+    return (stars_x, stars_y), borders, (ecliptic_x, ecliptic_y), north_angle, projected_mw
+
+### PROJECT MILKYWAY ###########################
+
+def project_milkyway(mw_levels, projection):
+    '''Projects the coordinates of the milky way creating a new object with the same properties but projected coordinates
+    
+    Arguments:
+        - mw_levels: the milky way luminosity levels and shapes
+        - projection: a function(x,y) -> x', y'
+
+    Returns:
+        - A new milky way object with projected coordinates    
+    '''
+
+    projected_mw = {}
+
+    # Cycle on the 5 luminosity levels
+    for level in mw_levels:
+        projected_shapes = []
+
+        # Cycle on the shapes array of that level
+        for shape in mw_levels[level]:
+            x,y = shape[:,0], shape[:,1]
+            # Apply the projection
+            x,y = projection(x,y)
+            projected_shapes.append(np.array((x,y)).transpose())
+
+        # Save the new list in a new dictionary
+        projected_mw[level] = projected_shapes
+
+    return projected_mw
