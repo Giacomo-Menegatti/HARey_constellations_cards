@@ -189,14 +189,13 @@ def plot_map(self, ax, box, stars_xy, ecliptic_xy, milky_way, marker_size, not_o
             text_path = TextPath((0, 0), text, size=2.0*w)
             bb = text_path.get_extents()
             # Center the text path
-            text_centered = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).transform_path(text_path)
-            theta = np.atan2(dy[t], dx[t])
-            theta = theta if np.cos(theta)>0 else theta + np.pi
-            text_rotated = Affine2D().rotate(theta).transform_path(text_centered)
+            
+            theta = np.atan2(c*dy[t], c*dx[t])
+            theta = theta  - np.pi
+            text = Affine2D().translate(-0.5 * (bb.x0 + bb.x1), -0.5 * (bb.y0 + bb.y1)).scale(1,c).rotate(theta).translate(ecliptic_x[t], ecliptic_y[t]).transform_path(text_path)
 
-            text_translated = Affine2D().translate(ecliptic_x[t], ecliptic_y[t]).transform_path(text_rotated)
             color = self.COLORS['ecliptic'] if i%2==0 else self.COLORS['sky']
-            patch = PathPatch(text_translated, color=color, linewidth=0, clip_path=box, zorder=4)
+            patch = PathPatch(text, color=color, linewidth=0, clip_path=box, zorder=4)
             ax.add_patch(patch)
 
         for i in range(0, n_points, int(n_points/360*30)):
