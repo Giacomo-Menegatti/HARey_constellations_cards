@@ -28,6 +28,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         - star_size (float): Relative size of the stars in the plot.
         - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
+    
     self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
     self.COLORS = self.colors.colors
 
@@ -42,7 +43,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         save_name = f'{id}_{"lines" if self.FLAGS["con_lines"] else "bare"}.png'
 
     # Project the sky around the constellation
-    (stars_x, stars_y), (x_span, y_span), (ecliptic_x, ecliptic_y), north_angle, milky_way = project_region(self, id, BEST_AR=BEST_AR)     
+    (x_span, y_span), transform, north_angle = project_region(self, id, BEST_AR=BEST_AR)     
 
     # Get the plot dimensions
     if self.box_style == 'circle, pad=0.0':
@@ -99,12 +100,9 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
                         fill=True, facecolor=self.COLORS['sky'], edgecolor=None, linewidth=0)    
     ax.add_patch(box)
 
-    # Rescale the ecliptic and star positions
-    stars_x, stars_y = stars_x*scale, stars_y*scale
-    ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
-    # Apply a mask to the points far outside the projection to avoid shapes that close on themselves
-    milky_way = project_milkyway(milky_way, lambda x,y: (x[x**2 + y**2 < 10], y[x**2 + y**2 < 10]))
-    milky_way = project_milkyway(milky_way, lambda x,y: (x*scale, y*scale))
+    # Compose the scaling to the previous transformations
+    scaling = lambda x,y: (scale*x, scale*y)
+    transform_scaling = lambda ra,dec : scaling(*transform(ra,dec))
 
     # Condition for plotting lines to avoid crossing the plot.
     if self.box_style == 'circle, pad=0.0':
@@ -115,8 +113,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         not_outside = lambda x,y: (x > -width) & (x < width) & (y > -height) & (y<height)
 
     # Plot the map using the shared plot_map function
-    plot_map(self, ax, box, (stars_x,stars_y), (ecliptic_x, ecliptic_y), milky_way,\
-             marker_size, not_outside, labels=labels, con_highlight=[id])
+    plot_map(self, ax, box, transform_scaling, marker_size, not_outside, labels=labels, con_highlight=[id])
 
     #Plot the North indicator as last thing
     if BEST_AR: 
@@ -180,6 +177,9 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
                     f.write(s) 
 
             if self.FLAGS['con_lines'] & self.FLAGS['ecliptic']:
+
+                ecliptic_x, ecliptic_y = transform_scaling(self.ecliptic_ra, self.ecliptic_dec)
+                
                 f.write('\n# Ecliptic label\n')
                 # Add a label close to the ecliptic if it is inside the constellation
                 mask = not_outside(ecliptic_x, ecliptic_y)

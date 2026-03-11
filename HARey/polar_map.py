@@ -83,26 +83,18 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	
 	# Depending on the value of the pole, invert the dec values
 	c = 1 if pole=='N' else -1 if pole=='S' else 0
+
+	# Get the projection
+	projection = azimuthal_polar if mode == 'azimuth' else stereo_polar
+	scaling = lambda x,y : (scale*x, scale*y)
 	
-	# Compute the ecliptic positions
-	(ecliptic_ra, ecliptic_dec) = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
-	ecliptic_x, ecliptic_y = azimuthal_polar(c*ecliptic_ra, c*ecliptic_dec) if mode=='azimuth' else stereo_polar(c*ecliptic_ra, c*ecliptic_dec)	
-	ecliptic_x, ecliptic_y = scale*ecliptic_x, scale*ecliptic_y
-
-	# Compute the star positions
-	stars_x, stars_y = azimuthal_polar(c*self.stars['ra'], c*self.stars['dec']) if mode == 'azimuth' else stereo_polar(c*self.stars['ra'], c*self.stars['dec'])
-	stars_x, stars_y = stars_x*scale, stars_y*scale 
-
-	# Convert the values to  Pandas series by adding the index
-	stars_x = pd.Series(data = stars_x, index=self.stars.index)
-	stars_y = pd.Series(data = stars_y, index=self.stars.index)
+	transform = lambda ra,dec: scaling(*projection(ra, dec))
 
 	# Condition for plotting lines to avoid crossing the plot. No lines are plotted if the points are all outside the map radius
 	not_outside = lambda x, y: x**2 + y**2 < map_radius**2
 
 	# Plot the map using the shared function
-	plot_map(self, ax, box, (stars_x,stars_y),(ecliptic_x, ecliptic_y),\
-             marker_size, not_outside, labels=labels, font_size=font_sizes['l'])
+	plot_map(self, ax, box, transform, marker_size, not_outside, labels=labels)
 
 	# Plot the grid
 	if self.FLAGS['grid']: 
@@ -196,6 +188,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 
 			if self.FLAGS['con_lines'] & self.FLAGS['ecliptic']:
 				f.write('\n# Ecliptic label\n')
+				ecliptic_x, ecliptic_y = transform(self.ecliptic_ra, self.ecliptic_dec)
 				# Add a label close to the ecliptic if it is inside the constellation
 				mask = not_outside(ecliptic_x, ecliptic_y)
 				

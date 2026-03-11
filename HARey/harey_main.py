@@ -12,7 +12,7 @@ from HARey.card_plot import plot_card
 from HARey.asterism_plot import plot_asterism
 from HARey.print_and_play import print_card_set, print_and_play
 
-from HARey.astro_functions import Observer, is_visible, mag2size
+from HARey.astro_functions import Observer, is_visible, mag2size, ecliptic2radec
 from HARey.flag_config import FlagConfig, ColorConfig
 
 import matplotlib.pyplot as plt
@@ -121,7 +121,8 @@ class HAReyMain(StarColorMap):
         print('Done!\nLoading the milky way shape....      ', end=' ')
         # Load the milky way shapes for each luminosity level
         self.milky_way = load_mw(mw_file)
-        self.mw_strength = 0.15
+        self.milky_way_levels = 5
+        self.milky_way_alpha = [0.15, 0.15, 0.15, 0.15, 0.15]
 
         print('Done!\n\n')
        
@@ -152,6 +153,7 @@ class HAReyMain(StarColorMap):
         self.dpi = 300
 
         self.N_ecliptic = 3601
+        self.ecliptic = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
         
 
         # Fonts used in the plots and the SIS script. To be able to use the SIS script,
@@ -176,6 +178,21 @@ class HAReyMain(StarColorMap):
 
     def set_colors(self, **colors):
         self.colors.set(colors)
+
+    def set_milky_way_intensity(self, levels=5, min_intensity=0.3, max_intensity=0.9):
+        self.milky_way_levels = levels
+
+        if levels == 1:
+            self.milky_way_alpha = np.array([min_intensity])  # only one layer
+        else:
+
+            alpha0 = min_intensity
+            # compute subsequent alpha
+            alpha_s = 1 - ((1 - max_intensity) / (1 - alpha0))**(1 / (levels - 1))
+            
+            alphas = np.full(levels, alpha_s)
+            alphas[0] = alpha0
+            self.milky_way_alpha = alphas
 
 
     def is_constellation(self, id):

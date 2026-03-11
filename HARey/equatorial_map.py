@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_hex
 
-from HARey.projections import ecliptic2radec, Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, project_milkyway
+from HARey.projections import Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, project_milkyway
 from HARey.plot_map import plot_map
 
 
-def plot_within_borders(self, borders, FOV, scale, marker_size, labels):
+def plot_within_borders(self, borders, coord_transform, FOV, scale, marker_size, labels):
 	'''Plot the sky near the equator between the borders (in degrees) and with vertical height [-FOV, FOV],
 		and return the image generated.
 		The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
@@ -22,16 +22,8 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, labels):
 
 	#print(f'Image dimensions: {width:.2f}x{2*height:.2f} inches')
 	
-	# Project the stars positions and the ecliptic points
-	stars_x, stars_y = Gall_projection(self.stars['ra'], self.stars['dec'])
-	stars_x, stars_y = scale * stars_x, scale * stars_y
-	
-	ecliptic_x , ecliptic_y = Gall_projection(self.ecliptic_ra, self.ecliptic_dec)
-	ecliptic_x, ecliptic_y = scale * ecliptic_x, scale * ecliptic_y
-
-	milky_way = project_milkyway(self.milky_way, Gall_projection)
-	milky_way = project_milkyway(milky_way, lambda x,y: (scale*x, scale*y))
-	milky_way = project_milkyway(milky_way, lambda x,y: (x[(x>=left_border) & (x<=right_border)], y[(x>=left_border) & (x<=right_border)]))
+	scaling = lambda x,y: (x*scale, y*scale)
+	transform = lambda ra,dec: scaling(*Gall_projection(*coord_transform(ra, dec)))
 
 	# Create figure and axes
 	fig,ax = plt.subplots(figsize = (width, height), dpi=self.dpi) #figure with correct aspect ratio
@@ -49,8 +41,7 @@ def plot_within_borders(self, borders, FOV, scale, marker_size, labels):
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
 	not_outside = lambda x,y: (x>left_border) & (x<right_border) & (y < height/2) & (y > -height/2)
 
-	plot_map(self, ax=ax, box=box, stars_xy=(stars_x,stars_y), ecliptic_xy=(ecliptic_x, ecliptic_y), milky_way=milky_way,\
-             marker_size=marker_size, not_outside=not_outside, is_inverted=True, labels=labels)
+	plot_map(self, ax=ax, box=box, transform=transform, marker_size=marker_size, not_outside=not_outside, is_inverted=True, labels=labels)
 	
 	#Restrict everything to the bounding box
 	for col in ax.collections:
@@ -117,17 +108,13 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 	half_overlap = overlap/2
 
 	# Compute the ecliptic coordinates
-	self.ecliptic_ra, self.ecliptic_dec = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
+	
 
-	self.stars['ra'] = (self.stars['ra']+180)%360 -180 # Angles from -180 to 180
-	self.ecliptic_ra = (self.ecliptic_ra+180)%360 -180
-	self.milky_way = project_milkyway(self.milky_way, lambda ra, dec: ((ra + 180)%360 -180, dec))
-	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, labels=labels)
+	coord_transform = lambda ra, dec: ((ra + 180)%360 - 180, dec)
+	border = plot_within_borders(self, borders=(-half_overlap, half_overlap), coord_transform=coord_transform, FOV=dec_FOV, scale=scale, marker_size=marker_size, labels=labels)
 
-	self.stars['ra'] = self.stars['ra']%360	# Angle coordinates from 0 to 360
-	self.ecliptic_ra = self.ecliptic_ra%360
-	self.milky_way = project_milkyway(self.milky_way, lambda ra, dec: (ra%360, dec))
-	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), FOV=dec_FOV, scale=scale, marker_size=marker_size, labels=labels)
+	coord_transform = lambda ra, dec: (ra%360, dec)
+	center = plot_within_borders(self, borders=(half_overlap, 360 - half_overlap), coord_transform=coord_transform, FOV=dec_FOV, scale=scale, marker_size=marker_size, labels=labels)
 
 	# Join the images and plot it
 	map = np.concatenate((border, center, border), axis=1)

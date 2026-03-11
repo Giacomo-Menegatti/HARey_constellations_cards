@@ -1,5 +1,6 @@
 from math import nan
 import numpy as np
+import pandas as pd
 from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
 from matplotlib.collections import LineCollection
@@ -7,23 +8,31 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Polygon, PathPatch
 from matplotlib.text import TextPath
 
-def plot_map(self, ax, box, stars_xy, ecliptic_xy, milky_way, marker_size, not_outside, labels={}, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False):
+def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False):
 
-    stars_x, stars_y = stars_xy
-    ecliptic_x, ecliptic_y = ecliptic_xy
+    # Apply the transformation th the stars and the ecliptic
+    ecliptic_x, ecliptic_y = transform(*self.ecliptic)
+    stars_x, stars_y = transform(self.stars.ra, self.stars.dec)
+
+    # Convert the arrays to Pandas series by adding the index (so now mask works on the df indexes, not on numpy positions)
+    stars_x = pd.Series(data = stars_x, index=self.stars.index)
+    stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
     line_w = marker_size * 0.0075
     star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size)
 
     if self.FLAGS['milky_way']:
         # Plot the Milky Way on the background
-        for level in milky_way:
-            for shape in milky_way[level]:
-                
-                patch = Polygon(shape, closed=True, ec='none', fc=self.COLORS['milky_way'], alpha=self.mw_strength, clip_path=box)
+        for level in range(self.milky_way_levels):
+            for shape in self.milky_way[f'{level}']:
 
-                ax.add_patch(patch)
-                patch.set_clip_path(box)
+                ra, dec = shape[:,0], shape[:,1]
+                x,y = transform(ra, dec)
+
+                if any(not_outside(x,y)):
+                    patch = Polygon(np.column_stack((x,y)), closed=True, ec='none', fc=self.COLORS['milky_way'], alpha=self.milky_way_alpha[level], clip_path=box)
+
+                    ax.add_patch(patch)
 
     mask_inside = not_outside(stars_x, stars_y)
 
