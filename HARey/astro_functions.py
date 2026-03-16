@@ -287,17 +287,16 @@ def best_visibility_period(mean_RA):
 
 ############ STAR SIZE FROM MAGNITUDE ##########
 
-def mag2size(mag, lim_mag, lim_mag_size=0.0):
+def mag2size(mag, lim_mag, lim_mag_size=0.0, power=1.5):
     """Compute the star size from its magnitude. lim_mag is the magnitude of the brightest star not visible in the plot, lim_mag_size a parameter to avoid having stars too small."""
 
-    # Brightness scaling (works for brighter stars, but dim ones are all too small and difficult to distinguish)
-    # return 10**(0.4*mag)
+    mag = np.asarray(mag)
+    size = np.zeros_like(mag, dtype=float)
 
-    # Size scaling (based on the Airy disk formula)
-    # return (1 - mag/lim_mag )
+    visible = mag <= lim_mag
 
-    # Skyfield scaling (based on the Airy disk formula, but with a power law)
-    # return (1 - mag/lim_mag )**2
+    airy_size = (1 - mag[visible]/lim_mag)**power
 
-    # Custom scaling (intermediate between the previous two, works well in the plots)
-    return (1 - mag/lim_mag )**1.5 + lim_mag_size
+    size[visible] = airy_size*(1 - lim_mag_size) + lim_mag_size
+
+    return size

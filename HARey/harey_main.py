@@ -129,6 +129,7 @@ class HAReyMain(StarColorMap):
         #Initialize graphical parameters to default values
         self.limiting_magnitude = 6.0 # Maximum magnitude of plotted stars
         self.limit_size=0
+        self.mag_power=1.5
 
         # Colors used in the plots
         self.colors = ColorConfig(
@@ -214,7 +215,7 @@ class HAReyMain(StarColorMap):
         return True
 
     # Function to set the limiting magnitude
-    def set_limiting_magnitude(self, limiting_magnitude=6.5, limit_size=0.0):
+    def set_limiting_magnitude(self, limiting_magnitude=6.5, limit_size=0.0, power=1.5):
         """
         Set the limiting magnitude of the stars. Higher values will plot more dim stars.
         The limit_size is the size of stars with limiting magnitude, to avoid having small points in the plots.
@@ -223,6 +224,7 @@ class HAReyMain(StarColorMap):
         """
         self.limiting_magnitude = limiting_magnitude
         self.limit_size = limit_size
+        self.mag_power = power
 
 
     # Function to set the fonts that will be used
@@ -243,7 +245,8 @@ class HAReyMain(StarColorMap):
 
         for i in range(6):
             marker = self.harey_markers[i] if USE_HAREY_MARKERS else '.'
-            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude), linewidths=0, color=self.colors.colors['stars'])
+            
+            ax.scatter(i, 0, marker = marker, s=800*mag2size(i, lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size, power=self.mag_power), linewidths=0, color=self.colors.colors['stars'])
             ax.text(i, -0.35, f'{i}', color=self.colors.colors['stars'], horizontalalignment='center', fontsize=12)
 
         ax.set_axis_off()

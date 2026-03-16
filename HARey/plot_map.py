@@ -19,7 +19,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
     line_w = marker_size * 0.0075
-    star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size)
+    star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size, power=self.mag_power)
 
     if self.FLAGS['milky_way']:
         # Plot the Milky Way on the background
@@ -57,13 +57,16 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
 
         # Plot highlighted lines (alpha=1)
         faint_lc = LineCollection(faint_lines, colors=self.COLORS['con_lines'], linewidths=line_w, alpha=0.5)
+        faint_lc.set(capstyle='round')
         ax.add_collection(faint_lc)
         # Plot faint lines (alpha=0.5)
 
         shadow_lc = LineCollection(main_lines, colors=self.COLORS['shadow'], linewidths=2.0*line_w, alpha=1)
+        shadow_lc.set(capstyle='round')
         ax.add_collection(shadow_lc)
 
         high_lc = LineCollection(main_lines, colors=self.COLORS['con_lines'], linewidths=line_w, alpha=1)
+        high_lc.set(capstyle='round')
         ax.add_collection(high_lc)
 
     #Plot asterisms
@@ -111,7 +114,8 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
 
     
     # Stars that are not in a constellation shape are represented with a dot
-    bkg_stars = (self.stars.constellation == 'none') & (self.stars.magnitude <= self.limiting_magnitude) & (mask_inside)        
+    is_visible = (self.stars.magnitude <= self.limiting_magnitude) & (mask_inside)
+    bkg_stars = (self.stars.constellation == 'none') & is_visible       
     color = self.stars[bkg_stars]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
 
     # Plot bkg stars
@@ -121,7 +125,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     star_markers = self.harey_markers if self.FLAGS['harey_stars'] else ['.']*len(self.harey_markers)
 
     # Plot a blank circle around the main stars to make them more evident
-    main_stars = (self.stars.constellation != 'none') & mask_inside
+    main_stars = (self.stars.constellation != 'none') & is_visible
 
     ax.scatter(stars_x[main_stars], stars_y[main_stars], marker='o', s=1.15*star_sizes[main_stars], color=self.COLORS['sky'], linewidths=0, zorder=2)
 
@@ -133,28 +137,27 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     offset = 8e-4 
 
     for i, m in enumerate(star_markers):
+        # Do NOT plot stars below the limiting magnitude (this would be an empty array)
+        if i <= self.limiting_magnitude:
 
-        # Plot faint stars
-        mask = main_stars & faint_mask & (self.stars.mag_class == i)
+            # Plot faint stars
+            faint = main_stars & faint_mask & (self.stars.mag_class == i) & is_visible
+            bright = main_stars & ~faint_mask & (self.stars.mag_class == i) & is_visible
+        
+            color = self.stars[faint]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
+            ax.scatter(stars_x[faint], stars_y[faint], marker=m, s=star_sizes[faint],\
+                        color=color, linewidths=0.0, edgecolor=self.COLORS['sky'], zorder=3)
 
-        # Plot stars
-        color = self.stars[mask]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
-        ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask],\
-                    color=color, linewidths=0.0, edgecolor=self.COLORS['sky'], zorder=2)
+            # Add a shadow effect
+            off = offset*np.sqrt(star_sizes[bright])
+            ax.scatter(stars_x[bright]-off, stars_y[bright]-off, \
+                        marker=m, s=1.1*star_sizes[bright],\
+                        color=self.COLORS['shadow'], linewidths=0.01*star_sizes[bright], edgecolor=self.COLORS['shadow'], zorder=2)
 
-        # Plot highlighted stars
-        mask = main_stars & ~faint_mask & (self.stars.mag_class == i)
-
-        # Add a shadow effect
-        off = offset*np.sqrt(star_sizes[mask])
-        ax.scatter(stars_x[mask]-off, stars_y[mask]-off, \
-                    marker=m, s=1.1*star_sizes[mask],\
-                    color=self.COLORS['shadow'], linewidths=0.01*star_sizes[mask], edgecolor=self.COLORS['shadow'], zorder=1)
-
-        # Plot stars
-        color = self.stars[mask]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
-        ax.scatter(stars_x[mask], stars_y[mask], marker=m, s=star_sizes[mask],\
-                    color=color, linewidths=0.0, edgecolor=self.COLORS['sky'], zorder=2)
+            # Plot stars
+            color = self.stars[bright]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
+            ax.scatter(stars_x[bright], stars_y[bright], marker=m, s=star_sizes[bright],\
+                        color=color, linewidths=0.0, edgecolor=self.COLORS['sky'], zorder=3)
 
     # Draw the zodiac
     if self.FLAGS['zodiac']:
