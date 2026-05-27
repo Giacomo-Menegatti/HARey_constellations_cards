@@ -13,7 +13,6 @@ from matplotlib.patches import Annulus, Circle
 from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
-from pyproj import transform
 
 from HARey.astro_functions import radec2altaz, ecliptic2radec
 from HARey.projections import stereo_radius, stereo_polar

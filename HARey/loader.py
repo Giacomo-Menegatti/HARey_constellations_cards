@@ -15,9 +15,10 @@ Contains :
 - load_constellations: read the constellations from the Stellarium file and returns constellation names, ids of the constellations,
     asterisms, helper lines and the stars names
 
-- load_markers: read the svg files containing the markers and convert them to be used by matplotlib   
-"""
+- load_markers: read the svg files containing the markers and convert them to be used by matplotlib 
+- load_mw: read the json file containing the shapes of the Milky Way and return a dictionary with the shapes for each level of brightness  
 
+"""
 
 
 def get_file(filename=None, default=''):
@@ -208,7 +209,8 @@ def load_markers(markers_folder=None):
 ### Load Milky Way shapes ####################
 
 def load_mw(mw_file=None):
-    file_name = get_file(mw_file, default='mw_clean_1.json')
+    
+    file_name = get_file(mw_file, default='mw_clean.json')
 
     with open(file_name, 'r') as json_file:
         milky_way = json.load(json_file)
