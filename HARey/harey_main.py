@@ -148,7 +148,7 @@ class HAReyMain(StarColorMap):
             asterisms = False, helpers = False, star_names = False,
             grid = False, ecliptic = True, zodiac = False, milky_way=False,
             harey_stars = True, show = True, save = False,
-            sis_script = False, galaxy = True, star_colors = False
+            galaxy = True, star_colors = False
         )
 
         self.dpi = 300
@@ -164,7 +164,7 @@ class HAReyMain(StarColorMap):
                         'calendar': FontProperties(family='DejaVu Sans', weight='bold')}
 
         # Read the card template module and overwrite its values
-        set_card_template(self, format='tarot-round', dpi=self.dpi)
+        set_card_template(self, dpi=self.dpi)
 
         self.zodiac_symbols = ['\u2648', '\u2649', '\u264A', '\u264B', '\u264C', '\u264D','\u264E', '\u264F', '\u2650', '\u2651', '\u2652', '\u2653']
 

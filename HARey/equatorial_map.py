@@ -154,9 +154,6 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 			ax.text(0, y_s, s=f'  {dec}° S  ', color=self.COLORS['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=self.fonts['labels'])
 
-	if self.FLAGS['sis_script']: # Save the image before adding the labels
-		plt.savefig(save_name, dpi=self.dpi, bbox_inches='tight', pad_inches=0)
-
 	# Plot all labels
 	for name in labels:
 		label = labels[name]
@@ -164,38 +161,7 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 		label_y = (0.5 - label['y']/map_height) * height
 		ax.text(label_x, label_y, name, color=label['color'], fontsize=font_sizes[label['font_size']], font=self.fonts['labels'], ha=label['ha'], va=label['va'])
 
-
-	if self.FLAGS['sis_script']:
-		# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
-		# To make the position consistent with different settings of Inkscape, 
-		# the coordinates are fractions of the canvas width and height, starting from top left
-
-		dir = 'inkscape_scripts'    # Folder of the scripts
-
-		if not os.path.exists(dir):
-			os.mkdir(dir)
-
-		# Convert the save file from png to py
-		file_name = save_name.replace('.png', '.py')
-		with open(f'{dir}/{file_name}', 'w') as f:
-
-			for name in labels:
-				for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
-					label = labels[name]
-					label_x =  (Gall_horizontal(360 + half_overlap) - label['x']/scale)/(Gall_horizontal(360 + half_overlap) - Gall_horizontal(-half_overlap))
-					label_y = (0.5 - label['y']/map_height)
-					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label["font_size"]]}pt", ' \
-						f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
-					f.write(s)        
-
-			# Plot ecliptic label (always present)
-			f.write('\n# Ecliptic label\n')
-			# Write the label at the center of the plot
-			s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-				f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["ecliptic_label"])}")\n'
-			f.write(s)
-
-	if self.FLAGS['save'] and not self.FLAGS['sis_script']:
+	if self.FLAGS['save']:
 		plt.savefig(save_name, dpi=self.dpi, pad_inches=0)
 	
 	if self.FLAGS['show']:

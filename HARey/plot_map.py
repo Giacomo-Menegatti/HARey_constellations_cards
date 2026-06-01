@@ -1,6 +1,7 @@
 from math import nan
 import numpy as np
 import pandas as pd
+from soupsieve import closest
 from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
 from matplotlib.collections import LineCollection
@@ -241,3 +242,15 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
         for star in self.named_stars:
             # The star index is a string
             compute_label_pos(star, int(star), font_size='s', color=self.COLORS['star_names'], ha='left', va='top')
+
+    # Ecliptic label
+    if self.FLAGS['ecliptic']:
+        # Check if the ecliptic is visible inside of the plot
+        mask = not_outside(ecliptic_x, ecliptic_y)
+                
+        if np.any(mask):
+            label_x = np.mean(ecliptic_x[mask])
+            closest_x = np.argmin(np.abs(ecliptic_x[mask] - label_x))
+            label_y = ecliptic_y[mask][closest_x]
+
+            labels['Ecliptic'] = {'x': label_x, 'y': label_y, 'font_size': 's', 'color': self.COLORS['ecliptic'], 'ha':'center', 'va':'center'}

@@ -2,6 +2,8 @@
 and the plot_cardback function, which handles coloring the bw cardback image and adding text to it
 """
 
+import yaml
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_rgba
@@ -11,134 +13,81 @@ from HARey.loader import get_file
 
 
 # Function to read between the different cardbacks
-def set_card_template(self, format='tarot-round', cardback_file=None, dpi = 300):
+def set_card_template(self, format_file=None, format='tarot', style='round', cardback_file=None, dpi = 300):
     """Set the card template and the background image.
 
     Arguments :
         - format (str): template of the card
+        - style (str): style of the card, either 'round' or 'square'
         - cardback_file (str): card back image file. If None, the card will have no back image or a default one, based on the format. The cardback must be a black and white image with transparency (RGBA) and the same dimensions as the card.
         - dpi (int): dpi of the card. Should be the same as the cardback image. 
 
     The formats accepted are:
-        - 'tarot-round' or 'tarot-square': tarot sized template, 2.75x4.75 in, with rounded or square corners
-        - 'poker-round' or 'poker-square': poker sized template, 2.5x3.5 in, with rounded or square corners
-        - 'jumbo-round' or 'jumbo-square': jumbo sized template, 3.5x5.5 in, with rounded or square corners
-        - 'circle': a circular template, with a 5 in diameter. Has no default template
-        - 'square': a square template, a 5x5 in. Has no default template
+        - tarot: 2.75x4.75 in
+        - jumbo: 3.5x5.5 in
+        - poker: 2.5x3.5 in
+        - circle: 5x5 in
+        - square: 5x5 in
+    
+    The styles accepted (only for the card format) are:
+        - round: with rounded corners on the card and the cardback text box
+        - square: with square corners on the card
 
     """
-    if format in ['tarot-round','tarot-square']:
-        #card dimensions and corner radius (inches)
-        self.height = 4.75
-        self.width = 2.75
-        self.pad = 0.25                  
+    format_file = get_file(format_file, default='card_formats.yaml')
 
-        # Position and dimension of the text box (in inches)
-        self.text_x = 0.4
-        self.text_y = 3.6
-        self.box_width = self.width-2*self.text_x
-        self.box_height = 0.8
-            
-        self.max_font_scale = 3
-        
-        # Tarot round specific data
-        if format == 'tarot-round':
-            # Style passed to the fancybbox patch
-            self.box_style = f'round, pad=0.0, rounding_size=0.2'                 
-            self.text_box_style = "round, pad = 0.2, rounding_size=0.3" 
-            # Default cardback style
-            self.default_cardback_file = 'cardbacks/tarot_round.png'
-            
-        # Tarot square specific data
-        else: 
-            self.box_style = 'square, pad=0.0'       
-            self.text_box_style = "round, pad = 0.2, rounding_size=0.05"
-            self.default_cardback_file = 'cardbacks/tarot_square.png'
+    with open(format_file, 'r') as f:
+        format_data = yaml.safe_load(f)
 
-    elif format in ['jumbo-round','jumbo-square']:
-        # Jumbo format 3.5x5.5 inches
-        self.height = 5.5
-        self.width = 3.5
-        self.pad = 0.35
+    if format not in format_data.keys():
+        raise ValueError(f'{format} is not a valid format. Valid formats are {list(format_data.keys())}. More can be added by editing self.card_formats.yaml.')
 
-        self.text_x = 0.4
-        self.text_y = 4.1
-        self.box_width = self.width-2*self.text_x
-        self.box_height = 1.0                
-        self.max_font_scale = 4      
+    self.card_format = format_data[format]
 
-        if format == 'jumbo-round':
+    self.width = self.card_format['width']
+    self.height = self.card_format['height']
+    self.pad = self.card_format['pad']
 
-            self.box_style = f'round, pad=0.0, rounding_size=0.25'
-            self.text_box_style = "round, pad = 0.25, rounding_size=0.4" 
-            self.default_cardback_file = 'cardbacks/jumbo_round.png'
+    self.text_x = self.card_format['text_x']
+    self.text_y = self.card_format['text_y']
+    self.box_width = self.card_format['box_width']
+    self.box_height = self.card_format['box_height']
+    self.max_font_scale = self.card_format['max_font_scale']
 
-        else:
+    # Check if the card format has different styles
+    if style in self.card_format .keys():
 
-            self.box_style = f'square, pad=0.0'
-            self.text_box_style = "round, pad = 0.25, rounding_size=0.05" 
-            self.default_cardback_file = 'cardbacks/jumbo_square.png'
-
-    elif format in ['poker-round','poker-square']:
-
-        # Poker card format, 2.5x3.5 inches
-        self.height = 3.5
-        self.width = 2.5
-        self.pad = 0.15
-
-        self.text_x = 0.4
-        self.text_y = 2.7
-        self.box_width = self.width-2*self.text_x
-        self.box_height = 0.55
-        self.max_font_scale = 2.5
-
-        if format == 'poker-round':
-            self.box_style = f'round, pad=0.0, rounding_size=0.15'
-            self.text_box_style = "round, pad = 0.1, rounding_size=0.2"
-            self.default_cardback_file = 'cardbacks/poker_round.png'
-
-        else:
-            self.box_style = f'square, pad=0.0'
-            self.text_box_style = "round, pad = 0.1, rounding_size=0.05"       
-            self.default_cardback_file = 'cardbacks/poker_square.png'
-
-    elif format == 'circle':
-        # Circular plot for the quiz game
-        self.height = 5
-        self.width = 5
-        self.pad = 0.25
-
-        self.box_style = 'circle, pad=0.0'
-
+        self.card_style = self.card_format[style]
+        self.box_style = self.card_style['box_style']
+        self.text_box_style = self.card_style['text_box_style']
+        self.default_cardback_file = self.card_style['default_cardback_file']
     
-    elif format == 'square':
-        # Square format
-        self.height = 5
-        self.width = 5
-        self.pad = 0.25
-        
-        self.box_style = 'square, pad=0.0'
-
-    else:
-        print('This format is not recognized! Reverting to default format')
-        self.set_card_template()   
-
+    # Or if it has only one style, in which case the box_style is part of the main keys
+    elif 'box_style' in self.card_format .keys():
+        self.box_style = self.card_format['box_style']
+        self.default_cardback_file = self.card_format['default_cardback_file']
+    
+    # Aspect ratio of the card
     self.AR_card = self.width/self.height
     # Area of the card fully occupied by the constellation
     self.AR_plot = (self.width - 2*self.pad) / (self.height - 2*self.pad)
-                
-    # Set the bleed to zero
-    self.bleed = 0
 
-    # Read the black_and_white template (imread converts it to RGBA)
+    self.bleed = 0        
     self.dpi = dpi
 
-    # 
-    cardback_file = get_file(cardback_file, default=self.default_cardback_file)
-    self.template = plt.imread(cardback_file)
+    # If the cardback is not specified, or the default one does not exist
+    if not (cardback_file == None and self.default_cardback_file == 'none'):
+        # Read the black_and_white template (imread converts it to RGBA)
+        cardback_file = get_file(cardback_file, default=self.default_cardback_file)
+        self.template = plt.imread(cardback_file)
+        print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}.')
+
+    else:
+        self.template = None
+        print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in.')
 
         
-    print(f'Using the {format} format, {self.width:.2f}x{self.height:.2f} in, using the template at {cardback_file}')    
+        
 
 
 # Function to color the cardback and write the name
@@ -153,6 +102,9 @@ def plot_cardback(self, *flags, id='Ori', main_color=None, accent_color=None, sa
         - save_name (str): name of the file to save the plot. If specified, self.flags['SAVE'] is set to True
     
     """
+
+    if self.template is None:
+        raise Exception('No cardback file specified, and no default cardback found. Use set_card_template() to set a template.')
 
     self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
     self.COLORS = self.colors.colors
@@ -181,11 +133,9 @@ def plot_cardback(self, *flags, id='Ori', main_color=None, accent_color=None, sa
     image = np.clip(image, 0, 1)
     # Clip with the transparecny mask
     image[alpha_mask] = (1,1,1,0) 
-
  
 
-        #figure with correct aspect ratio
-
+    #figure with correct aspect ratio
     fig,ax = plt.subplots(figsize = (self.width + 2 * self.bleed, self.height + 2 * self.bleed), dpi=dpi)
     fig.subplots_adjust(0,0,1,1)
 

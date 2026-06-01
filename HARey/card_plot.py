@@ -46,7 +46,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     (x_span, y_span), transform, north_angle = project_region(self, id, BEST_AR=BEST_AR)     
 
     # Get the plot dimensions
-    if self.box_style == 'circle, pad=0.0':
+    if self.card_format == 'circle, pad=0.0':
         # If the plot is in a circle, compute the radius on the corner of the plot
         map_radius = np.sqrt(x_span**2 + y_span**2)
         x_span = (1 + 2 * (self.pad + self.bleed)/self.height) * map_radius
@@ -148,50 +148,13 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     for col in ax.collections:
         col.set_clip_path(box)
 
-    if self.FLAGS['sis_script']:  # Save the image before adding labels
-        plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
-    
     # Plot all labels
     for name in labels:
         label = labels[name]
         ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_size, font=self.fonts['labels'], ha=label['ha'], va=label['va'])
 
-    if self.FLAGS['sis_script']:  
-        # Create a script to plot interactive labels in Inkscape, to manually adjust their positions                
-        # To make the position consistent with different settings of Inkscape, 
-        # the coordinates are fractions of the card self.width and self.height, starting from top left       
-
-        dir = 'inkscape_scripts'    # Folder of the scripts
-        if not os.path.exists(dir):
-            os.mkdir(dir)
-        with open(f'{dir}/labels_{id}.py', 'w') as f:
-
-            # Plot all labels
-
-            for name in labels:
-                for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
-                    label = labels[name]
-                    label_x, label_y = 0.5 + label['x']/self.width, 0.5 - label['y']/self.height + off
-                    s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_size}pt", ' \
-                        f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
-                    f.write(s) 
-
-            if self.FLAGS['con_lines'] & self.FLAGS['ecliptic']:
-
-                ecliptic_x, ecliptic_y = transform_scaling(self.ecliptic_ra, self.ecliptic_dec)
-                
-                f.write('\n# Ecliptic label\n')
-                # Add a label close to the ecliptic if it is inside the constellation
-                mask = not_outside(ecliptic_x, ecliptic_y)
-                
-                if np.any(mask):
-                    label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
-                    label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
-                    s = f"text('{self.names['ecl']}', ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size='{font_size}pt'," \
-                        f"text_anchor='middle', font_family='{self.fonts['labels'].get_name()}', fill='{to_hex(self.COLORS['ecliptic_label'])}')\n"
-                    f.write(s)
-
-    if self.FLAGS['save'] and not self.FLAGS['sis_script']:            
+   
+    if self.FLAGS['save']:            
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)
 
     if self.FLAGS['show']:

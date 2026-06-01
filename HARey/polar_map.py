@@ -155,53 +155,12 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	for col in ax.collections:
 			col.set_clip_path(box)
 
-	if self.FLAGS['sis_script']:
-		# Save the image before adding the labels
-		plt.savefig(save_name, transparent=True, dpi=self.dpi, bbox_inches='tight', pad_inches=0)  
-
-	    # Plot all labels
 	for name in labels:
 		label = labels[name]
 		ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_sizes[label['font_size']], font=self.fonts['labels'], ha=label['ha'], va=label['va'])
 
-	if self.FLAGS['sis_script']:
-		# Create a script to plot interactive labels in Inkscape, to manually adjust their positions
-		# To make the position consistent with different settings of Inkscape, 
-		# the coordinates are fractions of the canvas width and height, starting from top left
-
-		dir = 'inkscape_scripts'    # Folder of the scripts
-		if not os.path.exists(dir):
-			os.mkdir(dir)
-
-		# Convert the save file from png to py
-		file_name = save_name.replace('.png', '.py')
-
-		with open(f'{dir}/{file_name}', 'w') as f:
-
-			for name in labels:
-				for single_name, off in zip(name.split('\n'), (-0.02, 0.02)):
-					label = labels[name]
-					label_x, label_y = 0.5 + label['x']/self.width, 0.5 - label['y']/self.height + off
-					s = f'text("{single_name}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes[label["font_size"]]}pt", ' \
-						f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(label["color"])}")\n'
-					f.write(s) 
-
-			if self.FLAGS['con_lines'] & self.FLAGS['ecliptic']:
-				f.write('\n# Ecliptic label\n')
-				ecliptic_x, ecliptic_y = transform(self.ecliptic_ra, self.ecliptic_dec)
-				# Add a label close to the ecliptic if it is inside the constellation
-				mask = not_outside(ecliptic_x, ecliptic_y)
-				
-				if np.any(mask):
-					label_x = np.mean(ecliptic_x[mask])/self.width + 0.5
-					label_y = - np.mean(ecliptic_y[mask])/self.height + 0.5
-					s = f'text("{self.names["ecl"]}", ({label_x:.2f}*canvas.width, {label_y:.2f}*canvas.height), font_size="{font_sizes["s"]}pt",' \
-                        f'text_anchor="middle", font_family="{self.fonts["labels"].get_name()}", fill="{to_hex(self.COLORS["ecliptic_label"])}")\n'
-					f.write(s)
-
-
 	# Save the image with all the labels
-	if self.FLAGS['save'] and not self.FLAGS['sis_script']:
+	if self.FLAGS['save']:
 		plt.savefig(save_name, transparent=True, dpi=self.dpi, pad_inches=0)
 
 	if self.FLAGS['show']:

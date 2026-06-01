@@ -1,0 +1,100 @@
+# ::::::::::::::::::::::::::::::::::::
+# CARD FORMATS SUPPORTED
+# ::::::::::::::::::::::::::::::::::::
+
+# TAROT FORMATS
+  
+tarot:
+
+    # Tarot format 2.75x4.75 inches
+    # Card height, width and padding (space between the border and the constellation)
+    height : 4.75
+    width : 2.75
+    pad : 0.25                  
+
+    # Position and dimension of the text box 
+    text_x : 0.4
+    text_y : 3.6
+    box_width : 1.95
+    box_height : 0.8
+            
+    # Max font scaling (starting from the defaut 12pt font)
+    max_font_scale : 3
+        
+    round:    # Tarot round specific data
+        # card box, text box and default cardback image
+        box_style : 'round, pad=0.0, rounding_size = 0.2'                 
+        text_box_style : "round, pad = 0.2, rounding_size = 0.3" 
+        default_cardback_file : 'cardbacks/tarot_round.png'  #default cardback image
+            
+    square: # Tarot square specific data
+        # card box, text box and default cardback image
+        box_style : 'square, pad = 0.0'       
+        text_box_style : "round, pad = 0.2, rounding_size = 0.05"
+        default_cardback_file : 'cardbacks/tarot_square.png'  #default cardback image
+
+jumbo:
+    # Jumbo format 3.5x5.5 inches
+    height : 5.5
+    width : 3.5
+    pad : 0.35
+
+    text_x : 0.6
+    text_y : 4.1
+    box_width : 2.3
+    box_height : 1.0   
+
+    max_font_scale : 4      
+
+    round:    
+        box_style : 'round, pad = 0.0, rounding_size = 0.25'
+        text_box_style : "round, pad = 0.25, rounding_size = 0.4" 
+        default_cardback_file : 'cardbacks/jumbo_round.png'
+
+    square:
+        box_style : 'square, pad = 0.0'
+        text_box_style : "round, pad = 0.25, rounding_size = 0.05" 
+        default_cardback_file : 'cardbacks/jumbo_square.png'
+
+poker:
+
+    # Poker card format, 2.5x3.5 inches
+    height : 3.5
+    width : 2.5
+    pad : 0.15
+
+    text_x : 0.3
+    text_y : 2.7
+    box_width : 1.9
+    box_height : 0.55
+
+    max_font_scale : 2.5
+
+    round:
+        box_style : 'round, pad = 0.0, rounding_size = 0.15'
+        text_box_style : "round, pad = 0.1, rounding_size = 0.2"
+        default_cardback_file : 'cardbacks/poker_round.png'
+
+    square:
+        box_style : 'square, pad = 0.0'
+        text_box_style : "round, pad = 0.1, rounding_size = 0.05"       
+        default_cardback_file : 'cardbacks/poker_square.png'
+
+circle:
+    # Circular plot for the quiz game
+    height : 5
+    width : 5
+    pad : 0.25
+
+    box_style : 'circle, pad = 0.0'
+    default_cardback_file : 'none'
+
+    
+square:
+    # Square format
+    height : 5
+    width : 5
+    pad : 0.25
+    
+    box_style : 'square, pad = 0.0'
+    default_cardback_file : 'none'
