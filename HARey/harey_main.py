@@ -1,6 +1,8 @@
 """HARey main module. This module inherits from all the others."""
 
-from HARey.loader import load_stars, load_constellations, load_markers, load_names, load_mw
+from requests import get
+
+from HARey.loader import load_stars, load_constellations, load_markers, load_names, load_mw, get_file
 from HARey.star_colormap import StarColorMap
 
 from HARey.card_template import set_card_template, plot_cardback
@@ -18,6 +20,8 @@ from HARey.flag_config import FlagConfig, ColorConfig
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
+
+import yaml
 
 
 # HARey main Class
@@ -70,24 +74,32 @@ class HAReyMain(StarColorMap):
     print_and_play = print_and_play
 
 
-    def __init__(self,hip_file = None, index_file = None, 
-                 names_file = None, mw_file=None, language = 'IAU-EN', star_colors = 'stellarium'):
+    def __init__(self, hip_file = None, index_file = None, 
+                 names_file = None, mw_file=None, language = 'IAU-EN',style_file=None):
         """
         Initialize the HARey class. This function loads the stars, constellations, markers and language automatically.
         
         Arguments : 
         - hip_file : path to the HIPPARCOS catalogue file.
-        - index_file : path to the json conatining the constellation figures data. It can be swapped with another Stellarium skyculture file.
+        - index_file : path to the json containing the constellation figures data. It can be swapped with another Stellarium skyculture file.
         - names_file : path to the names.csv file. It contains the names of the stars and constellations in different languages.
         - language : language to choose in the names.csv file. More languages will be added in the future.
-        - star_colors : color map to use for the star colors, either 'stellarium' or 'helland'. They are similar, helland is a bit redder.
         """
 
-        # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
-        StarColorMap.__init__(self, star_colors)
+        # Recast is_visible as a function of HAReyMain (inside the class, so the first argument is not self)
+        self.is_visible = is_visible
 
-        # Recast is_visible as a function of HAReyMain (inside the class, so self is not by default the first argument)
-        self.is_visible = is_visible  
+        # Get the style file
+        style_file = get_file(style_file, default='default_style.yaml')
+
+        # Fill the style dictionary
+        with open(style_file) as f:
+            self.style = yaml.safe_load(f)
+
+        print(f'Using the style file : {style_file}\n\n')
+
+        # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
+        StarColorMap.__init__(self, 'stellarium')  
 
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
@@ -98,10 +110,6 @@ class HAReyMain(StarColorMap):
         # Load the stars positions and magnitude
         self.stars = load_stars(hip_file)
 
-        print('Done!\nComputing stars colors...    ', end=' ')
-        # Compute stars colors
-        self.stars['color'] = self.bv2color(self, self.stars['B-V'])
-
         # Compute the stars magnitude class (used to define the marker)
         self.stars['mag_class'] = np.vectorize(lambda x: 0 if x < 0.5 else 6 if x > 5.5 else np.round(x))(self.stars['magnitude'])
 
@@ -109,6 +117,10 @@ class HAReyMain(StarColorMap):
         self.stars['constellation'] = 'none'
         for id in self.con_ids:
             self.stars.loc[self.cons[id]['stars'], 'constellation'] = id
+
+        print('Done!\nComputing stars colors...    ', end=' ')
+        # Compute stars colors
+        self.stars['color'] = self.bv2color(self, self.stars['B-V'])
 
         print('Done!\nLoading custom markers....      ', end=' ')
         # Load the custom markers
@@ -121,47 +133,28 @@ class HAReyMain(StarColorMap):
         print('Done!\nLoading the milky way shape....      ', end=' ')
         # Load the milky way shapes for each luminosity level
         self.milky_way = load_mw(mw_file)
-        self.milky_way_levels = 5
-        self.milky_way_alpha = [0.15, 0.15, 0.15, 0.15, 0.15]
+        self.milky_way_levels = self.style['milky_way']['mw_levels']
+        self.milky_way_alpha = self.style['milky_way']['mw_alphas']
 
         print('Done!\n\n')
        
         #Initialize graphical parameters to default values
-        self.limiting_magnitude = 6.0 # Maximum magnitude of plotted stars
-        self.limit_size=0
-        self.mag_power=1.5
+        self.limiting_magnitude = self.style['star_size']['limiting_mag']
+        self.limit_size = self.style['star_size']['limit_size']
+        self.mag_power = self.style['star_size']['power_law']
 
         # Colors used in the plots
-        self.colors = ColorConfig(
-            stars = 'white', con_lines = 'white', con_names = 'cyan', con_parts = 'violet',
-            asterisms = 'limegreen', asterism_labels = 'lime', helpers = 'coral', star_names = 'gold',
-            grid = 'yellow', ecliptic = 'red', ecliptic_label = 'red', zodiac = 'orange',
-            sky = 'xkcd:midnight', horizon = 'white', horizon_label = 'white', cardinals = 'darkred', 
-            border = 'gold', mater = 'xkcd:light blue', milky_way='white',
-            cardback_1 = 'xkcd:marine blue', cardback_2 = 'xkcd:blood', 
-            accent_1 = 'darkgoldenrod', accent_2 = 'darkgoldenrod', shadow = 'black'
-        )
+        self.colors = ColorConfig(self.style['colors'])
 
         # Default plot flags
-        self.flags = FlagConfig(
-            con_lines = False, con_names = False, con_parts = False,
-            asterisms = False, helpers = False, star_names = False,
-            grid = False, ecliptic = True, zodiac = False, milky_way=False,
-            harey_stars = True, show = True, save = False,
-            galaxy = True, star_colors = False
-        )
+        self.flags = FlagConfig(self.style['flags'])
 
-        self.dpi = 300
+        self.dpi = self.style['dpi']
 
         self.N_ecliptic = 3601
         self.ecliptic = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
         
-
-        # Fonts used in the plots and the SIS script. To be able to use the SIS script,
-        # the font must be permanently installed on the system to be able to see it in Inkscape
-        self.fonts = {'labels': FontProperties(family='DejaVu Sans'),
-                        'cardback': FontProperties(family='DejaVu Sans', weight='bold'),
-                        'calendar': FontProperties(family='DejaVu Sans', weight='bold')}
+        self.fonts = self.style['fonts']
 
         # Read the card template module and overwrite its values
         set_card_template(self, dpi=self.dpi)
@@ -170,7 +163,7 @@ class HAReyMain(StarColorMap):
 
     def set_flags(self, *flags):
         '''
-        Set the flags to be in this and the next plots. To set the flag True, write "flag", to set it False, write "-flag".
+        Set the flags to be in this and the next plots. To set the flag True, write the flag name "flag", to set it False, write "-flag".
 
         The available flags are:
         - 
@@ -238,7 +231,12 @@ class HAReyMain(StarColorMap):
         self.fonts.update(dict)
 
     def plot_legend(self, USE_HAREY_MARKERS=True):
-        """Plot the legend of the star markers and magnitudes."""
+        """
+        Plot the legend of the star markers and magnitudes.
+
+        If USE_HAREY_MARKERS is True, use the custom star markers inspired by HARey, otherwise a simple circle.
+        """
+
         fig, ax = plt.subplots(figsize=(5,1), facecolor=self.colors.colors['sky'])
         ax.set_title('Star magnitude', color='w', fontsize=20)
         ax.set_facecolor(self.colors.colors['sky'])

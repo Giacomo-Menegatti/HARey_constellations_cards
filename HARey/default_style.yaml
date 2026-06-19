@@ -1,0 +1,110 @@
+dpi : 300
+
+
+# =====================================
+# STAR ASPECT
+# =====================================
+
+star_size:
+    limiting_mag : 6.5
+    limit_size : 0
+    power_law : 1.25
+
+# =====================================
+# PLOT OPTIONS
+# =====================================
+
+alpha:
+    bkg_constellations : 0.5
+    shadows : 0.9
+
+line_widths:
+    constellations : 0.005
+    bkg_constellations : 1.0
+    shadows : 2.0
+    helpers : 1.0
+    asterisms : 1.25
+    ecliptic : 1.5
+
+stars:
+    marker_size : 
+
+    pad_mode : proportional # Either proportional or addittive
+    pad_size : 
+        proportional : 1.5
+        addittive : 0.2
+    star_edge : 
+
+# =====================================
+# COLORS USED
+# =====================================
+
+star_colormap : 'stellarium'
+
+colors:
+    sky : 'xkcd:midnight'
+    stars : 'white'
+    milky_way : 'white'
+    shadow : 'black'
+
+    # Lines
+    con_lines : 'white'
+    con_lines_shadow : 'black'
+    asterisms : 'limegreen'
+    helpers : 'coral'
+    horizon : 'white' 
+    grid : 'yellow'
+    ecliptic : 'red'
+
+    # Label colors
+    star_names : 'gold'
+    con_names : 'cyan'
+    con_parts : 'violet'
+    asterism_labels : 'lime'
+    ecliptic_label : 'red'
+    
+   # Others    
+    zodiac : 'orange'
+    cardinals : 'darkred'    
+    border : 'gold'
+    mater : 'xkcd:light blue'
+
+    # Cardback colors
+    cardback_1 : 'xkcd:marine blue'
+    cardback_2 : 'xkcd:blood'    
+    accent_1 : 'darkgoldenrod'
+    accent_2 : 'darkgoldenrod'
+
+# =====================================
+# FLAGS USED
+# =====================================
+
+flags :
+    con_lines : False
+    con_names : False
+    con_parts : False
+    asterisms : False
+    helpers : False
+    star_names : False
+    grid : False
+    ecliptic : True
+    zodiac : False
+    milky_way : False
+    harey_stars : True
+    show : True
+    save : False,
+    galaxy : True
+    star_colors : False
+
+# =====================================
+# FONTS USED
+# =====================================
+
+fonts:
+    labels: FontProperties(family='DejaVu Sans')
+    cardback: FontProperties(family='DejaVu Sans', weight='bold')
+    calendar: FontProperties(family='DejaVu Sans', weight='bold')
+
+milky_way:
+    mw_levels : 5
+    mw_alphas : [0.15, 0.15, 0.15, 0.15, 0.15]

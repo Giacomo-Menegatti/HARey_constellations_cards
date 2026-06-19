@@ -1,7 +1,7 @@
 class FlagConfig:
-    def __init__(self, **flags):
-        # initial parameters
-        self.flags = flags
+    def __init__(self, flags_dict = {},**flags):
+        # If the variable passed is a dict, pass it, otherwise make a dict from the keywords    
+        self.flags = flags if flags_dict == {} else flags_dict
 
     # Convert list of "flag" / "-flag" strings into {key: bool}
     def _flags_to_params(self, flags):
@@ -38,9 +38,9 @@ class FlagConfig:
     
 
 class ColorConfig:
-    def __init__(self, **colors):
+    def __init__(self, colors_dict={}, **colors):
         # initial parameters
-        self.colors = colors
+        self.colors = colors if colors_dict == {} else colors_dict
 
     # Set defaults parameters
     def set(self, colors):
