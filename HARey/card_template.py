@@ -17,21 +17,11 @@ def set_card_template(self, format_file=None, format='tarot', style='round', car
     """Set the card template and the background image.
 
     Arguments :
-        - format (str): template of the card
-        - style (str): style of the card, either 'round' or 'square'
-        - cardback_file (str): card back image file. If None, the card will have no back image or a default one, based on the format. The cardback must be a black and white image with transparency (RGBA) and the same dimensions as the card.
-        - dpi (int): dpi of the card. Should be the same as the cardback image. 
-
-    The formats accepted are:
-        - tarot: 2.75x4.75 in
-        - jumbo: 3.5x5.5 in
-        - poker: 2.5x3.5 in
-        - circle: 5x5 in
-        - square: 5x5 in
-    
-    The styles accepted (only for the card format) are:
-        - round: with rounded corners on the card and the cardback text box
-        - square: with square corners on the card
+        - format_file (str): Path to the card format file (default 'card_formats.yaml')
+        - format (str): Card format (default 'tarot'). Other defaults are 'jumbo', 'poker', 'circle' and 'square'
+        - style (str): Style of the card corners (default 'round')
+        - cardback_file (str): Path to the cardback image, a black and white image. If None, uses the default cardbacks in card_formats.yaml
+        - dpi (int): Dots per inch (default 300)
 
     """
     format_file = get_file(format_file, default='card_formats.yaml')
@@ -40,7 +30,7 @@ def set_card_template(self, format_file=None, format='tarot', style='round', car
         format_data = yaml.safe_load(f)
 
     if format not in format_data.keys():
-        raise ValueError(f'{format} is not a valid format. Valid formats are {list(format_data.keys())}. More can be added by editing self.card_formats.yaml.')
+        raise ValueError(f'{format} is not a valid format. Valid formats are {list(format_data.keys())}. More can be added by editing card_formats.yaml.')
 
     self.card_format = format_data[format]
 
@@ -48,11 +38,12 @@ def set_card_template(self, format_file=None, format='tarot', style='round', car
     self.height = self.card_format['height']
     self.pad = self.card_format['pad']
 
-    self.text_x = self.card_format['text_x']
-    self.text_y = self.card_format['text_y']
-    self.box_width = self.card_format['box_width']
-    self.box_height = self.card_format['box_height']
-    self.max_font_scale = self.card_format['max_font_scale']
+    if 'text_x' in self.card_format.keys():
+        self.text_x = self.card_format['text_x']
+        self.text_y = self.card_format['text_y']
+        self.box_width = self.card_format['box_width']
+        self.box_height = self.card_format['box_height']
+        self.max_font_scale = self.card_format['max_font_scale']
 
     # Check if the card format has different styles
     if style in self.card_format .keys():
@@ -63,7 +54,7 @@ def set_card_template(self, format_file=None, format='tarot', style='round', car
         self.default_cardback_file = self.card_style['default_cardback_file']
     
     # Or if it has only one style, in which case the box_style is part of the main keys
-    elif 'box_style' in self.card_format .keys():
+    elif 'box_style' in self.card_format.keys():
         self.box_style = self.card_format['box_style']
         self.default_cardback_file = self.card_format['default_cardback_file']
     

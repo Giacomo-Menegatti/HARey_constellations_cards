@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import to_hex
 
-from HARey.projections import Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal, project_milkyway
+from HARey.projections import Gall_projection, Gall_dims, Gall_vertical, Gall_horizontal
 from HARey.plot_map import plot_map
 
 

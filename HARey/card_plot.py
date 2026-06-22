@@ -4,15 +4,13 @@ This module contains the function plot_card, which is used to plot a constellati
 """
 
 import numpy as np
-import os
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
-from matplotlib.colors import to_hex
 
-from HARey.projections import project_region, project_milkyway
+from HARey.projections import project_region
 from HARey.plot_map import plot_map
 
 
@@ -25,92 +23,97 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         - id (str): Constellation ID (e.g. 'Ori' for Orion).
         - BEST_AR (bool): If True, rotate the constellation to better fit inside the card. Otherwise, plot with North side up
         - save_name (str): Name of the file to save the plot. If None, saves as 'id_lines.png' or 'id_bare.png'
-        - star_size (float): Relative size of the stars in the plot.
+        - star_size (float): Relative size of the stars and lines in the plot.
         - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
     
     self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
     self.COLORS = self.colors.colors
 
+    # Check if the id is a valid constellation
     self.is_constellation(id)
 
-    # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-    if not save_name == None or self.FLAGS['sis_script']:
+    # If the save_name is not None save automatically the plot
+    if not save_name == None:
         self.FLAGS['save'] = True
 
     # Default file name
     if self.FLAGS['save'] and save_name==None:
         save_name = f'{id}_{"lines" if self.FLAGS["con_lines"] else "bare"}.png'
 
-    # Project the sky around the constellation
-    (x_span, y_span), transform, north_angle = project_region(self, id, BEST_AR=BEST_AR)     
-
-    # Get the plot dimensions
-    if self.card_format == 'circle, pad=0.0':
-        # If the plot is in a circle, compute the radius on the corner of the plot
-        map_radius = np.sqrt(x_span**2 + y_span**2)
-        x_span = (1 + 2 * (self.pad + self.bleed)/self.height) * map_radius
-        y_span = x_span
-    else:
-        #Adjust the figure enlarging either the x or y direction to get the wanted aspect ratio, while adding a little padding
-        #Also, if self.bleed is enabled, add extra bleed to completely cover the cardback and avoid misalignement when cutting the cards
-        if (x_span/y_span < self.AR_plot):
-            # If the constellation is thinner than the plot area, pad y and enlarge the x span to fit the whole card
-            y_span = (1 + 2 * (self.pad + self.bleed) /self.height) * y_span
-            x_span = y_span*self.AR_card
-        else:
-            # If the constellation is thicker, pad x and enlarge the y span to fit the whole card
-            x_span = (1 + 2 * (self.pad + self.bleed) /self.width) * x_span
-            y_span = x_span/self.AR_card
+    # Get the span of the projected constellation, the projected function and the angle to the north
+    (x_span, y_span), transform, north_angle = project_region(self, id, BEST_AR=BEST_AR, min_FOV=self.style['min_FOV'])
 
     # Scale the star sizes and the text labels based on the card area and the region of sky plotted
-    marker_scale = self.width*self.height/(2.75*4.75)      # Scale w.r.t the standard card (tarot)
-    area_scale = np.sqrt(0.01/(x_span*y_span))     # Scale w.r.t the area of sky plotted
+    marker_scale = self.width*self.height/(2.75*4.75)        # Scale w.r.t the standard card area (tarot): bigger cards will have bigger markers
+    area_scale = np.sqrt(0.01/(x_span*y_span))               # Scale w.r.t the area of sky plotted: bigger areas of sky will have smaller markers
 
+    # Apply the scale to the markers (and lines) and to the labels
     marker_size = star_size*marker_scale*area_scale
     font_size = round(np.sqrt(marker_scale)*font_size)
 
     #Get the north star marker
     north_marker = self.markers['north_star']
 
-    # Create the figure
-    fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi) #figure with correct aspect ratio
+    # Create the figure. Total dimensions also add the bleed, which is the area that will be cut off from the card
+    fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi)
     fig.subplots_adjust(0,0,1,1)
 
-    # center around zero
-    height = self.height/2 + self.bleed
-    width = self.width/2 + self.bleed
+    # compute half width and height
+    card_half_h = self.height/2 +  self.bleed
+    card_half_w = self.width/2 + self.bleed
 
-    # Set ax limits
-    ax.set_xlim(-width,width)
-    ax.set_ylim(-height,height)
+    # Condition for not plotting outside. Lines must have at least one point inside the borders to plot to avoid crossing the whole plot area
+    if self.box_style == 'circle, pad=0.0':
+        # If the map is clipped to a circle, stars in the clipped regions could still be connected
+        not_outside = lambda x,y: x**2 + y**2 < card_half_h**2
+    else: 
+        # In the other cases, check if at least a point is inside the borders. 
+        # This could fail if both stars are just outside of the rounded corners, but it's unlikely
+        not_outside = lambda x,y: (x > -card_half_w) & (x < card_half_w) & (y > -card_half_h) & (y<card_half_h)
+
+    # Set ax limits, equal aspect ratio and axis off
+    ax.set_xlim(-card_half_w,card_half_w)
+    ax.set_ylim(-card_half_h,card_half_h)
     ax.set_aspect('equal')
     ax.set_axis_off()
 
-    labels = {}
-
-    # Scale the coordinates
-    scale = height/y_span        
+    # Plot the margins of the safe area
+    '''
+    ax.axvline( -self.width/2 + self.pad, color='green')
+    ax.axvline(self.width/2 - self.pad, color='green')
+    ax.axhline(-self.height/2 + self.pad, color='green')
+    ax.axhline(self.height/2 - self.pad, color='green')
+    '''
     
-    # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners
+    # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners. Otherwise, use the box_style of the card template
     box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
 
-    # Apply the card template patch
-    box = FancyBboxPatch(xy=(-width,-height), width=2*width, height=2*height, boxstyle=box_style,
+    # Create the card profile and add it to the plot
+    box = FancyBboxPatch(xy=(-card_half_w,-card_half_h), width=2*card_half_w, height=2*card_half_h, boxstyle=box_style,
                         fill=True, facecolor=self.COLORS['sky'], edgecolor=None, linewidth=0)    
     ax.add_patch(box)
 
+    # Compute the scale of the plot to fill the safe area    
+    if self.box_style == 'circle, pad=0.0':  
+        # If the plot is in a circle, compute the radius on the corner of the plot      
+        span_radius = np.sqrt(x_span**2 + y_span**2)
+        # Compute the radius of the safe area and the plot scale factor
+        safe_radius = self.width/2 - self.pad
+        plot_scale = safe_radius/span_radius
+    else:
+        # if the plot is in a rectangle, compute the width and height of the safe area
+        safe_width = self.width/2 - self.pad
+        safe_height = self.height/2 - self.pad
+        # Compute the scale factor
+        plot_scale = min(safe_width/x_span, safe_height/y_span)
+
     # Compose the scaling to the previous transformations
-    scaling = lambda x,y: (scale*x, scale*y)
+    scaling = lambda x,y: (plot_scale*x, plot_scale*y)
     transform_scaling = lambda ra,dec : scaling(*transform(ra,dec))
 
-    # Condition for plotting lines to avoid crossing the plot.
-    if self.box_style == 'circle, pad=0.0':
-        # If the map is clipped to a circle, stars in the clipped regions could still be connected
-        not_outside = lambda x,y: x**2 + y**2 < height**2
-    else: 
-        # In the other cases, check if at least a point is inside the borders
-        not_outside = lambda x,y: (x > -width) & (x < width) & (y > -height) & (y<height)
+    # Create a dictionary for the labels
+    labels = {}
 
     # Plot the map using the shared plot_map function
     plot_map(self, ax, box, transform_scaling, marker_size, not_outside, labels=labels, con_highlight=[id])
@@ -120,27 +123,28 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         #The angle is between -90 and 90 and plotted near the edge of the card
         space = 0.7*self.pad + self.bleed
 
-        plot_width, plot_height = width-space, height-space
+        plot_width, plot_height = card_half_w-space, card_half_h-space
         
-        # If the plot is round, the plot is much easier
+        # Plot the north marker for a circle. But why the heck should someone use BEST_AR with a circle?
         if self.box_style == 'circle, pad=0.0':
             (x,y) = (plot_height*np.sin(north_angle), plot_height*np.cos(north_angle))
 
-        else:
-            # Angle of the intersection of the horizontal and vertical edge
+
+        else:   
+            # Plot the north marker on the closest edge of the rectangle
+            # Get the angle at which the plot_width and the plot_height intersect to find the closest edge
             card_angle = np.arctan(plot_width/plot_height)
-            # The indicator is plotted near the closest edge
             
-            # If the angle is less than the minus card angle, plot it on the left side
-            if north_angle <= -card_angle:
+            if north_angle <= -card_angle:  # If the angle is less than minus this angle, plot the north marker on the left side
                 (x,y) = (-plot_width, -(plot_width)/np.tan(north_angle))
-            # It the angle is more than the card angle, plot it on the right side
-            elif north_angle >= card_angle:  
+            
+            elif north_angle >= card_angle: # It the angle is more than it, plot it on the right side
                 (x,y) = (plot_width, (plot_width)/np.tan(north_angle))
-            # Otherwise, plot it on the upper side
-            else:
+            
+            else:                           # Otherwise, plot it on the upper side
                 (x,y) = ((plot_height)*np.tan(north_angle), plot_height)    
 
+        # Plot the north marker
         t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
         ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.COLORS['cardinals'], markeredgewidth=0)
 
@@ -152,7 +156,6 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     for name in labels:
         label = labels[name]
         ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_size, font=self.fonts['labels'], ha=label['ha'], va=label['va'])
-
    
     if self.FLAGS['save']:            
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)

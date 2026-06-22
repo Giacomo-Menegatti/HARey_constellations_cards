@@ -1,5 +1,7 @@
 dpi : 300
 
+min_FOV : 10
+
 
 # =====================================
 # STAR ASPECT
@@ -17,6 +19,11 @@ star_size:
 alpha:
     bkg_constellations : 0.5
     shadows : 0.9
+    bkg_stars: 0.5
+    ecliptic : 0.5
+    
+    
+
 
 line_widths:
     constellations : 0.005
@@ -26,13 +33,21 @@ line_widths:
     asterisms : 1.25
     ecliptic : 1.5
 
+line_styles:
+    constellations : 'solid'
+    bkg_constellations : 'solid'
+    shadows : 'solid'
+    helpers : 'dotted'
+    asterisms : 'solid'
+    ecliptic : 'dashed'
+
 stars:
     marker_size : 
 
-    pad_mode : proportional # Either proportional or addittive
+    pad_mode : proportional # Either proportional or additive
     pad_size : 
         proportional : 1.5
-        addittive : 0.2
+        additive : 0.2
     star_edge : 
 
 # =====================================

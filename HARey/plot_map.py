@@ -1,7 +1,13 @@
+'''
+PLOT MAP MODULE
+This module contains the functions to plot the map of the sky. Other modules creates the figures and axes, 
+then this module fills in the stars, constellation lines, milky way profiles and everything else shared by all the plotters
+'''
+
+
 from math import nan
 import numpy as np
 import pandas as pd
-from soupsieve import closest
 from HARey.astro_functions import mag2size
 from matplotlib.transforms import Affine2D
 from matplotlib.collections import LineCollection
@@ -10,6 +16,9 @@ from matplotlib.patches import Polygon, PathPatch
 from matplotlib.text import TextPath
 
 def shorten_line(ax, point_A, point_B, marker_size_A, marker_size_B, dpi):
+    '''
+    Shorten the line between two points A and B to stop just at the edge of the markers (supposed round)
+    '''
 
     # plt size to pixel radius conversion
     s2px = lambda s: np.sqrt(s) * dpi / 144
@@ -57,10 +66,10 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     if self.style['stars']['pad_mode'] == 'proportional':
         star_pads = star_sizes*self.style['stars']['pad_size']['proportional']
 
-    elif self.style['stars']['pad_mode'] == 'addittive':
+    elif self.style['stars']['pad_mode'] == 'additive':
 
         star_radius = np.sqrt(marker_size*mag2size(0, lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size, power=self.mag_power))
-        star_pads = (np.sqrt(star_sizes) + self.style['stars']['star_pad']['addittive']*star_radius)**2.0
+        star_pads = (np.sqrt(star_sizes) + self.style['stars']['star_pad']['additive']*star_radius)**2.0
 
 
     if self.FLAGS['milky_way']:
@@ -103,15 +112,15 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
                                 main_lines.append((line_start, line_end))                         
 
         faint_lc = LineCollection(faint_lines, colors=self.COLORS['con_lines'], linewidths=self.style['line_widths']['bkg_constellations']*line_w,\
-                                  alpha=self.style['alpha']['bkg_constellations'], capstyle='round')
+                                  alpha=self.style['alpha']['bkg_constellations'], linestyle=self.style['line_styles']['bkg_constellations'], capstyle='round')
         ax.add_collection(faint_lc)
 
-        shadow_lc = LineCollection(main_lines, colors=self.COLORS['shadow'], capstyle='round', \
+        shadow_lc = LineCollection(main_lines, colors=self.COLORS['shadow'], capstyle='round', linestyle=self.style['line_styles']['shadows'],\
                                     linewidths=self.style['line_widths']['shadows']*line_w, alpha=self.style['alpha']['shadows'])
         ax.add_collection(shadow_lc)
 
         high_lc = LineCollection(main_lines, colors=self.COLORS['con_lines'], capstyle='round', \
-                                    linewidths=line_w, alpha=self.style['alpha']['shadows'])
+                                    linewidths=line_w, alpha=self.style['alpha']['shadows'], linestyle=self.style['line_styles']['constellations'])
         ax.add_collection(high_lc)
 
     #Plot asterisms
@@ -131,7 +140,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
                         if is_visible:
                             asterism_lines.append((line_start, line_end)) 
         
-        asterism_lc = LineCollection(asterism_lines, color=self.COLORS['asterisms'], linestyle='solid', linewidth=self.style['line_widths']['asterisms']*line_w)
+        asterism_lc = LineCollection(asterism_lines, color=self.COLORS['asterisms'], linestyle=self.style['line_styles']['asterisms'], linewidth=self.style['line_widths']['asterisms']*line_w)
         ax.add_collection(asterism_lc)
 
     #Plot helpers
@@ -148,7 +157,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
                         if is_visible:
                             helper_lines.append((line_start, line_end))
 
-        helper_lc = LineCollection(helper_lines, color=self.COLORS['helpers'], linestyle='dashed', linewidth=self.style['line_widths']['helpers']*line_w)
+        helper_lc = LineCollection(helper_lines, color=self.COLORS['helpers'], linestyle=self.style['line_styles']['helpers'], linewidth=self.style['line_widths']['helpers']*line_w)
         ax.add_collection(helper_lc)
 
     #Draw ecliptic 
@@ -156,8 +165,8 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
         mask = not_outside(ecliptic_x, ecliptic_y)
         # The line ouside of the plot is set to nan so the line is broken
         ecliptic_x[~mask] = nan
-        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.COLORS['ecliptic'], linestyle='dotted', \
-                    linewidth=self.style['line_widths']['ecliptic']*line_w)
+        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.COLORS['ecliptic'], linestyle=self.style['line_styles']['ecliptic'], \
+                    linewidth=self.style['line_widths']['ecliptic']*line_w, alpha=self.style['alpha']['ecliptic'])
         ecliptic.set_clip_path(box) 
 
 
@@ -168,8 +177,8 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     color = self.stars[bkg_stars]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
 
     # Plot bkg stars
-    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=1.01*star_sizes[bkg_stars], color=self.COLORS['sky'], marker=".", linewidths=0, zorder=2, alpha=0.5)  # type: ignore
-    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker=".", linewidths=0, zorder=2, alpha=0.5)  # type: ignore
+    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=1.01*star_sizes[bkg_stars], color=self.COLORS['sky'], marker=".", linewidths=0, zorder=2, alpha=self.style['alpha']['bkg_stars'])  # type: ignore
+    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker=".", linewidths=0, zorder=2, alpha=self.style['alpha']['bkg_stars'])  # type: ignore
 
     # If HAREY, use the custom star markers, else use simple dots
     star_markers = self.harey_markers if self.FLAGS['harey_stars'] else ['.']*len(self.harey_markers)

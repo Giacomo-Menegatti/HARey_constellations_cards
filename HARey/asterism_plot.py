@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.colors import to_hex
 
-from HARey.projections import project_region, project_milkyway
+from HARey.projections import project_region
 from HARey.plot_map import plot_map
 from HARey.polar_map import stereo_radius
 

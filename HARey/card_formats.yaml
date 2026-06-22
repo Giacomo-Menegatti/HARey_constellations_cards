@@ -8,9 +8,9 @@ tarot:
 
     # Tarot format 2.75x4.75 inches
     # Card height, width and padding (space between the border and the constellation)
-    height : 4.75
+    height : 4.75   
     width : 2.75
-    pad : 0.25                  
+    pad : 0.375                
 
     # Position and dimension of the text box 
     text_x : 0.4
@@ -84,7 +84,7 @@ circle:
     # Circular plot for the quiz game
     height : 5
     width : 5
-    pad : 0.25
+    pad : 0.0
 
     box_style : 'circle, pad = 0.0'
     default_cardback_file : 'none'

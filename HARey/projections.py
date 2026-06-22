@@ -263,18 +263,17 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
     # just choosing up as north direction creates mistakes for constellations near the pole.
     north_x, north_y = stereo_centered(0, 90, center_ra,center_dec)
 
-    center_x = center(local_stars_x)
-    center_y = center(local_stars_y)
+    first_center_x = center(local_stars_x)
+    first_center_y = center(local_stars_y)
 
-    local_stars_x = local_stars_x - center_x
-    local_stars_y = local_stars_y - center_y
+    first_centering = lambda x, y: (x - first_center_x, y - first_center_y)
+
+    local_stars_x, local_stars_y = first_centering(local_stars_x, local_stars_y)
 
     # Recompute the north direction relative to the center and not the projection point
-    north_x = north_x - center_x 
-    north_y = north_y - center_y
+    north_x, north_y = first_centering(north_x, north_y)
 
     # Save the first centering
-    first_centering = lambda x, y: (x-center_x, y-center_y)
 
     # Angle between the vertical and the pole (relative to the center of the constellation)
     north_angle = np.atan2(north_x, north_y)
@@ -321,63 +320,25 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
     # Save the rotation 
     rotation = lambda x,y : rotate(x,y, rot_angle)
     
-    if BEST_AR:
-        # Compute again the center (it may have changed a lot, and so the north direction)
+    second_center_x = center(local_stars_x)
+    second_center_y = center(local_stars_y)
 
-        center_x = center(local_stars_x)
-        center_y = center(local_stars_y)
+    second_centering = lambda x,y: (x - second_center_x, y - second_center_y)
 
-        local_stars_x = local_stars_x - center_x
-        local_stars_y = local_stars_y - center_y
+    local_stars_x, local_stars_y = second_centering(local_stars_x, local_stars_y)
 
-        north_x = north_x - center_x
-        north_y = north_y - center_y
-
-        second_centering = lambda x,y: (x - center_x, y - center_y)
-    else:
-        second_centering = lambda x,y: (x,y)
+    north_x, north_y = second_centering(north_x, north_y)
         
     #recompute the north direction (if BEST_AR=False, it's just zero)
     north_angle = np.atan2(north_x, north_y) 
         
     # Get the constellation borders
     borders_x, borders_y = np.max(local_stars_x), np.max(local_stars_y)
-    # If the constellation is small, enlarge the borders to make the surroundings visible (use a fov of 10 degrees)
+    # If the constellation is small, enlarge the borders to make the surroundings visible
     min_distance = stereo_radius(min_FOV)
     borders = (max(borders_x, min_distance), max(borders_y, min_distance))
 
     # Compose the transformations together 
-    transform = reduce(lambda f,g: lambda ra,dec: g(*f(ra, dec)), [projection, first_centering, rotation, second_centering])
-    
+    transform = reduce(lambda f,g: lambda x,y: g(*f(x,y)), [projection, first_centering, rotation, second_centering])
+
     return borders, transform, north_angle
-
-### PROJECT MILKYWAY ###########################
-
-def project_milkyway(mw_levels, projection):
-    '''Projects the coordinates of the milky way creating a new object with the same properties but projected coordinates
-    
-    Arguments:
-        - mw_levels: the milky way luminosity levels and shapes
-        - projection: a function(x,y) -> x', y'
-
-    Returns:
-        - A new milky way object with projected coordinates    
-    '''
-
-    projected_mw = {}
-
-    # Cycle on the 5 luminosity levels
-    for level in mw_levels:
-        projected_shapes = []
-
-        # Cycle on the shapes array of that level
-        for shape in mw_levels[level]:
-            x,y = shape[:,0], shape[:,1]
-            # Apply the projection
-            x,y = projection(x,y)
-            projected_shapes.append(np.array((x,y)).transpose())
-
-        # Save the new list in a new dictionary
-        projected_mw[level] = projected_shapes
-
-    return projected_mw
