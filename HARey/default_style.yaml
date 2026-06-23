@@ -1,179 +1,115 @@
-# =====================================
-# GENERAL GRAPHIC SETTINGS
-# =====================================
-
-dpi : 300       # Resolution of the images in dpi
-min_FOV : 20    # Minimum field of view in degrees to be plotted in the cards. Bigger constellations above this value will be enlarged to completely fill the card plot space
-
-
-# =====================================
-# STAR SETTINGS
-# =====================================
-
-
+dpi: 300
+min_FOV: 20
 star_size:
-    # Star size settings. The marker size (area) is proportional to the star magnitude, following the Airy disk mode.
-    # The marker size will be 1 for a magnitude of 0, 0 for a star at the limiting_mag
-    limiting_mag : 4.5  # Limiting magnitude. Only stars brighter than this will be plotted
-    limit_size : 0.0      # Size of the limiting magnitude stars (which should be 0), to avoid having small points in the plot.
-    power_law : 1.25    # Exponent of the power law. 1 is the physically correct value, but higher values make better plots.
-
-    # To have consistency in the plots, the marker size is scaled to be proportional to the card area (bigger cards will have bigger markers) and the 
-    # plotted sky area (smaller regions of sky will have bigger marker) with an overall scale factor depending on the map type.
-
-
-
-
-# =====================================
-# PLOT OPTIONS
-# =====================================
-
+  limiting_mag: 5.5
+  limit_size: 0.01
+  power_law: 1.5
 alpha:
-    constellations : 1.0
-    bkg_constellations : 0.1
-    shadows : 0.3
-    ecliptic : 0.5
-    
-
-
-
+  constellations: 1.0
+  bkg_constellations: 0.3
+  shadows: 0.3
+  ecliptic: 0.5
 line_widths:
-    scale_factor : 0.008
-    constellations : 1.0
-    bkg_constellations : 1.0
-    shadows : 3.0
-    helpers : 1.0
-    asterisms : 1.25
-    ecliptic : 1.5
-    zodiac : 0.8
-    grid : 
-        high : 0.8
-        faint : 0.6
-
+  scale_factor: 0.006
+  constellations: 1.0
+  bkg_constellations: 1.0
+  shadows: 2.51
+  helpers: 1.0
+  asterisms: 1.25
+  ecliptic: 1.5
+  zodiac: 0.3
+  grid:
+    high: 0.8
+    faint: 0.6
 line_styles:
-    constellations : 'solid'
-    bkg_constellations : 'solid'
-    shadows : 'solid'
-    helpers : 'dotted'
-    asterisms : 'solid'
-    ecliptic : 'dashed'
-
-
+  constellations: solid
+  bkg_constellations: solid
+  shadows: solid
+  helpers: dotted
+  asterisms: solid
+  ecliptic: dashed
 stars:
-
-    size_factor:
-        card_plot : 200.0     # Scale factor for the card plot. 
-        equatorial : 10.0    # Scale factor for the equatorial map plot.
-
-    pad_mode : proportional # Either proportional or additive
-    pad_size : 
-        proportional : 1.5
-        additive : 0.2
-
-    shadow:
-        # Star shadow settings
-        # The shadow offset are proportional to the star diameters (which are given in matplotlib marker units, and it has to be translated in space units)
-        offset_x: 1.0e-3   
-        offset_y: 1.0e-3
-        size: 1.5       # Size of the shadow compared to the star 
-        alpha : 1.0     # Opacity of the shadow
-    
-    edge : 1.05
-    alpha_edge : 0.9
-
-    alpha_bkg : 0.8
-    alpha_faint : 0.8
-    alpha_high : 1.0
-
-
-# =====================================
-# COLORS USED
-# =====================================
-
-star_colormap : 'stellarium'
-
+  size_factor:
+    card_plot: 200.0
+    equatorial: 10.0
+  pad_mode: proportional
+  pad_size:
+    proportional: 2.0
+    additive: 0.2
+  shadow:
+    offset_x: 0.001
+    offset_y: 0.001
+    size: 1.5
+    alpha: 1.0
+  edge: 1.05
+  alpha_edge: 0.9
+  alpha_bkg: 0.8
+  alpha_faint: 0.8
+  alpha_high: 1.0
+star_colormap: stellarium
 colors:
-    sky: "#191970"          # xkcd:midnight
-    stars: "#FFFFFF"
-    milky_way: "#FFFFFF"
-    shadow: "#000000"
-
-    con_lines: "#FFFFFF"
-    con_lines_shadow: "#000000"
-    asterisms: "#32CD32"    # limegreen
-    helpers: "#FF7F50"      # coral
-    horizon: "#FFFFFF"
-    grid: "#FFFF00"         # yellow
-    ecliptic: "#FF0000"
-
-    star_names: "#FFD700"   # gold
-    con_names: "#00FFFF"    # cyan
-    con_parts: "#EE82EE"    # violet
-    asterism_labels: "#00FF00"
-    ecliptic_label: "#FF0000"
-
-    zodiac: "#FFA500"       # orange
-    cardinals: "#8B0000"    # darkred
-    border: "#FFD700"
-    mater: "#ADD8E6"        # light blue
-
-    cardback_1: "#004577"
-    cardback_2: "#660000"
-    accent_1: "#B8860B"     # darkgoldenrod
-    accent_2: "#B8860B"
-
-# =====================================
-# FLAGS USED
-# =====================================
-
-
-flags :
-    con_lines : False
-    con_names : False
-    con_parts : False
-    asterisms : False
-    helpers : False
-    star_names : False
-    grid : False
-    ecliptic : True
-    zodiac : False
-    milky_way : False
-    harey_stars : True
-    show : True
-    save : False,
-    galaxy : True
-    star_colors : False
-    show_guides : False
-
-# =====================================
-# FONTS USED
-# =====================================
-
+  sky: '#191970'
+  stars: '#ffffff'
+  milky_way: '#ffffff'
+  shadow: '#000000'
+  con_lines: '#ffffff'
+  con_lines_shadow: '#000000'
+  asterisms: '#32cd32'
+  helpers: '#ff7f50'
+  horizon: '#ffffff'
+  grid: '#ffff00'
+  ecliptic: '#ff0000'
+  star_names: '#ffd700'
+  con_names: '#00ffff'
+  con_parts: '#ee82ee'
+  asterism_labels: '#00ff00'
+  ecliptic_label: '#ff0000'
+  zodiac: '#ffa500'
+  cardinals: '#8b0000'
+  border: '#ffd700'
+  mater: '#add8e6'
+  cardback_1: '#004577'
+  cardback_2: '#660000'
+  accent_1: '#b8860b'
+  accent_2: '#b8860b'
+flags:
+  con_lines: true
+  con_names: false
+  con_parts: true
+  asterisms: false
+  helpers: false
+  star_names: false
+  grid: false
+  ecliptic: false
+  zodiac: true
+  milky_way: true
+  harey_stars: true
+  show: true
+  save: False,
+  galaxy: true
+  star_colors: true
+  show_guides: false
 fonts:
-    labels: 
-        family : 'DejaVu Sans'
-        weight : 'normal'
-    cardback: 
-        family : 'DejaVu Sans' 
-        weight : 'bold'
-    calendar: 
-        family : 'DejaVu Sans' 
-        weight : 'bold'
-    
+  labels:
+    family: DejaVu Sans
+    weight: normal
+  cardback:
+    family: DejaVu Sans
+    weight: bold
+  calendar:
+    family: DejaVu Sans
+    weight: bold
 font_sizes:
-    card_plot: 10
-    equatorial_plot : 
-        s : 7
-        l : 10
-
-
+  card_plot: 10
+  equatorial_plot:
+    s: 7
+    l: 10
 milky_way:
-    mw_levels : 5
-    alpha_low : 0.1
-    alpha_high : 0.4
-
+  mw_levels: 5
+  alpha_low: 0.15
+  alpha_high: 0.3
 zodiac:
-    width: 0.4
-    alpha_1 : 0.7
-    alpha_2 : 0.2
-    diamond_size : 0.15
+  width: 0.4
+  alpha_1: 0.7
+  alpha_2: 0.2
+  diamond_size: 0.15
