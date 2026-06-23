@@ -288,12 +288,19 @@ def best_visibility_period(mean_RA):
 ############ STAR SIZE FROM MAGNITUDE ##########
 
 def mag2size(mag, lim_mag, lim_mag_size=0.0, power=1.5):
-    """Compute the star size from its magnitude. lim_mag is the magnitude of the brightest star not visible in the plot, lim_mag_size a parameter to avoid having stars too small."""
-
+    """
+    Compute the apparent star size from its magnitude, based on the Airy disk model.
+    The marker area is 1 for a star of magnitude 0 and 0 for stars at the limit magnitude.
+    The physically correct value of the exponent is 1.0 (area proportional to the magnitude), but higher values give better plots.
+    The lim_mag_size is the size of a star at the limit magnitude, to avoid having small points in the plot.
+    """
+    # Vectorize the function
     mag = np.asarray(mag)
     size = np.zeros_like(mag, dtype=float)
 
+    # Compute the size only for the visible stars (otherwise get negative values)
     visible = mag <= lim_mag
+
 
     airy_size = (1 - mag[visible]/lim_mag)**power
 

@@ -58,7 +58,7 @@ def plot_within_borders(self, borders, coord_transform, FOV, scale, marker_size,
 
 
 
-def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV=150.0, save_name = None, font_sizes=(7,10), star_size=10.0):
+def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV=150.0, save_name = None, font_sizes=None, star_size=None):
 	'''Plot an equatorial Gall stereographic projection of the whole sky.
 
 	Arguments:
@@ -81,6 +81,7 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 	if self.FLAGS['save'] and save_name==None:
 		save_name = 'Equatorial_map.png'
 	
+	
 	# Compute the scaling based on the max dimensions
 	width, height = Gall_dims(360 + overlap, dec_FOV)
 	x_scale = max_dims[0]/width
@@ -92,10 +93,11 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 
 	text_scale = map_width/11 # Scale the text depending on the width of the plot, w.r.t the default 11 in (A4 size)
 
-	marker_size = star_size * scale**2
-	line_w = marker_size * 0.0075
+	star_size = self.style['star_size']['card_plot'] if star_size == None else star_size
+	font_sizes = self.style['fonts']['equatorial_plot'] if font_sizes == None else {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
 
-	font_sizes = {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
+	marker_size = star_size * scale**2
+	line_w = marker_size * self.style['line_widths']['constellations']
 
 	# Labels positions are computed in the two images to ensure that no label is affected by the angular discontinuity
 	# i.e., a label around the origin is plotted near the mean value in the center of the plot
@@ -131,11 +133,11 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 		# Plot the RA grid
 		for ra in np.arange(25):
 			x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
-			ax.axvline(x, height, 0, color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.axvline(x, height, 0, color=self.COLORS['grid'], linestyle='dotted', linewidth=self.style['line_widths']['grid']['faint']*line_w)
 			ax.text(x, height, s=f'{ra} h', color=self.COLORS['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		# Plot the 0 dec line
-		ax.axhline(height/2, 0, width, color=self.COLORS['grid'], linestyle='solid', linewidth=0.8*line_w)
+		ax.axhline(height/2, 0, width, color=self.COLORS['grid'], linestyle='solid', linewidth=self.style['line_widths']['grid']['high']*line_w)
 		ax.text(0, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 		#ax.text(width, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 

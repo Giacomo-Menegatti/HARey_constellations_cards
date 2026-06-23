@@ -89,14 +89,7 @@ class HAReyMain(StarColorMap):
         # Recast is_visible as a function of HAReyMain (inside the class, so the first argument is not self)
         self.is_visible = is_visible
 
-        # Get the style file
-        style_file = get_file(style_file, default='default_style.yaml')
-
-        # Fill the style dictionary
-        with open(style_file) as f:
-            self.style = yaml.safe_load(f)
-
-        print(f'Using the style file : {style_file}\n\n')
+        self.load_style()
 
         # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
         StarColorMap.__init__(self, 'stellarium')  
@@ -133,28 +126,11 @@ class HAReyMain(StarColorMap):
         print('Done!\nLoading the milky way shape....      ', end=' ')
         # Load the milky way shapes for each luminosity level
         self.milky_way = load_mw(mw_file)
-        self.milky_way_levels = self.style['milky_way']['mw_levels']
-        self.milky_way_alpha = self.style['milky_way']['mw_alphas']
 
         print('Done!\n\n')
        
-        #Initialize graphical parameters to default values
-        self.limiting_magnitude = self.style['star_size']['limiting_mag']
-        self.limit_size = self.style['star_size']['limit_size']
-        self.mag_power = self.style['star_size']['power_law']
-
-        # Colors used in the plots
-        self.colors = ColorConfig(self.style['colors'])
-
-        # Default plot flags
-        self.flags = FlagConfig(self.style['flags'])
-
-        self.dpi = self.style['dpi']
-
         self.N_ecliptic = 3601
         self.ecliptic = ecliptic2radec(np.linspace(0, 360, self.N_ecliptic, endpoint=True), np.zeros(self.N_ecliptic))
-        
-        self.fonts = self.style['fonts']
 
         # Read the card template module and overwrite its values
         set_card_template(self, dpi=self.dpi)
@@ -173,36 +149,76 @@ class HAReyMain(StarColorMap):
     def set_colors(self, **colors):
         self.colors.set(colors)
 
-    def set_milky_way_intensity(self, levels=5, min_intensity=0.3, max_intensity=0.9):
+    def set_milky_way_alpha(self, levels=5, min_alpha=0.3, max_alpha=0.9):
+        '''
+        Set the transparency for each luminosity level of the milky way
+        '''
         self.milky_way_levels = levels
 
         if levels == 1:
-            self.milky_way_alpha = np.array([min_intensity])  # only one layer
+            # If there is only one layer, set the alpha to min_alpha
+            self.milky_way_alpha = np.array([min_alpha]) 
         else:
-
-            alpha0 = min_intensity
-            # compute subsequent alpha
-            alpha_s = 1 - ((1 - max_intensity) / (1 - alpha0))**(1 / (levels - 1))
+            # Compute the instensity of each layer. The alpha value is computed with a geometric progression from the previous layer
+            alpha0 = min_alpha
+            alpha_s = 1 - ((1 - max_alpha) / (1 - alpha0))**(1 / (levels - 1))
             
             alphas = np.full(levels, alpha_s)
             alphas[0] = alpha0
             self.milky_way_alpha = alphas
 
+    def load_style(self, style_file=None, style_dict=None):
+        '''
+        Load the style file. WARNING: This will overwrite the current style, colors and flags and ALL of the successive changes.
+        '''
+
+        if style_dict == None:
+            style_file = get_file(style_file, default='default_style.yaml')
+
+            # Fill the style dictionary
+            with open(style_file) as f:
+                self.style = yaml.safe_load(f)
+            
+            print(f'Using the style file : {style_file}\n\n')
+        else:
+            self.style = style_dict        
+
+        #Initialize graphical parameters to default values
+        self.limiting_magnitude = self.style['star_size']['limiting_mag']
+        self.limit_size = self.style['star_size']['limit_size']
+        self.mag_power = self.style['star_size']['power_law']
+
+        self.milky_way_levels = self.style['milky_way']['mw_levels']
+        self.set_milky_way_alpha(levels=self.milky_way_levels, min_alpha=self.style['milky_way']['alpha_low'], max_alpha=self.style['milky_way']['alpha_high'])
+
+        # Colors used in the plots
+        self.colors = ColorConfig(self.style['colors'])
+
+        # Default plot flags
+        self.flags = FlagConfig(self.style['flags'])
+
+        self.dpi = self.style['dpi']
+        
+        self.fonts = {}
+        for font in self.style['fonts']:
+            self.fonts[font] = FontProperties(family = self.style['fonts'][font]['family'], weight = self.style['fonts'][font]['weight'])
+
+
 
     def is_constellation(self, id):
-        """ Check if the given id is a valid constellation id, or raise an error. """
+        """ Check if the given id is a valid constellation id, otherwise raise an error. """
         if id not in self.con_ids:
             raise ValueError(f'{id} is not a constellation id. To see all the valid ids, print the attribute HARey.con_ids')
         return True
     
     def is_asterism(self, id):
-        """ Check if the given id is a valid asterism id, or raise an error. """
+        """ Check if the given id is a valid asterism id, otherwise raise an error. """
         if id not in self.asterisms:
             raise ValueError(f'{id} is not a asterism id. Valid asterism ids are {list(self.asterisms.keys())}')
         return True
     
     def is_helper(self, id):
-        """ Check if the given id is a valid helper id, or raise an error. """
+        """ Check if the given id is a valid helper id, otherwise raise an error. """
         if id not in self.helpers:
             raise ValueError(f'{id} is not a helper id. Valid helpers ids are {list(self.helpers.keys())}')
         return True
@@ -210,10 +226,10 @@ class HAReyMain(StarColorMap):
     # Function to set the limiting magnitude
     def set_limiting_magnitude(self, limiting_magnitude=6.5, limit_size=0.0, power=1.5):
         """
-        Set the limiting magnitude of the stars. Higher values will plot more dim stars.
+        Set the limiting magnitude of the stars. Stars fainter than this will not be plotted.
         The limit_size is the size of stars with limiting magnitude, to avoid having small points in the plots.
         
-        The HIP catalogue reaches up to 13, but 6.5 is a good compromise between a fancy plot and a readable one.
+        The HIP catalogue reaches up to 13, but the human eye usually sees stars brighter than 6.
         """
         self.limiting_magnitude = limiting_magnitude
         self.limit_size = limit_size

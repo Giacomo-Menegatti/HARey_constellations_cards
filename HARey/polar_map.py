@@ -6,19 +6,13 @@ using either a stereographic or an azimuthal projection.
 
 
 import numpy as np
-import os
-import pandas as pd
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, PathPatch
-from matplotlib.textpath import TextPath
-from matplotlib.transforms import Affine2D
-from matplotlib.colors import to_hex
+from matplotlib.patches import Circle
 
 from datetime import datetime
 from calendar import monthrange
 
-from HARey.astro_functions import ecliptic2radec
 from HARey.projections import stereo_radius, stereo_polar, azimuthal_polar, azimuthal_radius
 from HARey.plot_map import plot_map
 from HARey.curved_text import curved_text

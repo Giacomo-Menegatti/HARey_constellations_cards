@@ -6,7 +6,7 @@ This module contains the function plot_card, which is used to plot a constellati
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
+from matplotlib.patches import FancyBboxPatch, Circle, Rectangle
 from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 
@@ -14,20 +14,22 @@ from HARey.projections import project_region
 from HARey.plot_map import plot_map
 
 
-def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_size = 200, font_size = 10):
+def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_size = None, font_size = None):
     """
     Plot the constellation card inside the card template.    
 	Font and star sizes are relative to the card area and FOV, so that the plot looks similar with different FOVs and templates.
     
     Arguments:
+        - *flags: flag or an unpacked list of flags. Print self.flags() to see all the available flags.
         - id (str): Constellation ID (e.g. 'Ori' for Orion).
-        - BEST_AR (bool): If True, rotate the constellation to better fit inside the card. Otherwise, plot with North side up
-        - save_name (str): Name of the file to save the plot. If None, saves as 'id_lines.png' or 'id_bare.png'
+        - BEST_AR (bool): If True, rotate the constellation to better fit inside the card. Otherwise, plot with North side up.
+        - save_name (str): Name of the file to save the plot. If None, saves as 'id_lines.png' or 'id_bare.png'.
         - star_size (float): Relative size of the stars and lines in the plot.
         - font_size (float): Size of the small labels in the plot (no big labels are plotted).
     """ 
     
-    self.FLAGS = self.flags.resolve(*flags)  # Update flags according to the call overrides
+    # Update flags and colors according to the call overrides. This changes will persist for the successive plots.
+    self.FLAGS = self.flags.resolve(*flags)  
     self.COLORS = self.colors.colors
 
     # Check if the id is a valid constellation
@@ -40,6 +42,9 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     # Default file name
     if self.FLAGS['save'] and save_name==None:
         save_name = f'{id}_{"lines" if self.FLAGS["con_lines"] else "bare"}.png'
+
+    star_size = self.style['stars']['size_factor']['card_plot'] if star_size == None else star_size
+    font_size = self.style['font_sizes']['card_plot'] if font_size == None else font_size
 
     # Get the span of the projected constellation, the projected function and the angle to the north
     (x_span, y_span), transform, north_angle = project_region(self, id, BEST_AR=BEST_AR, min_FOV=self.style['min_FOV'])
@@ -59,12 +64,16 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     fig,ax = plt.subplots(figsize = (self.width + 2*self.bleed, self.height + 2*self.bleed), dpi=self.dpi)
     fig.subplots_adjust(0,0,1,1)
 
+    # compute the safe plot area half width and height
+    safe_width = self.width/2 - self.pad
+    safe_height = self.height/2 - self.pad
+
     # compute half width and height
     card_half_h = self.height/2 +  self.bleed
     card_half_w = self.width/2 + self.bleed
 
     # Condition for not plotting outside. Lines must have at least one point inside the borders to plot to avoid crossing the whole plot area
-    if self.box_style == 'circle, pad=0.0':
+    if self.box_style == 'circle, pad = 0.0':
         # If the map is clipped to a circle, stars in the clipped regions could still be connected
         not_outside = lambda x,y: x**2 + y**2 < card_half_h**2
     else: 
@@ -79,12 +88,13 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     ax.set_axis_off()
 
     # Plot the margins of the safe area
-    '''
-    ax.axvline( -self.width/2 + self.pad, color='green')
-    ax.axvline(self.width/2 - self.pad, color='green')
-    ax.axhline(-self.height/2 + self.pad, color='green')
-    ax.axhline(self.height/2 - self.pad, color='green')
-    '''
+    if self.FLAGS['show_guides']:
+        if self.box_style == 'circle, pad = 0.0':
+            ax.add_patch(Circle((0,0), radius = safe_width, fill=False, ec='green', lw=1, zorder=2))        
+        else:
+            ax.add_patch(Rectangle((-safe_width,-safe_height), 2*safe_width, 2*safe_height, fill=False, ec='green', lw=1, zorder=2))
+        
+
     
     # If the bleed is not zero, set the box to a simple rectangular box with no rounded corners. Otherwise, use the box_style of the card template
     box_style = 'square, pad=0.0' if self.bleed > 0.0 else self.box_style
@@ -95,17 +105,12 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     ax.add_patch(box)
 
     # Compute the scale of the plot to fill the safe area    
-    if self.box_style == 'circle, pad=0.0':  
+    if self.box_style == 'circle, pad = 0.0':  
         # If the plot is in a circle, compute the radius on the corner of the plot      
         span_radius = np.sqrt(x_span**2 + y_span**2)
-        # Compute the radius of the safe area and the plot scale factor
-        safe_radius = self.width/2 - self.pad
-        plot_scale = safe_radius/span_radius
+        plot_scale = safe_width/span_radius
     else:
-        # if the plot is in a rectangle, compute the width and height of the safe area
-        safe_width = self.width/2 - self.pad
-        safe_height = self.height/2 - self.pad
-        # Compute the scale factor
+        # if the plot is in a rectangle, compute the smaller scale to fill the safe area in one dimension
         plot_scale = min(safe_width/x_span, safe_height/y_span)
 
     # Compose the scaling to the previous transformations
@@ -148,14 +153,15 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
         ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.COLORS['cardinals'], markeredgewidth=0)
 
-    # Clip everything to the box plot
-    for col in ax.collections:
-        col.set_clip_path(box)
 
     # Plot all labels
     for name in labels:
         label = labels[name]
         ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_size, font=self.fonts['labels'], ha=label['ha'], va=label['va'])
+
+     # Clip everything to the box plot
+    for col in ax.collections:
+       col.set_clip_path(box)
    
     if self.FLAGS['save']:            
         plt.savefig(save_name, dpi = self.dpi, transparent=True, bbox_inches='tight', pad_inches=0)

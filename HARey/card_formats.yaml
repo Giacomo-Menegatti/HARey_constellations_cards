@@ -84,7 +84,7 @@ circle:
     # Circular plot for the quiz game
     height : 5
     width : 5
-    pad : 0.0
+    pad : 0.25
 
     box_style : 'circle, pad = 0.0'
     default_cardback_file : 'none'

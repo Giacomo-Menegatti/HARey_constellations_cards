@@ -1,37 +1,54 @@
-dpi : 300
+# =====================================
+# GENERAL GRAPHIC SETTINGS
+# =====================================
 
-min_FOV : 10
+dpi : 300       # Resolution of the images in dpi
+min_FOV : 20    # Minimum field of view in degrees to be plotted in the cards. Bigger constellations above this value will be enlarged to completely fill the card plot space
 
 
 # =====================================
-# STAR ASPECT
+# STAR SETTINGS
 # =====================================
+
 
 star_size:
-    limiting_mag : 6.5
-    limit_size : 0
-    power_law : 1.25
+    # Star size settings. The marker size (area) is proportional to the star magnitude, following the Airy disk mode.
+    # The marker size will be 1 for a magnitude of 0, 0 for a star at the limiting_mag
+    limiting_mag : 4.5  # Limiting magnitude. Only stars brighter than this will be plotted
+    limit_size : 0.0      # Size of the limiting magnitude stars (which should be 0), to avoid having small points in the plot.
+    power_law : 1.25    # Exponent of the power law. 1 is the physically correct value, but higher values make better plots.
+
+    # To have consistency in the plots, the marker size is scaled to be proportional to the card area (bigger cards will have bigger markers) and the 
+    # plotted sky area (smaller regions of sky will have bigger marker) with an overall scale factor depending on the map type.
+
+
+
 
 # =====================================
 # PLOT OPTIONS
 # =====================================
 
 alpha:
-    bkg_constellations : 0.5
-    shadows : 0.9
-    bkg_stars: 0.5
+    constellations : 1.0
+    bkg_constellations : 0.1
+    shadows : 0.3
     ecliptic : 0.5
     
-    
+
 
 
 line_widths:
-    constellations : 0.005
+    scale_factor : 0.008
+    constellations : 1.0
     bkg_constellations : 1.0
-    shadows : 2.0
+    shadows : 3.0
     helpers : 1.0
     asterisms : 1.25
     ecliptic : 1.5
+    zodiac : 0.8
+    grid : 
+        high : 0.8
+        faint : 0.6
 
 line_styles:
     constellations : 'solid'
@@ -41,14 +58,33 @@ line_styles:
     asterisms : 'solid'
     ecliptic : 'dashed'
 
+
 stars:
-    marker_size : 
+
+    size_factor:
+        card_plot : 200.0     # Scale factor for the card plot. 
+        equatorial : 10.0    # Scale factor for the equatorial map plot.
 
     pad_mode : proportional # Either proportional or additive
     pad_size : 
         proportional : 1.5
         additive : 0.2
-    star_edge : 
+
+    shadow:
+        # Star shadow settings
+        # The shadow offset are proportional to the star diameters (which are given in matplotlib marker units, and it has to be translated in space units)
+        offset_x: 1.0e-3   
+        offset_y: 1.0e-3
+        size: 1.5       # Size of the shadow compared to the star 
+        alpha : 1.0     # Opacity of the shadow
+    
+    edge : 1.05
+    alpha_edge : 0.9
+
+    alpha_bkg : 0.8
+    alpha_faint : 0.8
+    alpha_high : 1.0
+
 
 # =====================================
 # COLORS USED
@@ -57,42 +93,39 @@ stars:
 star_colormap : 'stellarium'
 
 colors:
-    sky : 'xkcd:midnight'
-    stars : 'white'
-    milky_way : 'white'
-    shadow : 'black'
+    sky: "#191970"          # xkcd:midnight
+    stars: "#FFFFFF"
+    milky_way: "#FFFFFF"
+    shadow: "#000000"
 
-    # Lines
-    con_lines : 'white'
-    con_lines_shadow : 'black'
-    asterisms : 'limegreen'
-    helpers : 'coral'
-    horizon : 'white' 
-    grid : 'yellow'
-    ecliptic : 'red'
+    con_lines: "#FFFFFF"
+    con_lines_shadow: "#000000"
+    asterisms: "#32CD32"    # limegreen
+    helpers: "#FF7F50"      # coral
+    horizon: "#FFFFFF"
+    grid: "#FFFF00"         # yellow
+    ecliptic: "#FF0000"
 
-    # Label colors
-    star_names : 'gold'
-    con_names : 'cyan'
-    con_parts : 'violet'
-    asterism_labels : 'lime'
-    ecliptic_label : 'red'
-    
-   # Others    
-    zodiac : 'orange'
-    cardinals : 'darkred'    
-    border : 'gold'
-    mater : 'xkcd:light blue'
+    star_names: "#FFD700"   # gold
+    con_names: "#00FFFF"    # cyan
+    con_parts: "#EE82EE"    # violet
+    asterism_labels: "#00FF00"
+    ecliptic_label: "#FF0000"
 
-    # Cardback colors
-    cardback_1 : 'xkcd:marine blue'
-    cardback_2 : 'xkcd:blood'    
-    accent_1 : 'darkgoldenrod'
-    accent_2 : 'darkgoldenrod'
+    zodiac: "#FFA500"       # orange
+    cardinals: "#8B0000"    # darkred
+    border: "#FFD700"
+    mater: "#ADD8E6"        # light blue
+
+    cardback_1: "#004577"
+    cardback_2: "#660000"
+    accent_1: "#B8860B"     # darkgoldenrod
+    accent_2: "#B8860B"
 
 # =====================================
 # FLAGS USED
 # =====================================
+
 
 flags :
     con_lines : False
@@ -110,16 +143,37 @@ flags :
     save : False,
     galaxy : True
     star_colors : False
+    show_guides : False
 
 # =====================================
 # FONTS USED
 # =====================================
 
 fonts:
-    labels: FontProperties(family='DejaVu Sans')
-    cardback: FontProperties(family='DejaVu Sans', weight='bold')
-    calendar: FontProperties(family='DejaVu Sans', weight='bold')
+    labels: 
+        family : 'DejaVu Sans'
+        weight : 'normal'
+    cardback: 
+        family : 'DejaVu Sans' 
+        weight : 'bold'
+    calendar: 
+        family : 'DejaVu Sans' 
+        weight : 'bold'
+    
+font_sizes:
+    card_plot: 10
+    equatorial_plot : 
+        s : 7
+        l : 10
+
 
 milky_way:
     mw_levels : 5
-    mw_alphas : [0.15, 0.15, 0.15, 0.15, 0.15]
+    alpha_low : 0.1
+    alpha_high : 0.4
+
+zodiac:
+    width: 0.4
+    alpha_1 : 0.7
+    alpha_2 : 0.2
+    diamond_size : 0.15
