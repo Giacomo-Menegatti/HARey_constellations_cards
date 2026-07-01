@@ -1,115 +1,193 @@
-dpi: 300
-min_FOV: 20
+# =========================================
+# HARey default style file
+# =========================================
+
+# GRAPHICAL SETTINGS
+
+dpi: 300      # dpi of the images
+min_FOV: 20   # minimum field of view in degrees. Small constellations will be zoomed-out to this FOV to show the sky around them
+
+# APPARENT STAR SIZES
+
+# The star sizes are computed from the Airy disk model, in which the size of the star is proportional to (lim_mag - mag)^alpha
+
 star_size:
-  limiting_mag: 5.5
-  limit_size: 0.01
-  power_law: 1.5
-alpha:
-  constellations: 1.0
-  bkg_constellations: 0.3
-  shadows: 0.3
-  ecliptic: 0.5
+  limiting_mag: 5.5   # Limiting magnitude: stars fainter than this are not plotted
+  limit_size: 0.01    # Size of limiting magnitude stars, to avoid plotting small points which do not look good when printing
+  power_law: 1.5      # Power law exponent. 1 is correct for the radius of the Airy disk, 2 for the total brightness contained in the Airy disk. 1.5 is a compromise between the two.
+
+# =========================================
+# LINE PLOT SETTINGS
+# =========================================  
+
+# Transparency of lines
+line_alpha:       
+  constellations: 1.0     # Highlighted constellations lines
+  bkg_constellations: 0.3 # Not-highlighted constellations lines
+  shadows: 0.3            # Shadows arond the highlighted constellations lines
+  ecliptic: 0.5           # Ecliptic line
+
+# Width of lines
+# The default line width is computed from the marker size (which is the plotted size of a 0-mag star)
+
 line_widths:
-  scale_factor: 0.006
-  constellations: 1.0
-  bkg_constellations: 1.0
-  shadows: 2.51
-  helpers: 1.0
-  asterisms: 1.25
-  ecliptic: 1.5
-  zodiac: 0.3
-  grid:
-    high: 0.8
-    faint: 0.6
+  scale_factor: 0.006     # Scale factor to convert from marker_size to default line_width 
+  constellations: 1.0     # Highlighted constellations lines relative width
+  bkg_constellations: 1.0 # Not-highlighted constellations lines relative width
+  shadows: 2.51           # Shadows arond the highlighted constellations lines relative width
+  helpers: 1.0            # Helper lines relative width
+  asterisms: 1.25         # Asterism lines relative width
+  ecliptic: 1.5           # Ecliptic line relative width
+  zodiac: 0.3             # Zodiac lines relative width
+  grid:                   # Grid lines relative width (both thick and thin)
+    thick: 0.8
+    thin: 0.6
+
+# Line styles
+
 line_styles:
-  constellations: solid
-  bkg_constellations: solid
-  shadows: solid
-  helpers: dotted
-  asterisms: solid
-  ecliptic: dashed
+  constellations: solid       # Highlighted constellations lines
+  bkg_constellations: solid   # Not-highlighted constellations lines
+  shadows: solid              # Shadows arond the highlighted constellations lines
+  helpers: dotted             # Helper lines
+  asterisms: solid            # Asterism lines
+  ecliptic: dashed            # Ecliptic line
+
+# =========================================
+# STAR SETTINGS
+# =========================================
+
+# To keep a consistent look, the size of stars (and other markers) is scaled proportionally to the area of the plott
+# (bigger plots will have bigger stars) and to the area of the sky plotted (smaller zoomed-in areas will have bigger stars).
 stars:
-  size_factor:
-    card_plot: 200.0
-    equatorial: 10.0
-  pad_mode: proportional
+
+  size_factor:            # The initial scale factor depends ont the type of plot. 
+    card_plot: 200.0      # Scale factor in a card plot
+    equatorial: 10.0      # Scale factor in an equatorial full-sky plot
+
+  # Pad size. The pad is the empty area around the star where the constellation lines stop
+  pad_mode: proportional  # Pad mode, either proportional or constant
+
   pad_size:
-    proportional: 2.0
-    additive: 0.2
-  shadow:
-    offset_x: 0.001
-    offset_y: 0.001
-    size: 1.5
-    alpha: 1.0
-  edge: 1.05
-  alpha_edge: 0.9
-  alpha_bkg: 0.8
-  alpha_faint: 0.8
-  alpha_high: 1.0
-star_colormap: stellarium
+    proportional: 2.0     # proportional pad size (bigger stars will have bigger pads)
+    constant: 0.2         # constant pad size (all stars will have the same pad size)
+
+  shadow: # Shadow below the highlighted stars
+    offset_x: 0.001       # Offset factor in the x direction (proportional to the star size)
+    offset_y: 0.001       # Offset factor in the y direction
+    size: 1.5             # Size of the shadow compared to the star size
+    alpha: 1.0            # Transparency of the shadow
+    line_w : 0.1          # Relative line width of the shadow
+
+  pad: 1.05              # Relative size of the blank star plotted below the star marker to separate it from other objects
+  alpha_pad: 0.9         # Transparency of the blank star
+  alpha_bkg: 0.8          # Transparency of the background stars (those rendered with a dot, below 5.5 mag)
+  alpha_faint: 0.8        # Transparency of not-highlighted stars
+  alpha_high: 1.0         # Transparency of highlighted stars
+
+# Star colormap, to assign each star a realistic color based on the B-V index
+star_colormap: stellarium # Either helland or stellarium
+
+# =========================================
+# MILKY WAY SETTINGS
+# =========================================
+
+milky_way:
+  mw_levels: 5      # Number of luminosity levels in the Milky Way. One will give only the outline, more will give a more realistic look
+  alpha_low: 0.15   # Alpha value for the lowest luminosity level
+  alpha_high: 0.3   # Alpha value for the highest luminosity level
+
+# =========================================
+# ZODIAC RIBBON SETTINGS
+# =========================================
+
+zodiac:
+  width: 0.4          # Width of the zodiac ribbon (scale factor w.r.t the marker size)
+  alpha_1: 0.7        # Alpha value of the more opaque parts
+  alpha_2: 0.2        # Alpha value of the less opaque parts
+  diamond_size: 0.15  # Size of the diamond markers (scale factor w.r.t the marker size)
+
+# =========================================
+# COLOR SETTINGS
+# =========================================
+
+# WARNING: These colors will be overwritten by changing them after the style has been loaded
+
 colors:
-  sky: '#191970'
-  stars: '#ffffff'
-  milky_way: '#ffffff'
-  shadow: '#000000'
-  con_lines: '#ffffff'
-  con_lines_shadow: '#000000'
-  asterisms: '#32cd32'
-  helpers: '#ff7f50'
-  horizon: '#ffffff'
-  grid: '#ffff00'
-  ecliptic: '#ff0000'
-  star_names: '#ffd700'
-  con_names: '#00ffff'
-  con_parts: '#ee82ee'
-  asterism_labels: '#00ff00'
-  ecliptic_label: '#ff0000'
-  zodiac: '#ffa500'
-  cardinals: '#8b0000'
-  border: '#ffd700'
-  mater: '#add8e6'
-  cardback_1: '#004577'
-  cardback_2: '#660000'
-  accent_1: '#b8860b'
-  accent_2: '#b8860b'
+  sky: '#191970'              # Sky color
+  stars: '#ffffff'            # Stars color (if the flag star_colors is set, stars will have realistic colors)
+  star_pad: 'none'            # Color of the pad around the stars. If none, the color will bw the same as the sky
+  milky_way: '#ffffff'        # Milky way color
+  shadow: '#000000'           # Shadow below the . Could be used to make a glow...
+  con_lines: '#ffffff'        # Constellation lines
+  con_lines_shadow: '#000000' # Shadow below the constellation lines
+  asterisms: '#32cd32'        # Asterism lines
+  helpers: '#ff7f50'          # Helper lines
+  horizon: '#ffffff'          # Horizon circle color
+  grid: '#ffff00'             # Grid lines
+  ecliptic: '#ff0000'         # Ecliptic line
+  zodiac: '#ffa500'           # Zodiac ribbon
+  cardinals: '#8b0000'        # Cardinal markers and north indicator
+  border: '#ffd700'           # Skyview border color
+  mater: '#add8e6'            # Planisphere mater color
+  cardback_1: '#004577'       # Color of the cardback, first type
+  cardback_2: '#660000'       # Color of the cardback, second type
+  accent_1: '#b8860b'         # Color of the accent on the first cardback
+  accent_2: '#b8860b'         # Color of the accent on the second cardback
+
+
+  star_names: '#ffd700'       # Star name labels
+  con_names: '#00ffff'        # Constellation name labels
+  con_parts: '#ee82ee'        # Constellation part labels
+  asterism_labels: '#00ff00'  # Asterism labels
+  ecliptic_label: '#ff0000'   # Ecliptic label
+
+# =========================================
+# PLOT SETTINGS FLAGS
+# =========================================        
+  
+# The flags group several plot options that are shared by many plots and are boolean
+# They can be set for one plot (and the following) by calling 'flag' or '-flag' inside of the function
+
 flags:
-  con_lines: true
-  con_names: false
-  con_parts: true
-  asterisms: false
-  helpers: false
-  star_names: false
-  grid: false
-  ecliptic: false
-  zodiac: true
-  milky_way: true
-  harey_stars: true
-  show: true
-  save: False,
-  galaxy: true
-  star_colors: true
-  show_guides: false
+  con_lines: true             # Constellation lines visibility
+  con_names: false            # Constellation names visibility
+  con_parts: true             # Constellation part names visibility
+  asterisms: false            # Asterism lines visibility
+  helpers: false              # Helper lines visibility
+  star_names: false           # Star name labels visibility
+  grid: false                 # Grid lines visibility
+  ecliptic: false             # Ecliptic line visibility
+  zodiac: true                # Zodiac ribbon visibility
+  milky_way: true             # Milky way visibility  
+  harey_stars: true           # Use the custom HARey star markers to show the stars magnitudes or just points
+  show: true                  # Show the plots
+  save: false                # Save the plots. Plots are saved by default if given a save_name    
+  star_colors: true           # Use realistic colors for the stars or all the same color
+  show_guides: false          # Show the cards safe plot area. Just for debugging purposes
+
+# =========================================
+# FONT SETTINGS
+# =========================================
+
+# Note: these fonts have to be present in your system
 fonts:
-  labels:
+  labels:                 # Font used for labels
     family: DejaVu Sans
     weight: normal
-  cardback:
+  cardback:               # Font used on the cardbacks
     family: DejaVu Sans
     weight: bold
-  calendar:
+  calendar:               # Font used on the calendar
     family: DejaVu Sans
     weight: bold
+
+# The font sizes are divided in large (constellation and asterism names) and small (parts and star names)
+
 font_sizes:
   card_plot: 10
   equatorial_plot:
     s: 7
     l: 10
-milky_way:
-  mw_levels: 5
-  alpha_low: 0.15
-  alpha_high: 0.3
-zodiac:
-  width: 0.4
-  alpha_1: 0.7
-  alpha_2: 0.2
-  diamond_size: 0.15
+
+

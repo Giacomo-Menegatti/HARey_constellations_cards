@@ -48,8 +48,39 @@ def shorten_line(ax, point_A, point_B, marker_size_A, marker_size_B, dpi):
 
 def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_highlight=[], asterism_highlight=[], helper_highlight=[], is_inverted=False):
 
+    '''
+    GENERAL PLOT FUNCTION
 
-    # Apply the transformation th the stars and the ecliptic
+    Transforms the points from RA and DEC to the plot coordinates, then plots all the objects.
+
+    Constellation lines are divided in faint lines (not highlighted), drawn smaller or with higher transparency than the highlighted lines,
+    and highlighted ones, which have a shadow (more of a pad) below them to emphasize them more.
+
+    Stars are divided in background stars (not part of a constellation shape), which are rendered as a dot, not highlighted stars and highlighted stars,
+    which are rendered with a custom markers, and the last ones also have a shadow below them. The shadow can be offsetted to give the illusion of a 3D effect.
+    All stars are surrounded by a pad area (a bigger marker of the same type) to separate them from the milky way and other close stars.
+
+    There are two types of pad: one used for the lines, which shortens the lines to the edge of a round marker of that size, 
+    to make the lines stop before the stars, and one for the stars, to separate stars that touch each others or from the milky way.
+    
+        The plot sequence is:
+
+    1. Milky way, by drawing polygons and stacking the luminosity levels
+    2. Constellation Lines in this order: faint lines, shadows below the bright lines, bright lines
+    3. Asterism lines
+    4. Helper lines
+    5. Ecliptic
+    6. Stars, in this order:
+        1. Background stars (not part of a constellation shape): draws first the edge pad, then the stars
+        2. Not highlighted stars: first the edge pad, then the stars
+        3. Highlighted stars: first the edge pad, then the shadow, and finally the stars
+    7. Zodiac ribbon
+    8. All the labels
+    
+    '''
+
+
+    # Apply the transformation the the stars and the ecliptic
     ecliptic_x, ecliptic_y = transform(*self.ecliptic)
     stars_x, stars_y = transform(self.stars.ra, self.stars.dec)
 
@@ -57,20 +88,27 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     stars_x = pd.Series(data = stars_x, index=self.stars.index)
     stars_y = pd.Series(data = stars_y, index=self.stars.index)
 
-    line_w = marker_size * self.style['line_widths']['scale_factor']
+    # Take the style parameters
+    LWS = self.style['line_widths']
+    LS = self.style['line_styles']
+    LA = self.style['line_alpha']
+    STARS = self.style['stars']
+
+
+    line_w = marker_size * LWS['scale_factor']
 
     # Compute the star sizes and pads (size of the markers where the lines will stop)
     star_sizes = marker_size*mag2size(self.stars['magnitude'], lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size, power=self.mag_power)
     star_sizes = pd.Series(data = star_sizes, index=self.stars.index)
 
     # Proportional star pads (the empty area around the star is proportional to its size)
-    if self.style['stars']['pad_mode'] == 'proportional':
-        star_pads = star_sizes*self.style['stars']['pad_size']['proportional']
+    if STARS['pad_mode'] == 'proportional':
+        star_pads = star_sizes*STARS['pad_size']['proportional']
 
-    elif self.style['stars']['pad_mode'] == 'additive':
+    elif STARS['pad_mode'] == 'additive':
 
-        star_radius = np.sqrt(marker_size*mag2size(0, lim_mag=self.limiting_magnitude, lim_mag_size=self.limit_size, power=self.mag_power))
-        star_pads = (np.sqrt(star_sizes) + self.style['stars']['star_pad']['additive']*star_radius)**2.0
+        star_radius = np.sqrt(marker_size)
+        star_pads = (np.sqrt(star_sizes) + STARS['star_pad']['additive']*star_radius)**2.0
 
 
     if self.FLAGS['milky_way']:
@@ -112,16 +150,16 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
                             if is_visible:
                                 main_lines.append((line_start, line_end))                         
 
-        faint_lc = LineCollection(faint_lines, colors=self.COLORS['con_lines'], linewidths=self.style['line_widths']['bkg_constellations']*line_w,\
-                                  alpha=self.style['alpha']['bkg_constellations'], linestyle=self.style['line_styles']['bkg_constellations'], capstyle='round')
+        faint_lc = LineCollection(faint_lines, colors=self.COLORS['con_lines'], linewidths=LWS['bkg_constellations']*line_w,\
+                                  alpha=LA['bkg_constellations'], linestyle=LS['bkg_constellations'], capstyle='round')
         ax.add_collection(faint_lc)
 
-        shadow_lc = LineCollection(main_lines, colors=self.COLORS['shadow'], capstyle='round', linestyle=self.style['line_styles']['shadows'],\
-                                    linewidths=self.style['line_widths']['shadows']*line_w, alpha=self.style['alpha']['shadows'])
+        shadow_lc = LineCollection(main_lines, colors=self.COLORS['shadow'], capstyle='round', linestyle=LS['shadows'],\
+                                    linewidths=LWS['shadows']*line_w, alpha=LA['shadows'])
         ax.add_collection(shadow_lc)
 
         high_lc = LineCollection(main_lines, colors=self.COLORS['con_lines'], capstyle='round', \
-                                    linewidths=self.style['line_widths']['constellations']*line_w, alpha=self.style['alpha']['constellations'], linestyle=self.style['line_styles']['constellations'])
+                                    linewidths=LWS['constellations']*line_w, alpha=LA['constellations'], linestyle=LS['constellations'])
         ax.add_collection(high_lc)
 
     #Plot asterisms
@@ -141,7 +179,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
                         if is_visible:
                             asterism_lines.append((line_start, line_end)) 
         
-        asterism_lc = LineCollection(asterism_lines, color=self.COLORS['asterisms'], linestyle=self.style['line_styles']['asterisms'], linewidth=self.style['line_widths']['asterisms']*line_w)
+        asterism_lc = LineCollection(asterism_lines, color=self.COLORS['asterisms'], linestyle=LS['asterisms'], linewidth=LWS['asterisms']*line_w)
         ax.add_collection(asterism_lc)
 
     #Plot helpers
@@ -158,7 +196,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
                         if is_visible:
                             helper_lines.append((line_start, line_end))
 
-        helper_lc = LineCollection(helper_lines, color=self.COLORS['helpers'], linestyle=self.style['line_styles']['helpers'], linewidth=self.style['line_widths']['helpers']*line_w)
+        helper_lc = LineCollection(helper_lines, color=self.COLORS['helpers'], linestyle=LS['helpers'], linewidth=LWS['helpers']*line_w)
         ax.add_collection(helper_lc)
 
     #Draw ecliptic 
@@ -166,8 +204,8 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
         mask = not_outside(ecliptic_x, ecliptic_y)
         # The line ouside of the plot is set to nan so the line is broken
         ecliptic_x[~mask] = nan
-        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.COLORS['ecliptic'], linestyle=self.style['line_styles']['ecliptic'], \
-                    linewidth=self.style['line_widths']['ecliptic']*line_w, alpha=self.style['alpha']['ecliptic'])
+        ecliptic, = ax.plot(ecliptic_x, ecliptic_y, color=self.COLORS['ecliptic'], linestyle=LS['ecliptic'], \
+                    linewidth=LWS['ecliptic']*line_w, alpha=LA['ecliptic'])
         ecliptic.set_clip_path(box) 
 
     
@@ -176,9 +214,14 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     bkg_stars = (self.stars.constellation == 'none') & is_visible       
     color = self.stars[bkg_stars]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
 
+    # If the pad_color is none, use the sky color
+    pad_color = self.COLORS['sky'] if self.COLORS['star_pad'] == None else self.COLORS['star_pad']
+
     # Plot bkg stars
-    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=self.style['stars']['edge']*star_sizes[bkg_stars], color=self.COLORS['sky'], marker=".", linewidths=0, zorder=2, alpha=self.style['stars']['alpha_bkg'])  # type: ignore
-    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, marker=".", linewidths=0, zorder=2, alpha=self.style['stars']['alpha_bkg'])  # type: ignore
+    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars], s=STARS['pad']*star_sizes[bkg_stars], color=pad_color,\
+                linewidths=0.0, marker=".", zorder=2, alpha=STARS['alpha_pad'])  # type: ignore
+    
+    ax.scatter(stars_x[bkg_stars], stars_y[bkg_stars],s=star_sizes[bkg_stars], color=color, linewidths=0.0, marker=".", zorder=2, alpha=STARS['alpha_bkg'])  # type: ignore
 
     # If HAREY, use the custom star markers, else use simple dots
     star_markers = self.harey_markers if self.FLAGS['harey_stars'] else ['.']*len(self.harey_markers)
@@ -190,7 +233,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
     else:
         faint_mask = np.zeros_like(main_stars, dtype=bool)
                    
-
+    # Draw the bright stars
     for i, m in enumerate(star_markers):
         # Do NOT plot stars below the limiting magnitude (this would be an empty array)
         if i <= self.limiting_magnitude:
@@ -198,9 +241,9 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
             # Plot bright stars
             i_mask = main_stars & (self.stars.mag_class == i) & is_visible
 
-            # Plot a slightly bigger marker below the star to mimick edgelines, but proportional to the star sizes
-            ax.scatter(stars_x[i_mask], stars_y[i_mask], marker=m, s=self.style['stars']['edge']*star_sizes[i_mask],\
-                        color=self.COLORS['sky'], linewidths=0.0, alpha=self.style['stars']['alpha_edge'], zorder=3)
+            # Plot a slightly bigger marker below the star to give it a pad, but proportional to the star sizes
+            ax.scatter(stars_x[i_mask], stars_y[i_mask], marker=m, s=STARS['pad']*star_sizes[i_mask], \
+                       color = pad_color, linewidths=0.0, alpha=STARS['alpha_pad'], zorder=3)
 
             faint = i_mask & faint_mask
             high = i_mask & ~faint_mask
@@ -208,18 +251,18 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
             # plot not highlighted star
             color = self.stars[faint]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
             ax.scatter(stars_x[faint], stars_y[faint], marker=m, s=star_sizes[faint],\
-                        color=color, linewidths=0.0, alpha=self.style['stars']['alpha_faint'], zorder=3)
+                        color=color, linewidths=0.0, alpha=STARS['alpha_faint'], zorder=3)
 
             # Add a shadow effect for highlighted stars
-            offset_x = self.style['stars']['shadow']['offset_x']*np.sqrt(star_sizes[high])
-            offset_y = self.style['stars']['shadow']['offset_y']*np.sqrt(star_sizes[high])
-            ax.scatter(stars_x[high]-offset_x, stars_y[high]-offset_y, marker=m, s=self.style['stars']['shadow']['size']*star_sizes[high],\
-                        color=self.COLORS['shadow'], linewidths=0.0, edgecolor=self.COLORS['shadow'], alpha=self.style['stars']['shadow']['alpha'], zorder=2)
+            offset_x = STARS['shadow']['offset_x']*np.sqrt(star_sizes[high])
+            offset_y = STARS['shadow']['offset_y']*np.sqrt(star_sizes[high])
+            ax.scatter(stars_x[high]-offset_x, stars_y[high]-offset_y, marker=m, s=STARS['shadow']['size']*star_sizes[high],\
+                        color=self.COLORS['shadow'], linewidths=STARS['shadow']['line_w']*line_w, edgecolors=self.COLORS['shadow'], alpha=STARS['shadow']['alpha'], zorder=2)
 
             # Plot highlighted stars
             color = self.stars[high]['color'] if self.FLAGS['star_colors'] else self.COLORS['stars']
             ax.scatter(stars_x[high], stars_y[high], marker=m, s=star_sizes[high],\
-                        color=color, linewidths=0.0, zorder=3, alpha=self.style['stars']['alpha_high'])
+                        color=color, linewidths=0.0, zorder=3, alpha=STARS['alpha_high'])
 
     # Draw the zodiac
     if self.FLAGS['zodiac']:
@@ -249,17 +292,16 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
 
         mask = not_outside(x1, y1)
         x1[~mask], y1[~mask] = np.nan, np.nan
-        up, = ax.plot(x1, y1, color=self.COLORS['ecliptic'], lw=self.style['line_widths']['zodiac']*line_w)
+        up, = ax.plot(x1, y1, color=self.COLORS['ecliptic'], lw=LWS['zodiac']*line_w)
         up.set_clip_path(box)
 
         mask = not_outside(x2, y2)
         x2[~mask], y2[~mask] = np.nan, np.nan
-        down, = ax.plot(x2, y2, color=self.COLORS['ecliptic'], lw=self.style['line_widths']['zodiac']*line_w)
+        down, = ax.plot(x2, y2, color=self.COLORS['ecliptic'], lw=LWS['zodiac']*line_w)
         down.set_clip_path(box)
 
         for i, (text, t) in enumerate(zip(self.zodiac_symbols, range(int(n_points/360*15), n_points, int(n_points/360*30)))):
-            #circle = Circle((ecliptic_x[t], ecliptic_y[t]), radius=2, edgecolor='r', facecolor = 'w', fill=True)
-            #ax.add_patch(circle)
+            
             text_path = TextPath((0, 0), text, size=2.0*w)
             bb = text_path.get_extents()
             # Center the text path
@@ -274,7 +316,7 @@ def plot_map(self, ax, box, transform, marker_size, not_outside, labels={}, con_
 
         for i in range(0, n_points, int(n_points/360*30)):
             t = Affine2D().rotate(np.atan2(dy[i], c*dx[i]))
-            ax.scatter(ecliptic_x[i], ecliptic_y[i], s=self.style['zodiac']['diamond_size']*marker_size, marker=MarkerStyle('D', transform=t), ec=self.COLORS['ecliptic'], fc=self.COLORS['sky'], lw=self.style['line_widths']['zodiac']*line_w, zorder=3)
+            ax.scatter(ecliptic_x[i], ecliptic_y[i], s=self.style['zodiac']['diamond_size']*marker_size, marker=MarkerStyle('D', transform=t), ec=self.COLORS['ecliptic'], fc=self.COLORS['sky'], lw=LWS['zodiac']*line_w, zorder=3)
 
 
     def compute_label_pos(id, indexes, font_size, color, ha, va):
