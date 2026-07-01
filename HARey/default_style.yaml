@@ -65,7 +65,7 @@ stars:
     card_plot: 200.0      # Scale factor in a card plot
     equatorial: 10.0      # Scale factor in an equatorial full-sky plot
 
-  # Pad size. The pad is the empty area around the star where the constellation lines stop
+  # Pad size for lines. The pad is the empty area around the star where the constellation lines stop
   pad_mode: proportional  # Pad mode, either proportional or constant
 
   pad_size:
@@ -79,8 +79,8 @@ stars:
     alpha: 1.0            # Transparency of the shadow
     line_w : 0.1          # Relative line width of the shadow
 
-  pad: 1.05              # Relative size of the blank star plotted below the star marker to separate it from other objects
-  alpha_pad: 0.9         # Transparency of the blank star
+  pad: 1.05               # Relative size of the pad, the blank marker plotted below the star to work as an edge line
+  alpha_pad: 0.9          # Transparency of the blank star
   alpha_bkg: 0.8          # Transparency of the background stars (those rendered with a dot, below 5.5 mag)
   alpha_faint: 0.8        # Transparency of not-highlighted stars
   alpha_high: 1.0         # Transparency of highlighted stars
