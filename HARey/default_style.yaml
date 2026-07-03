@@ -42,6 +42,9 @@ line_widths:
   grid:                   # Grid lines relative width (both thick and thin)
     thick: 0.8
     thin: 0.6
+  planisphere: 
+    borders: 1.0
+    meridians: 0.6
 
 # Line styles
 
@@ -52,6 +55,11 @@ line_styles:
   helpers: dotted             # Helper lines
   asterisms: solid            # Asterism lines
   ecliptic: dashed            # Ecliptic line
+  planisphere:
+    meridians: dotted
+    borders: solid
+
+
 
 # =========================================
 # STAR SETTINGS
@@ -64,6 +72,7 @@ stars:
   size_factor:            # The initial scale factor depends ont the type of plot. 
     card_plot: 200.0      # Scale factor in a card plot
     equatorial: 10.0      # Scale factor in an equatorial full-sky plot
+    polar: 100.0           # Scale factor for the polar map
 
   # Pad size for lines. The pad is the empty area around the star where the constellation lines stop
   pad_mode: proportional  # Pad mode, either proportional or constant
@@ -189,5 +198,17 @@ font_sizes:
   equatorial_plot:
     s: 7
     l: 10
+  polar_plot:
+    s: 7
+    l: 10
+
+calendar:
+  size: 0.1
+  font_sizes:
+    days: 0.6
+    months: 0.8
+
+planisphere:
+  hatch : '/'
 
 

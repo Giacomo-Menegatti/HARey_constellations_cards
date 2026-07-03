@@ -23,9 +23,9 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         - *flags: flag or an unpacked list of flags. Print self.flags() to see all the available flags.
         - id (str): Constellation ID (e.g. 'Ori' for Orion).
         - BEST_AR (bool): If True, rotate the constellation to better fit inside the card. Otherwise, plot with North side up.
-        - save_name (str): Name of the file to save the plot. If None, saves as 'id_lines.png' or 'id_bare.png'.
-        - star_size (float): Relative size of the stars and lines in the plot.
-        - font_size (float): Size of the small labels in the plot (no big labels are plotted).
+        - save_name (str): Name of the file to save the plot. If None, saves as 'id_lines.png' or 'id_bare.png' if the flag 'save' is set.
+        - star_size (float): Relative size of the markers in the plot. If None, uses the value given in the style file.
+        - font_size (float): Size of the small labels in the plot (no big labels are plotted). If None, uses the values given in the style file.
     """ 
     
     # Update flags and colors according to the call overrides. This changes will persist for the successive plots.
@@ -55,7 +55,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
 
     # Apply the scale to the markers (and lines) and to the labels
     marker_size = star_size*marker_scale*area_scale
-    font_size = round(np.sqrt(marker_scale)*font_size)
+    font_size = round(np.sqrt(marker_scale*area_scale)*font_size)
 
     #Get the north star marker
     north_marker = self.markers['north_star']
@@ -81,9 +81,9 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
         # This could fail if both stars are just outside of the rounded corners, but it's unlikely
         not_outside = lambda x,y: (x > -card_half_w) & (x < card_half_w) & (y > -card_half_h) & (y<card_half_h)
 
-    # Set ax limits, equal aspect ratio and axis off
-    ax.set_xlim(-card_half_w,card_half_w)
-    ax.set_ylim(-card_half_h,card_half_h)
+    # Set ax limits to be 1% larger than the card to avoid having the card cut by the axis (visible in circle plots)
+    ax.set_xlim(-1.01*card_half_w, 1.01*card_half_w)
+    ax.set_ylim(-1.01*card_half_h, 1.01*card_half_h)
     ax.set_aspect('equal')
     ax.set_axis_off()
 

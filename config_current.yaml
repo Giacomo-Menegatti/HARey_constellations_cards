@@ -1,0 +1,116 @@
+dpi: 300
+min_FOV: 60
+star_size:
+  limiting_mag: 5.5
+  limit_size: 0.01
+  power_law: 1.5
+line_alpha:
+  constellations: 1.0
+  bkg_constellations: 0.3
+  shadows: 0.3
+  ecliptic: 0.5
+line_widths:
+  scale_factor: 0.006
+  constellations: 1.49
+  bkg_constellations: 1.0
+  shadows: 0.0
+  helpers: 1.0
+  asterisms: 1.25
+  ecliptic: 1.5
+  zodiac: 0.3
+  grid:
+    thick: 0.8
+    thin: 0.6
+line_styles:
+  constellations: solid
+  bkg_constellations: solid
+  shadows: solid
+  helpers: dotted
+  asterisms: solid
+  ecliptic: dashed
+stars:
+  size_factor:
+    card_plot: 200.0
+    equatorial: 10.0
+  pad_mode: proportional
+  pad_size:
+    proportional: 2.0
+    constant: 0.2
+  shadow:
+    offset_x: 0.001
+    offset_y: 0.001
+    size: 1.5
+    alpha: 1.0
+    line_w: 0.1
+  pad: 1.1
+  alpha_pad: 0.9
+  alpha_bkg: 0.8
+  alpha_faint: 0.8
+  alpha_high: 1.0
+star_colormap: helland
+milky_way:
+  mw_levels: 5
+  alpha_low: 0.15
+  alpha_high: 0.3
+zodiac:
+  width: 0.2
+  alpha_1: 0.7
+  alpha_2: 0.2
+  diamond_size: 0.05
+colors:
+  sky: '#ffffff'
+  stars: '#ffffff'
+  star_pad: '#000000'
+  milky_way: '#6156f5'
+  shadow: '#000000'
+  con_lines: '#000000'
+  con_lines_shadow: '#000000'
+  asterisms: '#32cd32'
+  helpers: '#ff7f50'
+  horizon: '#ffffff'
+  grid: '#ffff00'
+  ecliptic: '#ff0000'
+  zodiac: '#ffa500'
+  cardinals: '#8b0000'
+  border: '#ffd700'
+  mater: '#add8e6'
+  cardback_1: '#004577'
+  cardback_2: '#660000'
+  accent_1: '#b8860b'
+  accent_2: '#b8860b'
+  star_names: '#ffd700'
+  con_names: '#00ffff'
+  con_parts: '#ee82ee'
+  asterism_labels: '#00ff00'
+  ecliptic_label: '#ff0000'
+flags:
+  con_lines: true
+  con_names: true
+  con_parts: false
+  asterisms: false
+  helpers: false
+  star_names: false
+  grid: false
+  ecliptic: false
+  zodiac: false
+  milky_way: true
+  harey_stars: true
+  show: true
+  save: false
+  star_colors: true
+  show_guides: false
+fonts:
+  labels:
+    family: DejaVu Sans
+    weight: normal
+  cardback:
+    family: DejaVu Sans
+    weight: bold
+  calendar:
+    family: DejaVu Sans
+    weight: bold
+font_sizes:
+  card_plot: 10
+  equatorial_plot:
+    s: 7
+    l: 10

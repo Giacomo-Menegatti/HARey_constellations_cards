@@ -66,7 +66,7 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 		overlap (float): the overlap at the edges of the map (in degrees).
 		dec_FOV (float): the vertical field of view (in degrees).
 		save_name (str): the name of the file to save the plot. If the flag HAREY is set True, saves the plot with a default name.
-		font_sizes (float, float): the sizes of the labels, small (constellation_parts and stars) and large (constellation names and asterism)
+		- font_sizes (int, int): Font sizes of the small and large labels in the plot. If None, takes the values specified in the style file.
 		star_size (float): the relative size of the stars in the plot. 
 
 		'''	

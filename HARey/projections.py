@@ -277,9 +277,6 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
 
     # Angle between the vertical and the pole (relative to the center of the constellation)
     north_angle = np.atan2(north_x, north_y)
-    
-    # original aspect ratio
-    ar_0 = (np.max(local_stars_x)-np.min(local_stars_x)) / (np.max(local_stars_y)-np.min(local_stars_y))
 
     # Rotate the stars to put the North indicator UP
     rot_angle = north_angle
@@ -289,7 +286,10 @@ def project_region(self, constellation_ids, BEST_AR=False, min_FOV=10):
         yR = np.sin(alpha) * x + np.cos(alpha) * y
         return xR, yR
 
-    if BEST_AR:
+    if BEST_AR and len(local_stars_x)>2:
+        
+        # original aspect ratio
+        ar_0 = (np.max(local_stars_x)-np.min(local_stars_x)) / (np.max(local_stars_y)-np.min(local_stars_y))
 
         # Rotate the stars to get different aspect ratios
         ar = []
