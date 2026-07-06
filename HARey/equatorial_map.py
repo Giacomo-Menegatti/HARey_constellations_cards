@@ -63,8 +63,8 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 
 	Arguments:
 		max_dims (float, float): the maximum dimensions of the plot (width, height) in inches. The map scales to fill it up while keeping the correct ratio
-		overlap (float): the overlap at the edges of the map (in degrees).
-		dec_FOV (float): the vertical field of view (in degrees).
+		overlap (float): the overlap at the edges of the map (in degrees). Less overlap makes seeing the constellations on the edge more difficult.
+		dec_FOV (float): the vertical field of view (in degrees). Distortion increases towards the poles.
 		save_name (str): the name of the file to save the plot. If the flag HAREY is set True, saves the plot with a default name.
 		- font_sizes (int, int): Font sizes of the small and large labels in the plot. If None, takes the values specified in the style file.
 		star_size (float): the relative size of the stars in the plot. 
@@ -73,8 +73,8 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 	self.FLAGS = self.flags.resolve(*flags)
 	self.COLORS = self.colors.colors
 
-	# If the save_name is not None or self.FLAGS['sis_script'] is enabled, save automatically the plot
-	if not save_name == None or self.FLAGS['sis_script']:
+	# If the save_name is not None save automatically the plot
+	if not save_name == None:
 		self.FLAGS['save'] = True
 
 	# Default file name
@@ -93,8 +93,8 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 
 	text_scale = map_width/11 # Scale the text depending on the width of the plot, w.r.t the default 11 in (A4 size)
 
-	star_size = self.style['star_size']['card_plot'] if star_size == None else star_size
-	font_sizes = self.style['fonts']['equatorial_plot'] if font_sizes == None else {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
+	star_size = self.style['stars']['size_factor']['equatorial'] if star_size == None else star_size
+	font_sizes = self.style['font_sizes']['equatorial_plot'] if font_sizes == None else {k:text_scale*size for k, size in zip(('s','l'), font_sizes)}
 
 	marker_size = star_size * scale**2
 	line_w = marker_size * self.style['line_widths']['constellations']
@@ -129,15 +129,18 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 	width, height = map.shape[1], map.shape[0]
 
 	# Plot the grid
+
+	line_w = marker_size * self.style['line_widths']['scale_factor']
+
 	if self.FLAGS['grid']:
 		# Plot the RA grid
 		for ra in np.arange(25):
 			x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
-			ax.axvline(x, height, 0, color=self.COLORS['grid'], linestyle='dotted', linewidth=self.style['line_widths']['grid']['faint']*line_w)
+			ax.axvline(x, height, 0, color=self.COLORS['grid'], linestyle='dotted', linewidth=self.style['line_widths']['grid']['thin']*line_w)
 			ax.text(x, height, s=f'{ra} h', color=self.COLORS['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		# Plot the 0 dec line
-		ax.axhline(height/2, 0, width, color=self.COLORS['grid'], linestyle='solid', linewidth=self.style['line_widths']['grid']['high']*line_w)
+		ax.axhline(height/2, 0, width, color=self.COLORS['grid'], linestyle='solid', linewidth=self.style['line_widths']['grid']['thick']*line_w)
 		ax.text(0, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 		#ax.text(width, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 

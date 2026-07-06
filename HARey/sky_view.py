@@ -14,7 +14,7 @@ from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.colors import to_hex
 
-from HARey.astro_functions import radec2altaz, ecliptic2radec
+from HARey.astro_functions import radec2azalt
 from HARey.projections import stereo_radius, stereo_polar
 from HARey.plot_map import plot_map
 
@@ -35,8 +35,8 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     self.FLAGS = self.flags.resolve(*flags)
     self.COLORS = self.colors.colors
 
-    # If the save_name is not None or the self.FLAGS['sis_script'] is enabled, save automatically the plot
-    if not save_name == None or self.FLAGS['sis_script']:
+    # If the save_name is not None save automatically the plot
+    if not save_name == None:
         self.FLAGS['save'] = True
 
     # Default file name
@@ -79,7 +79,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     horizon_line = Circle((0,0), radius=stereo_radius(180)*scale, linestyle='--', color=self.COLORS['horizon'], fill=False, lw = line_w)
     ax.add_patch(horizon_line)
 
-    altaz_projection = lambda ra, dec : radec2altaz(ra, dec, observer)
+    altaz_projection = lambda ra, dec : radec2azalt(ra, dec, observer)
     projection = stereo_polar
     scaling = lambda x,y: (x*scale, y*scale)
 

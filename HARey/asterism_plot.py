@@ -47,7 +47,7 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
         cons_list = np.unique(cons_list)
 
     # If the save_name is not None or SIS_SCRIPT is enabled, save automatically the plot
-    if not save_name == None or self.FLAGS['sis_script']:
+    if not save_name == None:
         self.FLAGS['save'] = True
 
     # Default file name
@@ -71,8 +71,8 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
     fig.subplots_adjust(0,0,1,1)
 
    	# Set ax limits
-    ax.set_xlim(-figsize,figsize)
-    ax.set_ylim(-figsize,figsize)
+    ax.set_xlim(-1.01*figsize, 1.01*figsize)
+    ax.set_ylim(-1.01*figsize, 1.01*figsize)
     ax.set_axis_off()    
 
     labels = {}
@@ -80,7 +80,7 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
     # Scale the coordinates
 
     # Restrict the plotting area a bit to avoid clipping the circle near the borders
-    scale = 0.99*figsize/map_radius
+    scale = figsize/map_radius
     map_radius = map_radius*scale
 
     # Draw the circle patch

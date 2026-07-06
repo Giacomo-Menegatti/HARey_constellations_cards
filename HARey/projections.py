@@ -3,36 +3,7 @@ import pandas as pd
 
 from functools import reduce
 
-from HARey.astro_functions import Ry, Rz, date2julian, sph2cart, cart2sph
-
-
-def radec2altaz(ra_degrees, dec_degrees, observer):
-    """
-    Return the Alt and Az coordinates of the stars for a given observer.
-
-    Args:
-        ra_degrees (float): Right Ascension of the object in degrees
-        dec_degrees (float): Declination of the object in degrees
-        observer (Observer): Observer object with the coordinates of the observer and time of observation
-    Returns:
-        al (float): Altitude of the object in degrees
-        Az (float): Azimuth of the object in degrees
-    """
-
-    # Universal time from Jan 1, 2000
-    UT1 = date2julian(observer.datetime_utc) - 2451545.0
-    # earth rotation angle 
-    ERA = 2*np.pi*(( 0.7790572732640 + 1.00273781191135448* UT1 )%1)
-    lat, long = observer.lat, observer.long
-    s_lat, c_lat = np.sin(lat), np.cos(lat)
-    ra, dec = np.deg2rad(ra_degrees), np.deg2rad(dec_degrees)
-
-    h = -ra + long + ERA   #Hour angle    
-
-    Az = np.arctan2(np.sin(h), np.cos(h)*s_lat - np.tan(dec)*c_lat )
-    al = np.arcsin(np.sin(dec)*s_lat + np.cos(dec)*np.cos(h)*c_lat)
-    return np.rad2deg(al), np.rad2deg(Az)
-
+from HARey.astro_functions import Ry, Rz, sph2cart, cart2sph
 
 
 ##################### STEREOGRAPHIC PROJECTION ################

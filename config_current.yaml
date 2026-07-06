@@ -1,5 +1,5 @@
 dpi: 300
-min_FOV: 60
+min_FOV: 20
 star_size:
   limiting_mag: 5.5
   limit_size: 0.01
@@ -11,9 +11,9 @@ line_alpha:
   ecliptic: 0.5
 line_widths:
   scale_factor: 0.006
-  constellations: 1.49
+  constellations: 1.0
   bkg_constellations: 1.0
-  shadows: 0.0
+  shadows: 2.51
   helpers: 1.0
   asterisms: 1.25
   ecliptic: 1.5
@@ -21,6 +21,9 @@ line_widths:
   grid:
     thick: 0.8
     thin: 0.6
+  planisphere:
+    borders: 1.0
+    meridians: 0.6
 line_styles:
   constellations: solid
   bkg_constellations: solid
@@ -28,10 +31,20 @@ line_styles:
   helpers: dotted
   asterisms: solid
   ecliptic: dashed
+  planisphere:
+    meridians: dotted
+    borders: solid
+  sky_view:
+    horizon: dashed
+  polar:
+    grid: dashed
+  equatorial:
+    grid: dashed
 stars:
   size_factor:
     card_plot: 200.0
     equatorial: 10.0
+    polar: 400.0
   pad_mode: proportional
   pad_size:
     proportional: 2.0
@@ -39,36 +52,38 @@ stars:
   shadow:
     offset_x: 0.001
     offset_y: 0.001
-    size: 1.5
+    size: 0.0
     alpha: 1.0
     line_w: 0.1
-  pad: 1.1
-  alpha_pad: 0.9
+  pad:
+    size: 1.6
+    alpha: 0.9
+    line_w: 0.4
   alpha_bkg: 0.8
   alpha_faint: 0.8
   alpha_high: 1.0
-star_colormap: helland
+star_colormap: stellarium
 milky_way:
   mw_levels: 5
   alpha_low: 0.15
   alpha_high: 0.3
 zodiac:
-  width: 0.2
+  width: 0.4
   alpha_1: 0.7
   alpha_2: 0.2
-  diamond_size: 0.05
+  diamond_size: 0.15
 colors:
   sky: '#ffffff'
   stars: '#ffffff'
   star_pad: '#000000'
-  milky_way: '#6156f5'
+  milky_way: '#ffffff'
   shadow: '#000000'
   con_lines: '#000000'
   con_lines_shadow: '#000000'
   asterisms: '#32cd32'
   helpers: '#ff7f50'
   horizon: '#ffffff'
-  grid: '#ffff00'
+  grid: '#ff6633'
   ecliptic: '#ff0000'
   zodiac: '#ffa500'
   cardinals: '#8b0000'
@@ -87,11 +102,11 @@ flags:
   con_lines: true
   con_names: true
   con_parts: false
-  asterisms: false
+  asterisms: true
   helpers: false
-  star_names: false
-  grid: false
-  ecliptic: false
+  star_names: true
+  grid: true
+  ecliptic: true
   zodiac: false
   milky_way: true
   harey_stars: true
@@ -114,3 +129,13 @@ font_sizes:
   equatorial_plot:
     s: 7
     l: 10
+  polar_plot:
+    s: 7
+    l: 10
+calendar:
+  size: 0.1
+  font_sizes:
+    days: 0.6
+    months: 0.8
+planisphere:
+  hatch: /

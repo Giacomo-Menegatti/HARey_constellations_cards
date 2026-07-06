@@ -74,7 +74,7 @@ def date2julian(date):
 
 
 
-def radec2altaz(ra_degrees, dec_degrees, observer):
+def radec2azalt(ra_degrees, dec_degrees, observer):
     """
     Return the Alt and Az coordinates of the stars for a given observer.
 
@@ -98,7 +98,7 @@ def radec2altaz(ra_degrees, dec_degrees, observer):
 
     Az = np.arctan2(np.sin(h), np.cos(h)*s_lat - np.tan(dec)*c_lat )
     al = np.arcsin(np.sin(dec)*s_lat + np.cos(dec)*np.cos(h)*c_lat)
-    return np.rad2deg(al), np.rad2deg(Az)
+    return np.rad2deg(Az), np.rad2deg(al)
 
 def ERA(datetime):
     """ Compute the Earth Rotation Angle in DEGREES for a given datetime in UTC."""

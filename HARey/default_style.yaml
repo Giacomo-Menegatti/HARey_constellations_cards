@@ -38,13 +38,16 @@ line_widths:
   helpers: 1.0            # Helper lines relative width
   asterisms: 1.25         # Asterism lines relative width
   ecliptic: 1.5           # Ecliptic line relative width
-  zodiac: 0.3             # Zodiac lines relative width
+  zodiac: 
+    thin: 1.0
+    thick: 4.0
   grid:                   # Grid lines relative width (both thick and thin)
     thick: 0.8
     thin: 0.6
   planisphere: 
     borders: 1.0
     meridians: 0.6
+  
 
 # Line styles
 
@@ -58,6 +61,13 @@ line_styles:
   planisphere:
     meridians: dotted
     borders: solid
+  sky_view:
+    horizon: dashed
+  polar:
+    grid: dashed
+  equatorial:
+    grid: dashed
+
 
 
 
@@ -74,22 +84,24 @@ stars:
     equatorial: 10.0      # Scale factor in an equatorial full-sky plot
     polar: 100.0           # Scale factor for the polar map
 
-  # Pad size for lines. The pad is the empty area around the star where the constellation lines stop
-  pad_mode: proportional  # Pad mode, either proportional or constant
-
-  pad_size:
-    proportional: 2.0     # proportional pad size (bigger stars will have bigger pads)
-    constant: 0.2         # constant pad size (all stars will have the same pad size)
+  # Pad size for lines. The pad is the empty area around the star where the constellation lines stop  
+  # The pad is computed as star_size * proportional_term + constant_term
+  line_pad:
+    proportional: 2.0     # proportional term
+    constant: 0.01         # constant term
 
   shadow: # Shadow below the highlighted stars
     offset_x: 0.001       # Offset factor in the x direction (proportional to the star size)
     offset_y: 0.001       # Offset factor in the y direction
     size: 1.5             # Size of the shadow compared to the star size
     alpha: 1.0            # Transparency of the shadow
-    line_w : 0.1          # Relative line width of the shadow
+    line_w : 0.1         # Relative line width of the shadow
 
-  pad: 1.05               # Relative size of the pad, the blank marker plotted below the star to work as an edge line
-  alpha_pad: 0.9          # Transparency of the blank star
+  pad:
+    size: 1.05
+    alpha: 0.8
+    line_w: 0.0
+
   alpha_bkg: 0.8          # Transparency of the background stars (those rendered with a dot, below 5.5 mag)
   alpha_faint: 0.8        # Transparency of not-highlighted stars
   alpha_high: 1.0         # Transparency of highlighted stars
@@ -111,10 +123,13 @@ milky_way:
 # =========================================
 
 zodiac:
-  width: 0.4          # Width of the zodiac ribbon (scale factor w.r.t the marker size)
-  alpha_1: 0.7        # Alpha value of the more opaque parts
-  alpha_2: 0.2        # Alpha value of the less opaque parts
-  diamond_size: 0.15  # Size of the diamond markers (scale factor w.r.t the marker size)
+  ribbon_width: 1.0          # Width of the zodiac ribbon (scale factor w.r.t the marker size)
+  ribbon_alpha : 0.2
+  pad_size: 1.2    # Size of the circle markers (scale factor w.r.t the marker size)
+  pad_alpha: 0.9
+  text_size: 0.8
+  thick_spacing: 30
+  thin_spacing: 5
 
 # =========================================
 # COLOR SETTINGS
@@ -150,6 +165,7 @@ colors:
   con_parts: '#ee82ee'        # Constellation part labels
   asterism_labels: '#00ff00'  # Asterism labels
   ecliptic_label: '#ff0000'   # Ecliptic label
+  zodiac_label: '#fff000'     # Zodiac label
 
 # =========================================
 # PLOT SETTINGS FLAGS
