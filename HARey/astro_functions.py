@@ -141,6 +141,27 @@ def equation_of_time(year, day):
     delta_t_ey = -7.659 * np.sin(D) + 9.863 * np.sin(2 * D + 3.5932)
     return delta_t_ey
 
+def local_time_offset(longitude='0 E', timezone='Europe/London'):
+    """
+    Compute the difference between local time and timezone as a fraction of a day.
+    A positive offset means that the local time is ahead of the timezone
+
+    Args:
+        - longitude (str): The longitude of the observer in degrees, e.g. '15 E' or '15 W'
+        - timezone (str): The timezone of the observer
+    """
+    # Get the longitude as a fraction of a full angle, positive for E, negative for W
+    long = float(longitude[:-1])/360 * (-1 if longitude[-1]=='W' else 1)
+
+    zone = pytz.timezone(timezone)
+    # Set a date during the winter, to use Standard Time
+    winter = zone.localize(datetime(2000, 1, 1))
+    # Compute the difference from UTC in fractions of a day
+    timezone_offset = winter.utcoffset().total_seconds()/(24*3600)
+
+    # Return the offset as Local Time - Timezone. 
+    return long - timezone_offset
+
 
 ### OBSERVER CLASS
 

@@ -15,9 +15,10 @@ import os
 
 from HARey.projections import azimuthal_radius, local2polarmap, stereo_polar,  azimuthal_polar, stereo_radius
 from HARey.curved_text import curved_text
+from HARey.astro_functions import local_time_offset
 
 
-def plot_mater(self, *flags, lat=45, FOV=210, figsize=8, save_name = None, mode='azimuth', face='front',
+def plot_mater(self, *flags, lat=45, long='0.0 E', timezone='UTC', FOV=210, figsize=8, save_name = None, mode='azimuth', face='front',
                 SOLID_FILL=True, MARK_CENTER=True, INVERT_CALENDAR=False, calendar_width=None):
     """ Class to plot the mater (the local sky dome projected on the equatorial plane).
     
@@ -25,10 +26,10 @@ def plot_mater(self, *flags, lat=45, FOV=210, figsize=8, save_name = None, mode=
         - lat (str): Latitude of the observer (in degrees), e.g. '45.0 N' or '30.0 S'.
         - FOV (float): Field of view of the projection in degrees (default is 210).
         - figsize (float): Size of the figure in inches (default is 8x8 inches).
-        - save_name (str): Name of the file to save the plot. If not None, overrides the flag SAVE.
-
+        - save_name (str): Name of the file to save the plot. If None, saves the plot with a default name if the flag 'save' is set.
         - mode ('azimuth' or 'stereo'): Projection mode, either azimuthal or stereographic. Default is 'azimuth'.
-        - face ('front' or 'back'): Type of the mater to plot, either 'front' or 'back' (for 2-sided planispheres)
+        - face ('front' or 'back'): Type of the mater to plot, either 'front' or 'back' (for 2-sided planispheres).
+
 
         - SOLID_FILL (bool): If True, fills the mater with a solid color, otherwise with a hatch pattern. Default is True.
         - MARK_CENTER (bool): If True, marks the center of the mater with a cross. Default is True.
@@ -217,11 +218,14 @@ def plot_mater(self, *flags, lat=45, FOV=210, figsize=8, save_name = None, mode=
     hour_r = start_radius + spacing/2
     circle_r = start_radius + spacing
 
+    # Plot the hours 
     for hour in range(1,25):
-        angle = - sign * np.pi/12*hour        
+        # Get the angle of the hour with the local time offset. If the offset is positive, the local time is ahead of the timezone
+        # The South direction corresponds to 12:00 local time, so the hour markers are shifted by the offset
+        angle = - sign * np.pi/12*(hour + 24*local_time_offset(longitude=long, timezone=timezone))     
         curved_text(ax, f'{hour:02}', r = hour_r, angle_offset=angle, font_size=0.8*spacing, font_prop=self.fonts['calendar'])
 
-    for angle in np.linspace(0,2*np.pi,49):
+    for angle in np.linspace(0,2*np.pi,49) - 2*np.pi*local_time_offset(longitude=long, timezone=timezone):
         ax.plot([circle_r*np.sin(angle), start_radius*np.sin(angle)], [circle_r*np.cos(angle), start_radius*np.cos(angle)], color='k', ls='-.', lw=0.3)
 
     if MARK_CENTER:
@@ -237,7 +241,7 @@ def plot_mater(self, *flags, lat=45, FOV=210, figsize=8, save_name = None, mode=
         plt.close()
 
 
-def create_planisphere(self, *flags, lat='45 N', FOV=200, save_folder = None, figsize=8, mode='azimuth', 
+def create_planisphere(self, *flags, lat='45.0 N', long='0.0 E', timezone='UTC', FOV=200, save_folder = None, figsize=8, mode='azimuth', 
                         SOLID_FILL=False, MARK_CENTER=True, font_sizes=(5,7), star_size=50, calendar_width=0.10):
     """Create a one-sided planisphere set by plotting the mater and the polar map.
     
@@ -269,14 +273,14 @@ def create_planisphere(self, *flags, lat='45 N', FOV=200, save_folder = None, fi
     lat = lat if pole == 'N' else -lat
 
     # Plot and save the mater       
-    self.plot_mater(*flags, lat=lat, FOV=FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL, calendar_width=calendar_width)     
+    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, save_name=f'{dir}/mater_{lat}.png', mode=mode, face='front', SOLID_FILL=SOLID_FILL, calendar_width=calendar_width)     
 
     name = 'North' if pole == 'N' else 'South'
     self.polar_map(*flags, pole=pole, FOV=FOV, figsize=figsize, save_name=f'{dir}/{name}_polar_map.png', mode=mode,
                     ADD_CALENDAR=True, MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes, calendar_width=calendar_width)
 
 
-def create_planisphere_2sided(self, *flags, lat='45 N', FOV=200, save_folder = None, figsize=8, mode='azimuth', 
+def create_planisphere_2sided(self, *flags, lat='45.0 N', long='0,0 E', timezone='UTC', FOV=200, save_folder = None, figsize=8, mode='azimuth', 
                         SOLID_FILL=False, MARK_CENTER=True, INVERT_CALENDAR=False, font_sizes=None, star_size=None, calendar_width=None):
     """Create a 2-sided planisphere set, with two maters (front and back) and two polar maps (north and south).
     
@@ -309,10 +313,10 @@ def create_planisphere_2sided(self, *flags, lat='45 N', FOV=200, save_folder = N
     lat = lat if pole == 'N' else -lat
 
     # Plot and save the front mater
-    self.plot_mater(*flags, lat=lat, FOV=FOV, figsize=figsize, mode=mode, face='front', SOLID_FILL=SOLID_FILL,\
+    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, mode=mode, face='front', SOLID_FILL=SOLID_FILL,\
                      MARK_CENTER=MARK_CENTER, INVERT_CALENDAR = INVERT_CALENDAR, calendar_width=calendar_width)
     # Plot and save the back mater
-    self.plot_mater(*flags, lat=lat, FOV=FOV, figsize=figsize, mode=mode, face='back', SOLID_FILL=SOLID_FILL,\
+    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, mode=mode, face='back', SOLID_FILL=SOLID_FILL,\
                      MARK_CENTER=MARK_CENTER, INVERT_CALENDAR = INVERT_CALENDAR, calendar_width=calendar_width)
 
     # Plot and save the polar maps
