@@ -158,6 +158,7 @@ colors:
   cardback_2: '#660000'       # Color of the cardback, second type
   accent_1: '#b8860b'         # Color of the accent on the first cardback
   accent_2: '#b8860b'         # Color of the accent on the second cardback
+  calendar: '#000000'
 
 
   star_names: '#ffd700'       # Star name labels
@@ -190,6 +191,7 @@ flags:
   save: false                # Save the plots. Plots are saved by default if given a save_name    
   star_colors: true           # Use realistic colors for the stars or all the same color
   show_guides: false          # Show the cards safe plot area. Just for debugging purposes
+  radial_labels: true
 
 # =========================================
 # FONT SETTINGS
@@ -219,12 +221,35 @@ font_sizes:
     l: 10
 
 calendar:
-  size: 0.1
-  font_sizes:
+  ring_size : 0.1
+  bleed_size : 0.3
+  line_width : 0.8
+  line_style : 'solid'
+
+  labels_pos:
+    day : 0.5
+    month : 0.5
+    hour : 0.55
+
+  day_marker_size: 4
+  day_markers: 'o'
+
+  font_widths:
     days: 0.6
     months: 0.8
+    hours: 0.8
+    circles: 0.0
+
+  cardinals_font_size: 10
+
+  hours_lw: 0.5
+  hours_ls: 'solid'
+  half_hours_lw: 0.8
+  half_hours_ls: 'dashed'
+  quarter_hours_lw: 0.4
+  quarter_hours_ls: 'dotted'
 
 planisphere:
-  hatch : '/'
+  hatch : '.....'
 
 

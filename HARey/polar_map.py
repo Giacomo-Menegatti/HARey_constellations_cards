@@ -19,7 +19,7 @@ from HARey.curved_text import curved_text
 
 
 def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None, mode='stereo', star_size = None, font_sizes = None,
-			   ADD_CALENDAR=False, INVERT_CALENDAR=False, MARK_CENTER=False, calendar_width=None):
+			   ADD_CALENDAR=False, CALENDAR_OUTSIDE=False, INVERT_CALENDAR=False,MARK_CENTER=False, calendar_width=None):
 	"""
 	Plot a stereographic map of the stars near the celestial poles. Uses either a stereographic or an azimuthal projection:
 	the first preserves shapes but enlarges further objects more, the second distorts shapes but prevents extreme enlargements.
@@ -38,7 +38,8 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 		WARNING: The next three flags are only used to add the calendar when plotting the map for a planisphere.
 
 		- ADD_CALENDAR (bool): Adds the calendar ring to the plot. Default is False.
-		- INVERT_CALENDAR (bool): Plots the calendar (Month-Day-Hour) outwards instead of inwards. Default is False.
+		- CALENDAR_OUTSIDE (bool): Plots the calendar (Month-Day-Hour) outwards instead of inwards. Default is False.
+		- INVERT_CALENDAR (bool): Rotates the calendar and hour rings by 180 degrees. For construction planispheres only. Default is False.
 		- MARK_CENTER (bool): If True, marks the center of the map with a cross. Default is False.
 
 	"""
@@ -61,7 +62,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	star_size = self.style['stars']['size_factor']['polar'] if star_size == None else star_size
 	font_sizes = self.style['font_sizes']['polar_plot'] if font_sizes == None else {k:size for k, size in zip(('s','l'), font_sizes)}
 
-	calendar_width = self.style['calendar']['size'] if calendar_width == None else calendar_width
+	calendar_width = self.style['calendar']['ring_size'] if calendar_width == None else calendar_width
 
 	# Scale the star sizes and the text labels based on the plot area and the FOV
 	figure_scale = (figsize/8)**2.0 				# Scale w.r.t the area of a 8x8 inches figure
@@ -76,7 +77,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	fig.subplots_adjust(0,0,1,1)
 
 	# Compute the radius of the map available to the plot if the calendar is present
-	usable_radius = 1 - self.style['calendar']['size'] if ADD_CALENDAR else 1
+	usable_radius = 1 - self.style['calendar']['ring_size'] if ADD_CALENDAR else 1
 	map_radius =  usable_radius*figsize
 
 	# Set ax limits and make them a little bigger than the figsize to avoid cutting the edges off the circle
@@ -132,66 +133,86 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 		   		ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			ax.add_patch(grid_circle)
 
+	# Clip everything to the box plot
+	for col in ax.collections:
+		col.set_clip_path(box)
+
+	if MARK_CENTER:
+	# Add a marker at the center of the plot
+		ax.plot(0,0, '+', color=self.COLORS['grid'], markersize=3, lw=0)
+
 	# Add the calendar ring outside of the plot to use it in a planisphere
 	if ADD_CALENDAR:
+
+		CALENDAR = self.style['calendar']
 		
 		# Compute the inner and outer radii of the three rings
 		start_radius, end_radius = figsize, usable_radius * figsize
 
 		# If the calendar is inverted, swap start and end radii
-		if INVERT_CALENDAR:
+		if not CALENDAR_OUTSIDE:
 			start_radius, end_radius = end_radius, start_radius
 
+			
 		# Compute the spacing between the rings
-		spacing = (end_radius-start_radius)/3
+		ring_w = (end_radius-start_radius)/(3 + CALENDAR['bleed_size'])
 
+		color = self.COLORS['calendar']
 		# Plot the rings
-		for i in range(4):
-			ax.add_patch(Circle((0,0), start_radius + i*spacing, fill=False, edgecolor='k', lw=0.5))
+		for i in (0, 1, 2, 2+CALENDAR['bleed_size'], 3+CALENDAR['bleed_size']):
+			ax.add_patch(Circle((0,0), start_radius + i*ring_w, fill=False, edgecolor=color, lw=CALENDAR['line_width'], linestyle=CALENDAR['line_style']))
 
 		# Angle of the spring Equinox, which correspond to the 0 RA value, which will be down
 		equinox_offest = datetime(2001,3,20).timetuple().tm_yday/365
 		
 		# Compute the radii where the day and month labels will be plotted
-		r_days = start_radius + 1.5*spacing
-		r_months = start_radius + 2.45*spacing
+		r_days = start_radius + (1.0+ CALENDAR['labels_pos']['day'])*ring_w
+		r_months = start_radius + (CALENDAR['labels_pos']['month'])*ring_w
+
+		calendar_offset = np.pi if INVERT_CALENDAR else 0.0
 
 		# Function to compute the angle of a day on the celendar, from the fraction of the year it corresponds to
-		time2angle = lambda time: c*(time - equinox_offest)*2*np.pi + np.pi
+		time2angle = lambda time: c*(time - equinox_offest)*2*np.pi + np.pi + calendar_offset
 
 		# Plot the day and month labels, going clockwise if seen from the north pole and counterclockwise if seen from the south
-
+		
 		for m in range(1,13):
 			# For each month, get the number of days
 			days_in_month = monthrange(2001,m)[1]
 
-			# Plot the day label every fifth day of the month
-			for day in range(5,days_in_month+1,5):
+			# Plot the day markers
+			for day in range(1,days_in_month+1):
 				# Get the time as a fraction of the whole year
 				time = datetime(2001, m, day).timetuple().tm_yday/365
-				# Plot the day label 
-				curved_text(ax, text=f'{day}', r=r_days, angle_offset = time2angle(time), \
-							 font_size=self.style['calendar']['font_sizes']['days']*spacing, font_prop=self.fonts['calendar'])
+				angle = time2angle(time)
+
+				# Get the radius at which the marker will be plotted
+				marker_radius = start_radius + 2*ring_w
+				# Plot a filled circle if the day is the first of the month or a multiple of 5
+
+				fc = color if day%5==0 or day==1 else 'w'
+				ax.scatter(marker_radius*np.sin(angle), marker_radius*np.cos(angle), s=CALENDAR['day_marker_size'], marker=CALENDAR['day_markers'], ec=color, fc=fc, lw=CALENDAR['line_width'])
+
+				# Plot the day label every fifth day
+				if day%5==0:
+					curved_text(ax, text=f'{day}', r=r_days, angle_offset = angle, \
+							 font_size= - CALENDAR['font_widths']['days']*ring_w, font_prop=self.fonts['calendar'])
 
 			# Plot the month label in the middle of the month
 			time = (datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365
 			month_name = f'{datetime(2001,m,1).strftime("%B").upper()}'
 
 			curved_text(ax, text=month_name, r=r_months, angle_offset = time2angle(time), \
-			    		font_size=self.style['calendar']['font_sizes']['months']*spacing, font_prop=self.fonts['calendar'])
+			    		font_size= - CALENDAR['font_widths']['months']*ring_w, font_prop=self.fonts['calendar'])
 
-	if MARK_CENTER:
-		# Add a marker at the center of the plot
-		ax.plot(0,0, '+', color=self.COLORS['grid'], markersize=3, lw=0)
 
-	# Clip everything to the box plot
-	for col in ax.collections:
-			col.set_clip_path(box)
 
+	# Plot all the labels
 	for name in labels:
 		label = labels[name]
+		rot = np.rad2deg(np.arctan2(label['y'], label['x'])) + 90 if self.FLAGS['radial_labels'] else 0
 		ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_sizes[label['font_size']],\
-		   font=self.fonts['labels'], ha=label['ha'], va=label['va'])
+		   font=self.fonts['labels'], ha=label['ha'], va=label['va'], rotation=rot, rotation_mode='anchor')
 
 	# Save the image with all the labels
 	if self.FLAGS['save']:
