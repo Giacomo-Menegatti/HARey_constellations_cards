@@ -44,15 +44,15 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 
 	"""
 
-	self.FLAGS = self.flags.resolve(*flags)
-	self.COLORS = self.colors.colors
+	FLAGS = self.flags.resolve(*flags)
+	COLORS = self.colors.colors
 
 	# If the save_name is not None or sis_script is enabled, save automatically the plot
 	if not save_name == None:
-		self.FLAGS['save'] = True
+		FLAGS['save'] = True
 
 	# Default file name
-	if self.FLAGS['save'] and save_name==None:
+	if FLAGS['save'] and save_name==None:
 		pole_name = 'North' if pole == 'N' else 'South' if pole == 'S' else ''
 		save_name = f'{pole_name}_polar_map.png'
 
@@ -86,7 +86,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	ax.set_axis_off()
 
 	# Add the circular patch
-	box = Circle((0, 0), map_radius, color=self.COLORS['sky'], fill=True)
+	box = Circle((0, 0), map_radius, color=COLORS['sky'], fill=True)
 	ax.add_patch(box)
 
 	# Compute the scale to apply to the plot
@@ -113,23 +113,23 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	# Get the line width
 	line_w = marker_size * self.style['line_widths']['scale_factor'] * self.style['line_widths']['grid']['thin']
 
-	if self.FLAGS['grid']: 
+	if FLAGS['grid']: 
 		inner_grid_r = scale*azimuthal_radius(2*10) if mode=='azimuth' else scale*stereo_radius(20)
 		line = np.array((inner_grid_r, map_radius))
 		theta = np.pi/12
 
 		for ra in np.arange(1,25):
-			ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.plot(line*np.cos(ra*theta), line*np.sin(ra*theta), color=COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
 			ax.text(0.97*map_radius*np.cos(ra*theta), 0.97*map_radius*np.sin(ra*theta), s=f'{ra} h', font = self.fonts['labels'],
-					color=self.COLORS['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
+					color=COLORS['grid'], ha = 'center', va = 'center', fontsize = font_sizes['s'])
 
 		for fov in np.arange(10, FOV/2, 10):
 
 			radius = azimuthal_radius(2*fov) if mode == 'azimuth' else stereo_radius(2*fov)
 
-			grid_circle = Circle(xy=(0,0), radius= scale * radius, color=self.COLORS['grid'], fill=False, \
+			grid_circle = Circle(xy=(0,0), radius= scale * radius, color=COLORS['grid'], fill=False, \
 						linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=self.COLORS['grid'], \
+			ax.text(scale * radius, 0, s = f'{(90 - fov):.0f}° {pole}', color=COLORS['grid'], \
 		   		ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			ax.add_patch(grid_circle)
 
@@ -139,7 +139,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 
 	if MARK_CENTER:
 	# Add a marker at the center of the plot
-		ax.plot(0,0, '+', color=self.COLORS['grid'], markersize=3, lw=0)
+		ax.plot(0,0, '+', color=COLORS['grid'], markersize=3, lw=0)
 
 	# Add the calendar ring outside of the plot to use it in a planisphere
 	if ADD_CALENDAR:
@@ -157,7 +157,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 		# Compute the spacing between the rings
 		ring_w = (end_radius-start_radius)/(3 + CALENDAR['bleed_size'])
 
-		color = self.COLORS['calendar']
+		color = COLORS['calendar']
 		# Plot the rings
 		for i in (0, 1, 2, 2+CALENDAR['bleed_size'], 3+CALENDAR['bleed_size']):
 			ax.add_patch(Circle((0,0), start_radius + i*ring_w, fill=False, edgecolor=color, lw=CALENDAR['line_width'], linestyle=CALENDAR['line_style']))
@@ -210,15 +210,15 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	# Plot all the labels
 	for name in labels:
 		label = labels[name]
-		rot = np.rad2deg(np.arctan2(label['y'], label['x'])) + 90 if self.FLAGS['radial_labels'] else 0
+		rot = np.rad2deg(np.arctan2(label['y'], label['x'])) + 90 if FLAGS['radial_labels'] else 0
 		ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_sizes[label['font_size']],\
 		   font=self.fonts['labels'], ha=label['ha'], va=label['va'], rotation=rot, rotation_mode='anchor')
 
 	# Save the image with all the labels
-	if self.FLAGS['save']:
+	if FLAGS['save']:
 		plt.savefig(save_name, transparent=True, dpi=self.dpi, pad_inches=0)
 
-	if self.FLAGS['show']:
+	if FLAGS['show']:
 		plt.show()
 	else:
 		plt.close()

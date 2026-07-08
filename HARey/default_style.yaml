@@ -83,6 +83,7 @@ stars:
     card_plot: 200.0      # Scale factor in a card plot
     equatorial: 10.0      # Scale factor in an equatorial full-sky plot
     polar: 100.0           # Scale factor for the polar map
+    sky_view: 100.0
 
   # Pad size for lines. The pad is the empty area around the star where the constellation lines stop  
   # The pad is computed as star_size * proportional_term + constant_term
@@ -219,6 +220,12 @@ font_sizes:
   polar_plot:
     s: 7
     l: 10
+  sky_view:
+    s: 7
+    l: 10
+
+sky_view:
+  border_size: 0.05
 
 calendar:
   ring_size : 0.1

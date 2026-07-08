@@ -18,7 +18,7 @@ from HARey.astro_functions import radec2azalt
 from HARey.projections import stereo_radius, stereo_polar
 from HARey.plot_map import plot_map
 
-def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = None, star_size = 100, font_sizes = (6,7)):
+def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = None, star_size = None, font_sizes = None):
     """
     Plot an Alt-Az map of the stars seen by the observer at the given date and time
     FOV is the filed of view of the sky (182° includes more stars than the ones visible).
@@ -43,12 +43,17 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     if self.FLAGS['save'] and save_name==None:
         save_name = 'Sky_view.png'
 
+    star_size = self.style['stars']['size_factor']['sky_view'] if star_size == None else star_size
+    font_sizes = self.style['font_sizes']['sky_view'] if font_sizes == None else {k:size for k, size in zip(('s','l'), font_sizes)}
+
 
     # Scale the star sizes and the text labels based on the plot area and the FOV
-    marker_scale = (figsize/8)*np.sqrt(stereo_radius(180)/stereo_radius(FOV))
+    figure_scale = (figsize/8)**2.0 				# Scale w.r.t the area of a 8x8 inches figure
+    area_scale = (stereo_radius(180)/stereo_radius(FOV))**2		# Scale w.r.t the area of a 100° FOV area plot
 
-    font_sizes = {k:marker_scale*size for k,size in zip(('s', 'l'), font_sizes)}
-    marker_size = star_size * marker_scale**2      	
+	# Apply the scale to the markers (and lines) and to the labels
+    marker_size = star_size*figure_scale*area_scale
+    font_sizes = {k:round(np.sqrt(figure_scale*area_scale)*font_sizes[k]) for k in font_sizes}	     	
     line_w = marker_size * 0.0075	
 
     #Get the custom markers        
@@ -60,15 +65,15 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     fig.subplots_adjust(0,0,1,1)
 
     # Set ax limits
-    ax.set_xlim(-figsize, figsize)
-    ax.set_ylim(-figsize, figsize)
+    ax.set_xlim(-1.01*figsize, 1.01*figsize)
+    ax.set_ylim(-1.01*figsize, 1.01*figsize)
     ax.set_axis_off()
     ax.invert_xaxis()
 
     labels = {}
 
     # Scale the coordinates
-    scale = 0.95*figsize/stereo_radius(FOV)
+    scale = (1 - self.style['sky_view']['border_size']) * figsize/stereo_radius(FOV)
     map_radius = scale*stereo_radius(FOV)
 
     #Draw the circle patch
@@ -94,7 +99,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     
 
     #Plot the compass ring   
-    compass = Annulus((0,0), r=0.99*figsize, width=(0.04*figsize), color=self.COLORS['border'], transform=ax.transData)
+    compass = Annulus((0,0), r=figsize, width=(self.style['sky_view']['border_size']*figsize), color=self.COLORS['border'], transform=ax.transData)
     ax.add_patch(compass)
 
 	# Clip everything to the box plot
@@ -102,7 +107,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
         col.set_clip_path(box)
 
     #Plot the markers inside the compass ring
-    m_radius = 0.97*figsize
+    m_radius = (1 - 0.5*self.style['sky_view']['border_size'])*figsize
 
     for i, marker in enumerate(cardinal_markers):
         t = Affine2D().rotate_deg(90*i)
