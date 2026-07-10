@@ -1,0 +1,55 @@
+calendar:
+
+  ring_size : 0.3
+
+  ring_widths:
+    inner_pad : 1
+    hour_ring: 1
+    bleed_ring: 1
+    day_ring: 1
+    month_ring: 1
+    outer_pad : 1
+
+  line_widths : 
+    inner_pad : 1
+    hour_ring: 1
+    bleed_ring: 1
+    day_ring: 1
+    month_ring: 1
+    outer_pad : 1
+    
+
+  line_width : 1.0
+
+  cut_angle : 180
+  cut_lines_w : 1.0
+
+  labels_pos:
+    day : 0.5
+    month : 0.5
+    hour : 0.45
+
+  day_marker_size: 4
+  day_markers: 'o'
+
+  font_widths:
+    days: 0.6
+    months: 0.8
+    hours: 0.8
+
+  cardinals_font_size: 10
+
+  ticks_lw:
+    hours: 0.9
+    half_hours: 0.8
+    quarter_hours: 0.7
+  
+  ticks_len:
+    hours: 0.15
+    half_hours: 0.55
+    quarter_hours: 0.35
+
+planisphere:
+  hatch : '.....'
+
+

@@ -53,7 +53,7 @@ def plot_mater(self, *flags, lat=45, long='0.0 E', timezone='UTC', FOV=210, figs
         pole = 'N' if lat > 0 else 'S'
         save_name = f'mater_{lat}{pole}.png'
 
-    calendar_width = self.style['calendar']['size'] if calendar_width == None else calendar_width
+    calendar_width = CALENDAR['ring_size'] if calendar_width == None else calendar_width
 
     # Get the line widths and styles
     LWS = self.style['line_widths']['planisphere']
@@ -207,52 +207,69 @@ def plot_mater(self, *flags, lat=45, long='0.0 E', timezone='UTC', FOV=210, figs
     # Create the hour and calendar rings
 
     # Compute the inner and outer radii of the three rings
-    start_radius, end_radius = figsize, (1 - CALENDAR['ring_size']) * figsize
+    start_radius, end_radius = (1 - calendar_width) * figsize, figsize
 
     # If the calendar is inverted, swap start and end radii
     if not CALENDAR_OUTSIDE:
         start_radius, end_radius = end_radius, start_radius
 
         
-    # Compute the spacing between the rings
-    ring_w = (end_radius-start_radius)/(3 + CALENDAR['bleed_size'])
+    RING_WIDTHS = CALENDAR['ring_widths']
+    LWS = CALENDAR['line_widths']
 
-    # Plot the rings
-    for i in (0, 1, 2, 2+CALENDAR['bleed_size'], 3+CALENDAR['bleed_size']):
-        ax.add_patch(Circle((0,0), start_radius + i*ring_w, fill=False, edgecolor=COLORS['calendar'], lw=CALENDAR['line_width'], linestyle=CALENDAR['line_style']))
+    ring_widths = list(RING_WIDTHS.values())
+    norm = np.sum(ring_widths)
 
+    ring_widths = (end_radius - start_radius)/norm * np.array(ring_widths)
 
-    # Fill the hour ring
-    hour_r = end_radius - (1 - CALENDAR['labels_pos']['hour'])*ring_w
-    circle_r = end_radius - ring_w
+    RING_WIDTHS = {key: ring_width for key, ring_width in zip(RING_WIDTHS.keys(), ring_widths)}
+    ring_radii = {key : start_radius + np.sum(ring_widths[:i+1]) for i, key in enumerate(RING_WIDTHS.keys())}
+
+    ax.add_patch(Circle((0,0), ring_radii['inner_pad'], fill=False, edgecolor=COLORS['calendar'], lw = LWS['inner_pad'], ls='solid'))
+    ax.add_patch(Circle((0,0), ring_radii['hour_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['hour_ring'], ls='solid'))
+
+    ax.add_patch(Circle((0,0), ring_radii['bleed_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['bleed_ring'], ls='solid'))                      
+    ax.add_patch(Circle((0,0), ring_radii['month_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['month_ring'], ls='solid'))
 
     calendar_offset = np.pi if INVERT_CALENDAR else 0
 
     # Compute the 
     hour2angle = lambda hour: - sign * (hour/24 + local_time_offset(longitude=long, timezone=timezone)) * 2 * np.pi + calendar_offset
 
+    angular_line = lambda r1, r2, angle : ((r1*np.sin(angle), r2*np.sin(angle)), (r1*np.cos(angle), r2*np.cos(angle)))
+
     # Plot the hour lines
+    r_tick = ring_radii['hour_ring'] - CALENDAR['ticks_len']['hours']*RING_WIDTHS['hour_ring']
     for t in range(0,24):
         angle = hour2angle(t)
-        ax.plot([circle_r*np.sin(angle), end_radius*np.sin(angle)], [circle_r*np.cos(angle), end_radius*np.cos(angle)], color=COLORS['calendar'], ls=CALENDAR['hours_ls'], lw=CALENDAR['hours_lw'])
+        ax.plot(*angular_line(r_tick, ring_radii['hour_ring'], angle), color=COLORS['calendar'], ls='solid', lw=CALENDAR['ticks_lw']['hours'])
 
     # Plot the half-hours markers
+    r_tick = ring_radii['hour_ring'] - CALENDAR['ticks_len']['half_hours']*RING_WIDTHS['hour_ring']
     for t in range(1,48,2):
         angle = hour2angle(t/2)
-        ax.plot([circle_r*np.sin(angle), end_radius*np.sin(angle)], [circle_r*np.cos(angle), end_radius*np.cos(angle)], color=COLORS['calendar'], ls=CALENDAR['half_hours_ls'], lw=CALENDAR['half_hours_lw'])
+        ax.plot(*angular_line(r_tick, ring_radii['hour_ring'], angle), color=COLORS['calendar'], ls='solid', lw=CALENDAR['ticks_lw']['half_hours'])
 
     # Plot the quarter-hours markers
+    r_tick = ring_radii['hour_ring'] - CALENDAR['ticks_len']['quarter_hours']*RING_WIDTHS['hour_ring']
     for t in range(1,96,2):
         angle = hour2angle(t/4)
-        ax.plot([circle_r*np.sin(angle), end_radius*np.sin(angle)], [circle_r*np.cos(angle), end_radius*np.cos(angle)], color=COLORS['calendar'], ls=CALENDAR['quarter_hours_ls'], lw=CALENDAR['quarter_hours_lw'])
-
+        ax.plot(*angular_line(r_tick, ring_radii['hour_ring'], angle), color=COLORS['calendar'], ls='solid', lw=CALENDAR['ticks_lw']['quarter_hours'])
+    
+    # Fill the hour ring
+    hour_r = ring_radii['inner_pad'] + RING_WIDTHS['hour_ring']*CALENDAR['labels_pos']['hour']
     # Plot the hours 
     for hour in range(1,25):
         
         angle = hour2angle(hour)   
-        ax.add_patch(Circle(xy=(hour_r*np.sin(angle), hour_r*np.cos(angle)), radius=0.5*CALENDAR['font_widths']['circles']*ring_w, ec=COLORS['calendar'], fc='w', lw=CALENDAR['line_width']))
-        curved_text(ax, f'{hour:02}', r = hour_r, angle_offset=angle, font_size= - CALENDAR['font_widths']['hours']*ring_w, font_prop=self.fonts['calendar'])
-        
+        curved_text(ax, f'{hour:02}', r = hour_r, angle_offset=angle, font_size= - CALENDAR['font_widths']['hours']*RING_WIDTHS['hour_ring'], font_prop=self.fonts['calendar'])
+
+    # Add the cut guides
+    angle = 0.5*np.deg2rad(CALENDAR['cut_angle'])
+
+    ax.plot(*angular_line(ring_radii['hour_ring'], ring_radii['month_ring'], angle), color=COLORS['calendar'], ls='dashed', lw=CALENDAR['line_width'])
+    ax.plot(*angular_line(ring_radii['hour_ring'], ring_radii['month_ring'], -angle), color=COLORS['calendar'], ls='dashed', lw=CALENDAR['line_width'])
+
 
     if MARK_CENTER:
         ax.plot(0,0,'kx', lw=0, markersize=3)
@@ -340,15 +357,15 @@ def create_planisphere_2sided(self, *flags, lat='45.0 N', long='0,0 E', timezone
     lat = lat if pole == 'N' else -lat
 
     # Plot and save the front mater
-    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, mode=mode, face='front', SOLID_FILL=SOLID_FILL,\
+    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, save_name=f'{dir}/mater_front.svg', mode=mode, face='front', SOLID_FILL=SOLID_FILL,\
                      MARK_CENTER=MARK_CENTER, CALENDAR_OUTSIDE = CALENDAR_OUTSIDE, INVERT_CALENDAR=INVERT_CALENDAR, calendar_width=calendar_width)
     # Plot and save the back mater
-    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, mode=mode, face='back', SOLID_FILL=SOLID_FILL,\
+    self.plot_mater(*flags, lat=lat, long=long, timezone=timezone, FOV=FOV, figsize=figsize, save_name=f'{dir}/mater_back.svg', mode=mode, face='back', SOLID_FILL=SOLID_FILL,\
                      MARK_CENTER=MARK_CENTER, CALENDAR_OUTSIDE = CALENDAR_OUTSIDE, INVERT_CALENDAR=INVERT_CALENDAR, calendar_width=calendar_width)
 
     # Plot and save the polar maps
-    self.polar_map(pole='N', *flags, FOV=FOV, figsize=figsize, mode=mode, ADD_CALENDAR=True, CALENDAR_OUTSIDE = CALENDAR_OUTSIDE, INVERT_CALENDAR=INVERT_CALENDAR, \
+    self.polar_map(pole='N', *flags, FOV=FOV, figsize=figsize, save_name=f'{dir}/north_polar_map.svg', mode=mode, ADD_CALENDAR=True, CALENDAR_OUTSIDE = CALENDAR_OUTSIDE, INVERT_CALENDAR=INVERT_CALENDAR, \
                    MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes, calendar_width=calendar_width)
     
-    self.polar_map(pole='S', *flags, FOV=FOV, figsize=figsize, mode=mode, ADD_CALENDAR=True, CALENDAR_OUTSIDE = CALENDAR_OUTSIDE, INVERT_CALENDAR=INVERT_CALENDAR,\
+    self.polar_map(pole='S', *flags, FOV=FOV, figsize=figsize, save_name=f'{dir}/south_polar_map.svg', mode=mode, ADD_CALENDAR=True, CALENDAR_OUTSIDE = CALENDAR_OUTSIDE, INVERT_CALENDAR=INVERT_CALENDAR,\
                    MARK_CENTER=MARK_CENTER, star_size=star_size, font_sizes=font_sizes, calendar_width=calendar_width)

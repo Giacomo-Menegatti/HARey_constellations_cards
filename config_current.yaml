@@ -1,9 +1,9 @@
-dpi: 300
+dpi: 200
 min_FOV: 20
 star_size:
   limiting_mag: 5.5
   limit_size: 0.01
-  power_law: 1.5
+  power_law: 1.0
 line_alpha:
   constellations: 1.0
   bkg_constellations: 0.3
@@ -17,7 +17,9 @@ line_widths:
   helpers: 1.0
   asterisms: 1.25
   ecliptic: 1.5
-  zodiac: 0.3
+  zodiac:
+    thin: 1.0
+    thick: 4.0
   grid:
     thick: 0.8
     thin: 0.6
@@ -44,21 +46,21 @@ stars:
   size_factor:
     card_plot: 200.0
     equatorial: 10.0
-    polar: 400.0
-  pad_mode: proportional
-  pad_size:
-    proportional: 2.0
-    constant: 0.2
+    polar: 200.0
+    sky_view: 100.0
+  line_pad:
+    proportional: 1.5
+    constant: 0.1
   shadow:
-    offset_x: 0.001
-    offset_y: 0.001
-    size: 0.0
+    offset_x: 0.003
+    offset_y: 0.003
+    size: 2.0
     alpha: 1.0
     line_w: 0.1
   pad:
-    size: 1.6
-    alpha: 0.9
-    line_w: 0.4
+    size: 1.5
+    alpha: 0.8
+    line_w: 0.5
   alpha_bkg: 0.8
   alpha_faint: 0.8
   alpha_high: 1.0
@@ -68,24 +70,27 @@ milky_way:
   alpha_low: 0.15
   alpha_high: 0.3
 zodiac:
-  width: 0.4
-  alpha_1: 0.7
-  alpha_2: 0.2
-  diamond_size: 0.15
+  ribbon_width: 1.0
+  ribbon_alpha: 0.2
+  pad_size: 1.2
+  pad_alpha: 0.9
+  text_size: 0.8
+  thick_spacing: 30
+  thin_spacing: 5
 colors:
   sky: '#ffffff'
-  stars: '#ffffff'
+  stars: '#000000'
   star_pad: '#000000'
-  milky_way: '#ffffff'
-  shadow: '#000000'
+  milky_way: '#0011ff'
+  shadow: '#363636'
   con_lines: '#000000'
   con_lines_shadow: '#000000'
   asterisms: '#32cd32'
   helpers: '#ff7f50'
   horizon: '#ffffff'
-  grid: '#ff6633'
-  ecliptic: '#ff0000'
-  zodiac: '#ffa500'
+  grid: '#ffff00'
+  ecliptic: '#8a0000'
+  zodiac: '#850000'
   cardinals: '#8b0000'
   border: '#ffd700'
   mater: '#add8e6'
@@ -93,27 +98,30 @@ colors:
   cardback_2: '#660000'
   accent_1: '#b8860b'
   accent_2: '#b8860b'
+  calendar: '#000000'
   star_names: '#ffd700'
-  con_names: '#00ffff'
+  con_names: '#b85300'
   con_parts: '#ee82ee'
-  asterism_labels: '#00ff00'
-  ecliptic_label: '#ff0000'
+  asterism_labels: '#ff630f'
+  ecliptic_label: '#6b0000'
+  zodiac_label: '#6b0000'
 flags:
   con_lines: true
-  con_names: true
+  con_names: false
   con_parts: false
-  asterisms: true
+  asterisms: false
   helpers: false
-  star_names: true
-  grid: true
-  ecliptic: true
-  zodiac: false
+  star_names: false
+  grid: false
+  ecliptic: false
+  zodiac: true
   milky_way: true
   harey_stars: true
   show: true
   save: false
   star_colors: true
   show_guides: false
+  radial_labels: true
 fonts:
   labels:
     family: DejaVu Sans
@@ -132,10 +140,33 @@ font_sizes:
   polar_plot:
     s: 7
     l: 10
+  sky_view:
+    s: 7
+    l: 10
+sky_view:
+  border_size: 0.05
 calendar:
-  size: 0.1
-  font_sizes:
+  ring_size: 0.1
+  bleed_size: 0.2
+  line_width: 0.8
+  line_style: solid
+  labels_pos:
+    day: 0.5
+    month: 0.5
+    hour: 0.55
+  day_marker_size: 4
+  day_markers: o
+  font_widths:
     days: 0.6
     months: 0.8
+    hours: 0.8
+    circles: 0.0
+  cardinals_font_size: 10
+  hours_lw: 0.5
+  hours_ls: solid
+  half_hours_lw: 0.8
+  half_hours_ls: dashed
+  quarter_hours_lw: 0.4
+  quarter_hours_ls: dotted
 planisphere:
-  hatch: /
+  hatch: '.....'

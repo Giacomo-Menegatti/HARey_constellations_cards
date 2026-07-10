@@ -184,9 +184,9 @@ class HAReyMain(StarColorMap):
             self.style = style_dict        
 
         #Initialize graphical parameters to default values
-        self.limiting_magnitude = self.style['star_size']['limiting_mag']
-        self.limit_size = self.style['star_size']['limit_size']
-        self.mag_power = self.style['star_size']['power_law']
+        self.limiting_magnitude = self.style['star_mag']['limiting_mag']
+        self.limit_size = self.style['star_mag']['limit_size']
+        self.mag_power = self.style['star_mag']['power_law']
 
         self.milky_way_levels = self.style['milky_way']['mw_levels']
         self.set_milky_way_alpha(levels=self.milky_way_levels, min_alpha=self.style['milky_way']['alpha_low'], max_alpha=self.style['milky_way']['alpha_high'])

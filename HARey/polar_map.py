@@ -44,15 +44,15 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 
 	"""
 
-	FLAGS = self.flags.resolve(*flags)
+	self.FLAGS = self.flags.resolve(*flags)
 	COLORS = self.colors.colors
 
 	# If the save_name is not None or sis_script is enabled, save automatically the plot
 	if not save_name == None:
-		FLAGS['save'] = True
+		self.FLAGS['save'] = True
 
 	# Default file name
-	if FLAGS['save'] and save_name==None:
+	if self.FLAGS['save'] and save_name==None:
 		pole_name = 'North' if pole == 'N' else 'South' if pole == 'S' else ''
 		save_name = f'{pole_name}_polar_map.png'
 
@@ -113,7 +113,7 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	# Get the line width
 	line_w = marker_size * self.style['line_widths']['scale_factor'] * self.style['line_widths']['grid']['thin']
 
-	if FLAGS['grid']: 
+	if self.FLAGS['grid']: 
 		inner_grid_r = scale*azimuthal_radius(2*10) if mode=='azimuth' else scale*stereo_radius(20)
 		line = np.array((inner_grid_r, map_radius))
 		theta = np.pi/12
@@ -145,80 +145,103 @@ def polar_map(self, *flags, pole = 'N', FOV = 100, figsize = 8, save_name = None
 	if ADD_CALENDAR:
 
 		CALENDAR = self.style['calendar']
-		
+		RING_WIDTHS = CALENDAR['ring_widths']
+		LWS = CALENDAR['line_widths']
+
 		# Compute the inner and outer radii of the three rings
-		start_radius, end_radius = figsize, usable_radius * figsize
+		start_radius, end_radius = (1 - calendar_width) * figsize, figsize
 
 		# If the calendar is inverted, swap start and end radii
 		if not CALENDAR_OUTSIDE:
 			start_radius, end_radius = end_radius, start_radius
 
-			
-		# Compute the spacing between the rings
-		ring_w = (end_radius-start_radius)/(3 + CALENDAR['bleed_size'])
+		ring_widths = list(RING_WIDTHS.values())
+		norm = np.sum(ring_widths)
 
-		color = COLORS['calendar']
-		# Plot the rings
-		for i in (0, 1, 2, 2+CALENDAR['bleed_size'], 3+CALENDAR['bleed_size']):
-			ax.add_patch(Circle((0,0), start_radius + i*ring_w, fill=False, edgecolor=color, lw=CALENDAR['line_width'], linestyle=CALENDAR['line_style']))
+		ring_widths = (end_radius - start_radius)/norm * np.array(ring_widths)
 
-		# Angle of the spring Equinox, which correspond to the 0 RA value, which will be down
-		equinox_offest = datetime(2001,3,20).timetuple().tm_yday/365
-		
-		# Compute the radii where the day and month labels will be plotted
-		r_days = start_radius + (1.0+ CALENDAR['labels_pos']['day'])*ring_w
-		r_months = start_radius + (CALENDAR['labels_pos']['month'])*ring_w
+		RING_WIDTHS = {key: ring_width for key, ring_width in zip(RING_WIDTHS.keys(), ring_widths)}
+		ring_radii = {key : start_radius + np.sum(ring_widths[:i+1]) for i, key in enumerate(RING_WIDTHS.keys())}
+
+		ax.add_patch(Circle((0,0), start_radius, fill=False, edgecolor=COLORS['calendar'], lw=CALENDAR['line_width'], ls='solid'))
+
+		ax.add_patch(Circle((0,0), ring_radii['hour_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['hour_ring'], ls='solid'))
+
+		ax.add_patch(Circle((0,0), ring_radii['bleed_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['bleed_ring'], ls='solid'))
+
+		ax.add_patch(Circle((0,0), ring_radii['day_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['day_ring'], ls='solid'))
+
+		ax.add_patch(Circle((0,0), ring_radii['month_ring'], fill=False, edgecolor=COLORS['calendar'], lw=LWS['month_ring'], ls='solid'))
+
+		ax.add_patch(Circle((0,0), end_radius, fill=False, edgecolor=COLORS['calendar'], lw=CALENDAR['line_width'], ls='solid'))
 
 		calendar_offset = np.pi if INVERT_CALENDAR else 0.0
+
+		# Angle of the spring Equinox, which correspond to the 0 RA value, which will be down
+		equinox_offest = datetime(2001,3,20,13,31).timetuple().tm_yday/365
 
 		# Function to compute the angle of a day on the celendar, from the fraction of the year it corresponds to
 		time2angle = lambda time: c*(time - equinox_offest)*2*np.pi + np.pi + calendar_offset
 
+		# Compute the radii where the day and month labels will be plotted
+		day_r = ring_radii['bleed_ring'] + RING_WIDTHS['day_ring']*CALENDAR['labels_pos']['day']
+		month_r = ring_radii['day_ring'] + RING_WIDTHS['month_ring']*CALENDAR['labels_pos']['month']
+
+		# Get the dates of all days in the years
+		doy = np.arange(1,366)
+		# Get 
+		dim = [31,28,31,30,31,30,31,31,30,31,30,31]
+		m_names = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+
+		dim_last = np.cumsum(dim)
+		dim_first = np.concatenate(([1], dim_last[:-1] + 1))
+
+		month = np.searchsorted(dim_last, doy) + 1
+		dom = doy - dim_first[month - 1] + 1
+
 		# Plot the day and month labels, going clockwise if seen from the north pole and counterclockwise if seen from the south
 		
-		for m in range(1,13):
-			# For each month, get the number of days
-			days_in_month = monthrange(2001,m)[1]
 
-			# Plot the day markers
-			for day in range(1,days_in_month+1):
-				# Get the time as a fraction of the whole year
-				time = datetime(2001, m, day).timetuple().tm_yday/365
-				angle = time2angle(time)
+		angle = time2angle(doy/365)
 
-				# Get the radius at which the marker will be plotted
-				marker_radius = start_radius + 2*ring_w
-				# Plot a filled circle if the day is the first of the month or a multiple of 5
+		# Get the radius at which the marker will be plotted
+		# Plot a filled circle if the day is the first of the month or a multiple of 5
 
-				fc = color if day%5==0 or day==1 else 'w'
-				ax.scatter(marker_radius*np.sin(angle), marker_radius*np.cos(angle), s=CALENDAR['day_marker_size'], marker=CALENDAR['day_markers'], ec=color, fc=fc, lw=CALENDAR['line_width'])
+		
+		
+		# Plot the day label every fifth day
+		fifth_mask = dom%5==0
+		first_mask = dom==1
 
-				# Plot the day label every fifth day
-				if day%5==0:
-					curved_text(ax, text=f'{day}', r=r_days, angle_offset = angle, \
-							 font_size= - CALENDAR['font_widths']['days']*ring_w, font_prop=self.fonts['calendar'])
+		mask = fifth_mask | first_mask
 
-			# Plot the month label in the middle of the month
-			time = (datetime(2001, m, 1).timetuple().tm_yday + days_in_month/2)/365
-			month_name = f'{datetime(2001,m,1).strftime("%B").upper()}'
+		ax.scatter(ring_radii['bleed_ring']*np.sin(angle[~mask]), ring_radii['bleed_ring']*np.cos(angle[~mask]), s=CALENDAR['day_marker_size'], marker=CALENDAR['day_markers'], ec=COLORS['calendar'], fc='w', lw=CALENDAR['line_width'])
 
-			curved_text(ax, text=month_name, r=r_months, angle_offset = time2angle(time), \
-			    		font_size= - CALENDAR['font_widths']['months']*ring_w, font_prop=self.fonts['calendar'])
+		ax.scatter(ring_radii['bleed_ring']*np.sin(angle[mask]), ring_radii['bleed_ring']*np.cos(angle[mask]), s=CALENDAR['day_marker_size'], marker=CALENDAR['day_markers'], ec=COLORS['calendar'], fc=COLORS['calendar'], lw=CALENDAR['line_width'])
 
+
+		for day, dom  in zip(doy[fifth_mask], dom[fifth_mask]):
+			curved_text(ax, text=f'{dom}', r=day_r, angle_offset = time2angle(day/365), \
+						font_size= - CALENDAR['font_widths']['days']*RING_WIDTHS['day_ring'], font_prop=self.fonts['calendar'])
+
+		for i, name in enumerate(m_names):
+			time = (dim_first[i] - 1  + dim[i]/2)/365
+			curved_text(ax, text=name, r=month_r, angle_offset = time2angle(time), \
+					font_size= - CALENDAR['font_widths']['months']*RING_WIDTHS['month_ring'], font_prop=self.fonts['calendar'])
 
 
 	# Plot all the labels
 	for name in labels:
 		label = labels[name]
-		rot = np.rad2deg(np.arctan2(label['y'], label['x'])) + 90 if FLAGS['radial_labels'] else 0
+		rot = np.rad2deg(np.arctan2(label['y'], label['x'])) + 90 if self.FLAGS['radial_labels'] else 0
 		ax.text(label['x'], label['y'], name, color=label['color'], fontsize=font_sizes[label['font_size']],\
 		   font=self.fonts['labels'], ha=label['ha'], va=label['va'], rotation=rot, rotation_mode='anchor')
 
 	# Save the image with all the labels
-	if FLAGS['save']:
+	if self.FLAGS['save']:
 		plt.savefig(save_name, transparent=True, dpi=self.dpi, pad_inches=0)
 
-	if FLAGS['show']:
+	if self.FLAGS['show']:
 		plt.show()
 	else:
 		plt.close()

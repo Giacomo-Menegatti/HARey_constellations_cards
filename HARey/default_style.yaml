@@ -11,7 +11,7 @@ min_FOV: 20   # minimum field of view in degrees. Small constellations will be z
 
 # The star sizes are computed from the Airy disk model, in which the size of the star is proportional to (lim_mag - mag)^alpha
 
-star_size:
+star_mag:
   limiting_mag: 5.5   # Limiting magnitude: stars fainter than this are not plotted
   limit_size: 0.01    # Size of limiting magnitude stars, to avoid plotting small points which do not look good when printing
   power_law: 1.5      # Power law exponent. 1 is correct for the radius of the Airy disk, 2 for the total brightness contained in the Airy disk. 1.5 is a compromise between the two.
@@ -228,15 +228,35 @@ sky_view:
   border_size: 0.05
 
 calendar:
-  ring_size : 0.1
-  bleed_size : 0.3
-  line_width : 0.8
-  line_style : 'solid'
+
+  ring_size : 0.12
+
+  ring_widths:
+    inner_pad : 0
+    hour_ring: 1.2
+    bleed_ring: 0.1
+    day_ring: 1
+    month_ring: 1
+    outer_pad : 0
+
+  line_widths : 
+    inner_pad : 1
+    hour_ring: 0.0
+    bleed_ring: 1
+    day_ring: 0.0
+    month_ring: 1
+    outer_pad : 1
+    
+
+  line_width : 1.0
+
+  cut_angle : 180
+  cut_lines_w : 1.0
 
   labels_pos:
     day : 0.5
     month : 0.5
-    hour : 0.55
+    hour : 0.45
 
   day_marker_size: 4
   day_markers: 'o'
@@ -245,16 +265,18 @@ calendar:
     days: 0.6
     months: 0.8
     hours: 0.8
-    circles: 0.0
 
   cardinals_font_size: 10
 
-  hours_lw: 0.5
-  hours_ls: 'solid'
-  half_hours_lw: 0.8
-  half_hours_ls: 'dashed'
-  quarter_hours_lw: 0.4
-  quarter_hours_ls: 'dotted'
+  ticks_lw:
+    hours: 0.9
+    half_hours: 0.8
+    quarter_hours: 0.7
+  
+  ticks_len:
+    hours: 0.15
+    half_hours: 0.55
+    quarter_hours: 0.35
 
 planisphere:
   hatch : '.....'
