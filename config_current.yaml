@@ -1,6 +1,6 @@
-dpi: 200
+dpi: 300
 min_FOV: 20
-star_size:
+star_mag:
   limiting_mag: 5.5
   limit_size: 0.01
   power_law: 1.0
@@ -45,22 +45,23 @@ line_styles:
 stars:
   size_factor:
     card_plot: 200.0
+    asterism_plot: 100.0
     equatorial: 10.0
-    polar: 200.0
+    polar: 250.0
     sky_view: 100.0
   line_pad:
     proportional: 1.5
-    constant: 0.1
-  shadow:
-    offset_x: 0.003
-    offset_y: 0.003
-    size: 2.0
-    alpha: 1.0
-    line_w: 0.1
+    constant: 0.08
   pad:
-    size: 1.5
+    size: 1.15
     alpha: 0.8
     line_w: 0.5
+  shadow:
+    offset_x: 0.001
+    offset_y: 0.001
+    size: 1.5
+    alpha: 1.0
+    line_w: 0.1
   alpha_bkg: 0.8
   alpha_faint: 0.8
   alpha_high: 1.0
@@ -68,7 +69,7 @@ star_colormap: stellarium
 milky_way:
   mw_levels: 5
   alpha_low: 0.15
-  alpha_high: 0.3
+  alpha_high: 0.5
 zodiac:
   ribbon_width: 1.0
   ribbon_alpha: 0.2
@@ -79,18 +80,18 @@ zodiac:
   thin_spacing: 5
 colors:
   sky: '#ffffff'
-  stars: '#000000'
+  stars: '#ffffff'
   star_pad: '#000000'
-  milky_way: '#0011ff'
-  shadow: '#363636'
+  milky_way: '#0040ff'
+  shadow: '#000000'
   con_lines: '#000000'
   con_lines_shadow: '#000000'
   asterisms: '#32cd32'
   helpers: '#ff7f50'
   horizon: '#ffffff'
   grid: '#ffff00'
-  ecliptic: '#8a0000'
-  zodiac: '#850000'
+  ecliptic: '#8f0000'
+  zodiac: '#c70000'
   cardinals: '#8b0000'
   border: '#ffd700'
   mater: '#add8e6'
@@ -100,11 +101,11 @@ colors:
   accent_2: '#b8860b'
   calendar: '#000000'
   star_names: '#ffd700'
-  con_names: '#b85300'
+  con_names: '#00ffff'
   con_parts: '#ee82ee'
-  asterism_labels: '#ff630f'
-  ecliptic_label: '#6b0000'
-  zodiac_label: '#6b0000'
+  asterism_labels: '#00ff00'
+  ecliptic_label: '#ff0000'
+  zodiac_label: '#8f0000'
 flags:
   con_lines: true
   con_names: false
@@ -134,6 +135,9 @@ fonts:
     weight: bold
 font_sizes:
   card_plot: 10
+  asterism_plot:
+    s: 7
+    l: 10
   equatorial_plot:
     s: 7
     l: 10
@@ -145,28 +149,45 @@ font_sizes:
     l: 10
 sky_view:
   border_size: 0.05
+  marker_radius: 0.97
+  marker_size: 10
+planisphere:
+  hatch: '.....'
 calendar:
   ring_size: 0.1
-  bleed_size: 0.2
-  line_width: 0.8
-  line_style: solid
+  ring_widths:
+    inner_pad: 0
+    hour_ring: 1.2
+    bleed_ring: 0.1
+    day_ring: 1
+    month_ring: 1
+    outer_pad: 0
+  line_widths:
+    inner_pad: 1
+    hour_ring: 0.0
+    bleed_ring: 1
+    day_ring: 0.0
+    month_ring: 1
+    outer_pad: 1
   labels_pos:
     day: 0.5
     month: 0.5
-    hour: 0.55
-  day_marker_size: 4
-  day_markers: o
+    hour: 0.45
   font_widths:
     days: 0.6
     months: 0.8
     hours: 0.8
-    circles: 0.0
   cardinals_font_size: 10
-  hours_lw: 0.5
-  hours_ls: solid
-  half_hours_lw: 0.8
-  half_hours_ls: dashed
-  quarter_hours_lw: 0.4
-  quarter_hours_ls: dotted
-planisphere:
-  hatch: '.....'
+  line_width: 1.0
+  cut_angle: 180
+  cut_lines_w: 1.0
+  day_marker_size: 4
+  day_markers: o
+  ticks_lw:
+    hours: 0.9
+    half_hours: 0.8
+    quarter_hours: 0.7
+  ticks_len:
+    hours: 0.15
+    half_hours: 0.55
+    quarter_hours: 0.35

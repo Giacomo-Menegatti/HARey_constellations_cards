@@ -6,7 +6,7 @@ from HARey.loader import load_stars, load_constellations, load_markers, load_nam
 from HARey.star_colormap import StarColorMap
 
 from HARey.card_template import set_card_template, plot_cardback
-from HARey.planisphere import plot_mater, create_planisphere, create_planisphere_2sided
+from HARey.planisphere import plot_mater, create_planisphere
 from HARey.sky_view import plot_sky_view
 from HARey.polar_map import polar_map
 from HARey.equatorial_map import equatorial_map
@@ -45,7 +45,6 @@ class HAReyMain(StarColorMap):
     # Recast planisphere methods as methods of HAReyMain
     plot_mater = plot_mater
     create_planisphere = create_planisphere
-    create_planisphere_2sided = create_planisphere_2sided
 
     # Recast Oberver as an object of HAReyMain
     Observer = Observer
@@ -75,7 +74,7 @@ class HAReyMain(StarColorMap):
 
 
     def __init__(self, hip_file = None, index_file = None, 
-                 names_file = None, mw_file=None, language = 'IAU-EN',style_file=None):
+                 names_file = None, mw_file=None, language = 'IAU-EN', style_file=None):
         """
         Initialize the HARey class. This function loads the stars, constellations, markers and language automatically.
         
@@ -89,7 +88,11 @@ class HAReyMain(StarColorMap):
         # Recast is_visible as a function of HAReyMain (inside the class, so the first argument is not self)
         self.is_visible = is_visible
 
-        self.load_style()
+        self.load_style(style_file)
+
+        planisphere_config = get_file(default='planisphere_config.yaml')
+        with open(planisphere_config) as f:
+            self.planisphere_format = yaml.safe_load(f)
 
         # Initialize the star_colormap with either 'stellarium' or 'helland' colormaps
         StarColorMap.__init__(self, 'stellarium')  
@@ -97,7 +100,7 @@ class HAReyMain(StarColorMap):
         print('Loading constellations diagrams....    ', end=' ')
         # Load constellation stars, lines, asterisms, helpers and names
         self.cons, self.con_ids, self.asterisms, self.helpers,\
-            self.named_stars =load_constellations(index_file)
+            self.named_stars = load_constellations(index_file)
 
         print('Done!\nLoading star coordinates....    ', end=' ')
         # Load the stars positions and magnitude
@@ -202,7 +205,6 @@ class HAReyMain(StarColorMap):
         self.fonts = {}
         for font in self.style['fonts']:
             self.fonts[font] = FontProperties(family = self.style['fonts'][font]['family'], weight = self.style['fonts'][font]['weight'])
-
 
 
     def is_constellation(self, id):

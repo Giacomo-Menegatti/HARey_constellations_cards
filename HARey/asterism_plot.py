@@ -14,7 +14,7 @@ from HARey.projections import project_region
 from HARey.plot_map import plot_map
 from HARey.polar_map import stereo_radius
 
-def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, star_size = 100, font_sizes = (5,7)):
+def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, star_size = None, font_sizes = None):
     """
     Plot the asterism or the helper ray, highlighting the constellations involved.
 	Font and star sizes are relative to the map area and FOV, so that the plot looks similar with different FOVs and figure sizes.
@@ -27,7 +27,9 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
 		- font_sizes (float, float): the sizes of the labels, small (constellation_parts, stars) and big (constellation names and asterisms)		
     """ 
     self.FLAGS = self.flags.resolve(*flags)
-    self.COLORS = self.colors.colors
+    COLORS = self.colors.colors
+
+
 
     # Check if the id is of an asterism or a helper ray (which starts with HR)
     ASTERISM = not id.startswith('HR')
@@ -54,17 +56,21 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
     if self.FLAGS['save'] and save_name==None:
         save_name = f'{id}_{"asterism" if ASTERISM else "helper"}.png'
 
+    star_size = self.style['stars']['size_factor']['asterism_plot'] if star_size == None else star_size
+    font_sizes = self.style['font_sizes']['asterism_plot'] if font_sizes == None else {k:size for k, size in zip(('s','l'), font_sizes)}
+
     # Project the region of sky including the constellations part of the asterism or helper ray
     (x_span, y_span), transform, _  = project_region(self, cons_list, BEST_AR=False)
 
     # Get the map radius
     map_radius = np.sqrt(x_span**2 + y_span**2) 
+  	
+	# Scale the star sizes and the text labels based on the plot area and the FOV
+    figure_scale = (figsize/8)**2.0 				# Scale w.r.t the area of a 8x8 inches figure
+    area_scale = stereo_radius(100)**2/map_radius**2		# Scale w.r.t the area of a 100° FOV area plot 
 
-  	# Scale the star sizes and the text labels based on the plot area and the map radius
-    marker_scale =(figsize/8)*(stereo_radius(100)/map_radius)**0.25
-
-    font_sizes = {k:marker_scale*size for k,size in zip(('s', 'l'), font_sizes)}
-    marker_size = star_size * marker_scale**2  
+    marker_size = star_size*figure_scale*area_scale
+    font_sizes = {k:round(np.sqrt(figure_scale*area_scale)*font_sizes[k]) for k in font_sizes}	
 
     # Create the figure
     fig,ax = plt.subplots(figsize = (figsize, figsize), dpi=self.dpi) #figure with correct aspect ratio
@@ -84,7 +90,7 @@ def plot_asterism(self, *flags, id = 'SumT',  figsize = 8, save_name = None, sta
     map_radius = map_radius*scale
 
     # Draw the circle patch
-    box = Circle((0, 0), map_radius, color=self.COLORS['sky'], fill=True)
+    box = Circle((0, 0), map_radius, color=COLORS['sky'], fill=True)
     ax.add_patch(box)
 
     scaling = lambda x,y: (scale*x, scale*y)

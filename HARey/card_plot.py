@@ -30,7 +30,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
     
     # Update flags and colors according to the call overrides. This changes will persist for the successive plots.
     self.FLAGS = self.flags.resolve(*flags)  
-    self.COLORS = self.colors.colors
+    COLORS = self.colors.colors
 
     # Check if the id is a valid constellation
     self.is_constellation(id)
@@ -101,7 +101,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
 
     # Create the card profile and add it to the plot
     box = FancyBboxPatch(xy=(-card_half_w,-card_half_h), width=2*card_half_w, height=2*card_half_h, boxstyle=box_style,
-                        fill=True, facecolor=self.COLORS['sky'], edgecolor=None, linewidth=0)    
+                        fill=True, facecolor=COLORS['sky'], edgecolor=None, linewidth=0)    
     ax.add_patch(box)
 
     # Compute the scale of the plot to fill the safe area    
@@ -151,7 +151,7 @@ def plot_card(self, *flags, id = 'Ori', BEST_AR = False, save_name = None, star_
 
         # Plot the north marker
         t = Affine2D().rotate_deg(180 + np.rad2deg(-north_angle))
-        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=self.COLORS['cardinals'], markeredgewidth=0)
+        ax.plot(x,y, marker=MarkerStyle(north_marker, transform=t), markersize=font_size, color=COLORS['cardinals'], markeredgewidth=0)
 
 
     # Plot all labels

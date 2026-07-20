@@ -5,14 +5,11 @@ This module contains the function plot_sky_view, which is used to plot the sky s
 
 
 import numpy as np
-import pandas as pd
-import os
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Annulus, Circle
 from matplotlib.transforms import Affine2D
 from matplotlib.markers import MarkerStyle
-from matplotlib.colors import to_hex
 
 from HARey.astro_functions import radec2azalt
 from HARey.projections import stereo_radius, stereo_polar
@@ -33,7 +30,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
 	"""
     
     self.FLAGS = self.flags.resolve(*flags)
-    self.COLORS = self.colors.colors
+    COLORS = self.colors.colors
 
     # If the save_name is not None save automatically the plot
     if not save_name == None:
@@ -77,11 +74,11 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     map_radius = scale*stereo_radius(FOV)
 
     #Draw the circle patch
-    box = Circle((0, 0), map_radius, color=self.COLORS['sky'], fill=True)
+    box = Circle((0, 0), map_radius, color=COLORS['sky'], fill=True)
     ax.add_patch(box)
 
     # Draw the horizon circle
-    horizon_line = Circle((0,0), radius=stereo_radius(180)*scale, linestyle='--', color=self.COLORS['horizon'], fill=False, lw = line_w)
+    horizon_line = Circle((0,0), radius=stereo_radius(180)*scale, linestyle='--', color=COLORS['horizon'], fill=False, lw = line_w)
     ax.add_patch(horizon_line)
 
     altaz_projection = lambda ra, dec : radec2azalt(ra, dec, observer)
@@ -99,7 +96,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
     
 
     #Plot the compass ring   
-    compass = Annulus((0,0), r=figsize, width=(self.style['sky_view']['border_size']*figsize), color=self.COLORS['border'], transform=ax.transData)
+    compass = Annulus((0,0), r=figsize, width=(self.style['sky_view']['border_size']*figsize), color=COLORS['border'], transform=ax.transData)
     ax.add_patch(compass)
 
 	# Clip everything to the box plot
@@ -113,7 +110,7 @@ def plot_sky_view(self, observer, *flags, FOV = 182, figsize = 8, save_name = No
         t = Affine2D().rotate_deg(90*i)
         theta = np.deg2rad(90*i)
         ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(empty_marker, transform=t), markersize=7, color='white', markeredgewidth=0)
-        ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(marker, transform=t), markersize=8, color=self.COLORS['cardinals'], markeredgewidth=0)    
+        ax.plot(m_radius*np.sin(theta), m_radius*np.cos(theta), marker=MarkerStyle(marker, transform=t), markersize=8, color=COLORS['cardinals'], markeredgewidth=0)    
 
     # Plot all labels
     for name in labels:

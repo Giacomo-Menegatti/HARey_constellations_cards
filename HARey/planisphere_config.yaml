@@ -1,55 +1,67 @@
-calendar:
+# The calendar and hour rings are drawn on the outside of the polar map and the planisphere.
+# The order of the rings is: inner_pad, hour_ring, bleed_ring, day_ring, month_ring, outer_pad
+# To keep the rings but make the borders disappear, set the line widths to 0
 
-  ring_size : 0.3
+ring_size : 0.15        # Relative width of all the rings w.r.t the radius of the planisphere/polar_map
 
-  ring_widths:
-    inner_pad : 1
-    hour_ring: 1
-    bleed_ring: 1
-    day_ring: 1
-    month_ring: 1
-    outer_pad : 1
+mark_center : True
+calendar_offset : 0.0
 
-  line_widths : 
-    inner_pad : 1
-    hour_ring: 1
-    bleed_ring: 1
-    day_ring: 1
-    month_ring: 1
-    outer_pad : 1
-    
+ADD_CALENDAR : False
+PETALS : False
+SOLID_FILL : False
 
-  line_width : 1.0
-
-  cut_angle : 180
-  cut_lines_w : 1.0
-
-  labels_pos:
-    day : 0.5
-    month : 0.5
-    hour : 0.45
-
-  day_marker_size: 4
-  day_markers: 'o'
-
-  font_widths:
-    days: 0.6
-    months: 0.8
-    hours: 0.8
-
-  cardinals_font_size: 10
-
-  ticks_lw:
-    hours: 0.9
-    half_hours: 0.8
-    quarter_hours: 0.7
-  
-  ticks_len:
-    hours: 0.15
-    half_hours: 0.55
-    quarter_hours: 0.35
-
-planisphere:
-  hatch : '.....'
+petals:
+  number : 4
+  length : 1.25
+  angle : 85.0
+  rotate : 45.0
+  wedge_width : 0.75
+  fit_to_petals : False
 
 
+
+ring_widths:            # Relative width of each ring. The sum of all these is normalized to 1
+  inner_pad : 0.4        # Pad between the planisphere cutout and the hour ring
+  hour_ring: 1.2        # Hour ring
+  bleed_ring: 0.3       # Bleed ring between the hour ring and the day ring. This is meant to be cut away when makinh the planisphere
+  day_ring: 1           # Day ring, containing the day of month indications
+  month_ring: 1         # Month ring, containing the month names
+  outer_pad : 1         # Pad between the month ring and the border of the planisphere
+
+line_widths :            # Relative line widths of each ring. Set them to 0 to make them disappear
+  inner_pad : 1
+  hour_ring: 0
+  bleed_ring: 1
+  day_ring: 0.0
+  month_ring: 1
+  outer_pad : 1
+
+labels_pos:              # Relative position of the labels in the rings. 0.5 gives a label in the center of the ring 
+  day : 0.5     
+  month : 0.5
+  hour : 0.45
+
+font_widths:             # Relative width of each font compared to the ring width
+  days: 0.6
+  months: 0.8
+  hours: 0.8
+
+cardinals_font_size: 10   # Font size of the cardinal markers in the planisphere
+
+cut_angle : 180         # Angle of the cut section in degrees  
+cut_lines_w : 1.0       # Cut lines width
+
+day_marker_size: 4      # Size of the day markers
+day_markers: 'o'        # Marker style of the day markers
+marker_lw : 0.8
+
+ticks_lw:               # Width of the tick lines in the hour ring
+  hours: 0.9
+  half_hours: 0.8
+  quarter_hours: 0.7
+
+ticks_len:              # Length of the tick lines in the hour ring. 1.0 covers the whole ring
+  hours: 0.15
+  half_hours: 0.55
+  quarter_hours: 0.35

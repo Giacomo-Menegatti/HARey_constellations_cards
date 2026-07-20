@@ -7,7 +7,9 @@
 dpi: 300      # dpi of the images
 min_FOV: 20   # minimum field of view in degrees. Small constellations will be zoomed-out to this FOV to show the sky around them
 
-# APPARENT STAR SIZES
+# =========================================
+# STAR SIZE function
+# =========================================
 
 # The star sizes are computed from the Airy disk model, in which the size of the star is proportional to (lim_mag - mag)^alpha
 
@@ -20,17 +22,20 @@ star_mag:
 # LINE PLOT SETTINGS
 # =========================================  
 
-# Transparency of lines
+# LINE TRANSPARENCY
 line_alpha:       
   constellations: 1.0     # Highlighted constellations lines
   bkg_constellations: 0.3 # Not-highlighted constellations lines
   shadows: 0.3            # Shadows arond the highlighted constellations lines
   ecliptic: 0.5           # Ecliptic line
 
-# Width of lines
+# LINE WIDTHS
 # The default line width is computed from the marker size (which is the plotted size of a 0-mag star)
 
 line_widths:
+
+  # Line widths shared by every plot
+
   scale_factor: 0.006     # Scale factor to convert from marker_size to default line_width 
   constellations: 1.0     # Highlighted constellations lines relative width
   bkg_constellations: 1.0 # Not-highlighted constellations lines relative width
@@ -38,35 +43,42 @@ line_widths:
   helpers: 1.0            # Helper lines relative width
   asterisms: 1.25         # Asterism lines relative width
   ecliptic: 1.5           # Ecliptic line relative width
-  zodiac: 
-    thin: 1.0
-    thick: 4.0
-  grid:                   # Grid lines relative width (both thick and thin)
-    thick: 0.8
-    thin: 0.6
-  planisphere: 
-    borders: 1.0
-    meridians: 0.6
+  zodiac:                 # Zodiac ribbon
+    thin: 1.0             # Thin lines for minor divisions
+    thick: 4.0            # Thick lines for dividing the zodiacal signs
   
+  grid:                   # Grid lines, prresent only in equatorial and polar plots
+    thick: 0.8            # Celestial equator grid line width
+    thin: 0.6             # Generic grid line width
 
-# Line styles
+  planisphere:            # Planisphere lines
+    borders: 1.0          # Border lines (circle, visible horizon)
+    meridians: 0.6        # Planisphere meridian lines
+  
+# LINE STYLES
 
 line_styles:
+
+  # Linestyles shared by every plot
+
   constellations: solid       # Highlighted constellations lines
   bkg_constellations: solid   # Not-highlighted constellations lines
   shadows: solid              # Shadows arond the highlighted constellations lines
   helpers: dotted             # Helper lines
   asterisms: solid            # Asterism lines
   ecliptic: dashed            # Ecliptic line
+
+  # Line styles specific to each plot
+
   planisphere:
-    meridians: dotted
-    borders: solid
+    meridians: dotted         # Planisphere meridian lines
+    borders: solid            # Planisphere border lines
   sky_view:
-    horizon: dashed
-  polar:
-    grid: dashed
+    horizon: dashed           # Horizon circle in the sky view
+  polar:                      
+    grid: dashed              # polar map grid lines
   equatorial:
-    grid: dashed
+    grid: dashed              # equatorial map grid lines
 
 
 
@@ -81,27 +93,35 @@ stars:
 
   size_factor:            # The initial scale factor depends ont the type of plot. 
     card_plot: 200.0      # Scale factor in a card plot
+    asterism_plot: 100.0  # Scale factor for the asterism plot
     equatorial: 10.0      # Scale factor in an equatorial full-sky plot
-    polar: 100.0           # Scale factor for the polar map
-    sky_view: 100.0
+    polar: 100.0          # Scale factor for the polar map
+    sky_view: 100.0       # Scale factor for the sky view
 
   # Pad size for lines. The pad is the empty area around the star where the constellation lines stop  
   # The pad is computed as star_size * proportional_term + constant_term
   line_pad:
     proportional: 2.0     # proportional term
-    constant: 0.01         # constant term
+    constant: 0.01        # constant term
 
-  shadow: # Shadow below the highlighted stars
+  # Pad properties. The pad is a copy of the star markew with the color of the sky by default, so the star is separated from the background
+  
+  pad:                    # Pad around the star. It's a copy of the star markew with the color of the sky by default
+    size: 1.05            # Relative size of the pad compared to the star
+    alpha: 0.8            # Transparency of the pad
+    line_w: 0.0           # Relative line width of the pad (compared to the generic line width)
+
+
+  # Shadow properties. The shadow is plotted above the pad below the star to make it more 3D. It could also be used as a highlight
+
+  shadow: 
     offset_x: 0.001       # Offset factor in the x direction (proportional to the star size)
     offset_y: 0.001       # Offset factor in the y direction
     size: 1.5             # Size of the shadow compared to the star size
     alpha: 1.0            # Transparency of the shadow
-    line_w : 0.1         # Relative line width of the shadow
+    line_w : 0.1          # Relative line width of the shadow (compared to the generic line width)
 
-  pad:
-    size: 1.05
-    alpha: 0.8
-    line_w: 0.0
+  # Star markers properties
 
   alpha_bkg: 0.8          # Transparency of the background stars (those rendered with a dot, below 5.5 mag)
   alpha_faint: 0.8        # Transparency of not-highlighted stars
@@ -154,7 +174,7 @@ colors:
   zodiac: '#ffa500'           # Zodiac ribbon
   cardinals: '#8b0000'        # Cardinal markers and north indicator
   border: '#ffd700'           # Skyview border color
-  mater: '#add8e6'            # Planisphere mater color
+  mater: '#000000'            # Planisphere mater color
   cardback_1: '#004577'       # Color of the cardback, first type
   cardback_2: '#660000'       # Color of the cardback, second type
   accent_1: '#b8860b'         # Color of the accent on the first cardback
@@ -184,8 +204,8 @@ flags:
   helpers: false              # Helper lines visibility
   star_names: false           # Star name labels visibility
   grid: false                 # Grid lines visibility
-  ecliptic: false             # Ecliptic line visibility
-  zodiac: true                # Zodiac ribbon visibility
+  ecliptic: true             # Ecliptic line visibility
+  zodiac: false                # Zodiac ribbon visibility
   milky_way: true             # Milky way visibility  
   harey_stars: true           # Use the custom HARey star markers to show the stars magnitudes or just points
   show: true                  # Show the plots
@@ -211,74 +231,40 @@ fonts:
     weight: bold
 
 # The font sizes are divided in large (constellation and asterism names) and small (parts and star names)
-
 font_sizes:
-  card_plot: 10
-  equatorial_plot:
+  card_plot: 10           # Font size in the card plot, only for small labels
+  asterism_plot :         # Font sizes in the asterism plot, both small and large labels
+    s : 7
+    l: 10
+  equatorial_plot:        # Font sizes in the equatorial plot, both small and large labels
     s: 7
     l: 10
-  polar_plot:
+  polar_plot:             # Font sizes in the polar map, both small and large labels
     s: 7
     l: 10
-  sky_view:
+  sky_view:               # Font sizes in the sky view, both small and large labels
     s: 7
     l: 10
 
+# =========================================
+# SKY VIEW SETTINGS
+# =========================================
+
+# The sky view border is the gold area around it where the cardinal markers are located
 sky_view:
-  border_size: 0.05
+  border_size: 0.05       # Relative width of the border annulus w.r.t the plot radius
+  marker_radius : 0.97    # Relative distance from the center of the cardinal markers (1.0 is the border)
+  marker_size : 10        # Cardinal marker size (NOT affected by the generic marker size factor, because they are not part of the sky map)
 
-calendar:
-
-  ring_size : 0.12
-
-  ring_widths:
-    inner_pad : 0
-    hour_ring: 1.2
-    bleed_ring: 0.1
-    day_ring: 1
-    month_ring: 1
-    outer_pad : 0
-
-  line_widths : 
-    inner_pad : 1
-    hour_ring: 0.0
-    bleed_ring: 1
-    day_ring: 0.0
-    month_ring: 1
-    outer_pad : 1
-    
-
-  line_width : 1.0
-
-  cut_angle : 180
-  cut_lines_w : 1.0
-
-  labels_pos:
-    day : 0.5
-    month : 0.5
-    hour : 0.45
-
-  day_marker_size: 4
-  day_markers: 'o'
-
-  font_widths:
-    days: 0.6
-    months: 0.8
-    hours: 0.8
-
-  cardinals_font_size: 10
-
-  ticks_lw:
-    hours: 0.9
-    half_hours: 0.8
-    quarter_hours: 0.7
-  
-  ticks_len:
-    hours: 0.15
-    half_hours: 0.55
-    quarter_hours: 0.35
+# =========================================
+# CALENDAR AND HOUR SETTINGS FOR THE PLANISPHERE
+# =========================================
 
 planisphere:
-  hatch : '.....'
+  hatch : '.....'         # Hatch patter of the planisphere is SOLID_FILL is false
+
+
+
+
 
 

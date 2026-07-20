@@ -16,6 +16,8 @@ def plot_within_borders(self, borders, coord_transform, FOV, scale, marker_size,
 		The projection is the Gall stereographic, with x = ra/sqrt(2) and y = (1+sqrt(2)/2)*tan(dec/2)
 	'''
 
+	COLORS = self.colors.colors
+
 	width, height = Gall_dims(borders[1]-borders[0], FOV)
 	width, height = width*scale, height*scale
 	left_border, right_border = scale*Gall_horizontal(borders[0]), scale*Gall_horizontal(borders[1])
@@ -35,13 +37,13 @@ def plot_within_borders(self, borders, coord_transform, FOV, scale, marker_size,
 	ax.set_axis_off()
 	ax.invert_xaxis()
 
-	box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=self.COLORS['sky'], edgecolor=None, linewidth=0)
+	box = Rectangle(xy=(left_border, -height/2), width=width, height=height, fill=True, facecolor=COLORS['sky'], edgecolor=None, linewidth=0)
 	ax.add_patch(box)
 
 	# Condition for plotting lines to avoid crossing the plot. Check that each line does not have points outside both borders.
 	not_outside = lambda x,y: (x>left_border) & (x<right_border) & (y < height/2) & (y > -height/2)
 
-	plot_map(self, ax=ax, box=box, transform=transform, marker_size=marker_size, not_outside=not_outside, is_inverted=True, labels=labels)
+	plot_map(self, ax=ax, box=box, transform=transform, marker_size=marker_size, not_outside=not_outside, labels=labels)
 	
 	#Restrict everything to the bounding box
 	for col in ax.collections:
@@ -70,8 +72,10 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 		star_size (float): the relative size of the stars in the plot. 
 
 		'''	
+	
+	
 	self.FLAGS = self.flags.resolve(*flags)
-	self.COLORS = self.colors.colors
+	COLORS = self.colors.colors
 
 	# If the save_name is not None save automatically the plot
 	if not save_name == None:
@@ -136,27 +140,27 @@ def equatorial_map(self, *flags, max_dims = (11.0, 8.0), overlap = 40.0, dec_FOV
 		# Plot the RA grid
 		for ra in np.arange(25):
 			x = width*(360 + half_overlap - 15*ra)/(360 + overlap)
-			ax.axvline(x, height, 0, color=self.COLORS['grid'], linestyle='dotted', linewidth=self.style['line_widths']['grid']['thin']*line_w)
-			ax.text(x, height, s=f'{ra} h', color=self.COLORS['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			ax.axvline(x, height, 0, color=COLORS['grid'], linestyle='dotted', linewidth=self.style['line_widths']['grid']['thin']*line_w)
+			ax.text(x, height, s=f'{ra} h', color=COLORS['grid'], ha = 'center', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		# Plot the 0 dec line
-		ax.axhline(height/2, 0, width, color=self.COLORS['grid'], linestyle='solid', linewidth=self.style['line_widths']['grid']['thick']*line_w)
-		ax.text(0, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
-		#ax.text(width, height/2, s=f'  {0}° N  ', color=self.COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+		ax.axhline(height/2, 0, width, color=COLORS['grid'], linestyle='solid', linewidth=self.style['line_widths']['grid']['thick']*line_w)
+		ax.text(0, height/2, s=f'  {0}° N  ', color=COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+		#ax.text(width, height/2, s=f'  {0}° N  ', color=COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 		y_scale = height/(2*Gall_vertical(dec_FOV/2))
 
 		for dec in np.arange(10, 75, 10):
 			# Plot the north grid lines
 			y_n = height/2 - Gall_vertical(dec)*y_scale	
-			ax.axhline(y_n, 0, width, color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(0, y_n, s=f'  {dec}° N  ', color=self.COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
-			#ax.text(width, y_n, s=f'  {dec}° N  ', color=self.COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			ax.axhline(y_n, 0, width, color=COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.text(0, y_n, s=f'  {dec}° N  ', color=COLORS['grid'], ha = 'left', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			#ax.text(width, y_n, s=f'  {dec}° N  ', color=COLORS['grid'], ha = 'right', va = 'bottom', fontsize = font_sizes['s'], font=self.fonts['labels'])
 
 			# Plot the south grid lines
 			y_s = height/2 + Gall_vertical(dec)*y_scale
-			ax.axhline(y_s, 0, width, color=self.COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
-			ax.text(0, y_s, s=f'  {dec}° S  ', color=self.COLORS['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
+			ax.axhline(y_s, 0, width, color=COLORS['grid'], linestyle='dotted', linewidth=0.6*line_w)
+			ax.text(0, y_s, s=f'  {dec}° S  ', color=COLORS['grid'], ha = 'left', va = 'top', fontsize = font_sizes['s'], font=self.fonts['labels'])
 			#ax.text(width, y_s, s=f'  {dec}° S  ', color=colors['grid'], ha = 'right', va = 'top', fontsize = font_sizes['s'] font=self.fonts['labels'])
 
 	# Plot all labels
